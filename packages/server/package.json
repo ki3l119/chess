@@ -4,7 +4,8 @@
   "author": "Joshua Kiel Gaurano",
   "license": "MIT",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/main.js"
   },
   "devDependencies": {
     "@types/node": "^22.8.7",
