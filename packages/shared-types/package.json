@@ -1,0 +1,6 @@
+{
+  "name": "chess-shared-types",
+  "description": "Types used by both server and client.",
+  "author": "Joshua Kiel Gaurano",
+  "license": "MIT"
+}
