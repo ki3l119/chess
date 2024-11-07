@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "build:dev": "tsc --sourceMap",
     "start": "node dist/main.js"
   },
   "devDependencies": {
