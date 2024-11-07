@@ -13,6 +13,9 @@ export class UserService {
    *
    * @param createUserDto - Info regarding the new user.
    * @returns Resolves to the newly created user.
+   *
+   * @throws {InvalidUserException}
+   * Thrown if the email or username already exists.
    */
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
