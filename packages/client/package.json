@@ -3,6 +3,9 @@
   "description": "React app for displaying the chess UI.",
   "author": "Joshua Kiel Gaurano",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc && webpack"
+  },
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
