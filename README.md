@@ -18,6 +18,8 @@ The project contains 3 packages, located in the `packages` directory:
 - `chess-client` - Web-based client application for displaying the chess UI.
 - `chess-shared-types` - Contains the types used by both server and client.
 
+For packages that require certain environment variables to be set, a`.env` file can be placed in the root directory of the repo.
+
 ## Building the Server
 
 The server is written in TypeScript with the NestJS framework. A PostgreSQL database is used to store information on the user accounts.
@@ -26,8 +28,6 @@ Ensure that the following environment variables are set:
 
 - `PORT` (Optional) - The PORT in which the server will be running in. Defaults to 3000.
 - `DB_URI` - The URI to the PostgreSQL database.
-
-For development, a `.env` file can be placed in the `./packages/server` directory:
 
 ```dotenv
 # Sample .env file
