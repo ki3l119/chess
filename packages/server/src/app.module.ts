@@ -12,6 +12,7 @@ import { LoggerMiddleware } from "./logger.middleware";
   imports: [
     ConfigModule.forRoot({
       validationSchema: configValidationSchema,
+      envFilePath: "../../.env",
     }),
     DatabaseModule,
     UserModule,
