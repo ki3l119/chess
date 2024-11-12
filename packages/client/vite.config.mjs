@@ -1,5 +1,5 @@
-const react = require("@vitejs/plugin-react");
-const postCssPresetEnv = require("postcss-preset-env");
+import react from "@vitejs/plugin-react";
+import postCssPresetEnv from "postcss-preset-env"
 
 /**
  * @type {import('vite').UserConfig}
@@ -13,4 +13,4 @@ const config = {
   ],
 };
 
-module.exports = config;
+export default config;
