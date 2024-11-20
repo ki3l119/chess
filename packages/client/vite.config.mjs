@@ -5,6 +5,13 @@ import postCssPresetEnv from "postcss-preset-env"
  * @type {import('vite').UserConfig}
  */
 const config = {
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler"
+      }
+    }
+  },
   plugins: [
     react(),
     postCssPresetEnv({
