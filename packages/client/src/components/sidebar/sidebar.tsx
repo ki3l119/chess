@@ -1,0 +1,114 @@
+import React, { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBars,
+  faArrowRight,
+  faCircleUser,
+  IconDefinition,
+  faChess,
+  faAddressCard,
+} from "@fortawesome/free-solid-svg-icons";
+import "./sidebar.scss";
+
+import { PieceColor, PieceName } from "../../utils/chess";
+import { Piece } from "../piece/piece";
+
+type SidebarLinkProps = {
+  icon: IconDefinition;
+  text: string;
+  isActive?: boolean;
+};
+
+const SidebarLink: React.FC<SidebarLinkProps> = ({
+  icon,
+  text,
+  isActive = false,
+}) => {
+  const classes = ["sidebar__link"];
+
+  if (isActive) {
+    classes.push("sidebar__link--active");
+  }
+  return (
+    <div className={classes.join(" ")}>
+      <FontAwesomeIcon className="sidebar__link-icon" icon={icon} />
+      <a className="sidebar__link-text">{text}</a>
+    </div>
+  );
+};
+
+export const Sidebar: React.FC = () => {
+  const [activeLinkIndex, setActiveLinkIndex] = useState(0);
+  const [isActive, setIsActive] = useState(false);
+
+  const links: Pick<SidebarLinkProps, "icon" | "text">[] = [
+    {
+      icon: faChess,
+      text: "Game",
+    },
+    {
+      icon: faAddressCard,
+      text: "Register",
+    },
+  ];
+
+  const sidebarClasses = ["sidebar"];
+
+  if (isActive) {
+    sidebarClasses.push("sidebar--active");
+  }
+
+  const onSidebarTriggerClick = () => {
+    setIsActive(true);
+  };
+
+  const onSidebarClose = () => {
+    setIsActive(false);
+  };
+
+  return (
+    <>
+      <FontAwesomeIcon
+        icon={faBars}
+        className="sidebar__trigger"
+        onClick={onSidebarTriggerClick}
+      />
+      <div className={sidebarClasses.join(" ")}>
+        <FontAwesomeIcon
+          className="sidebar__closer"
+          icon={faArrowRight}
+          onClick={onSidebarClose}
+        />
+        <div className="sidebar__header">
+          <Piece type={{ color: PieceColor.WHITE, name: PieceName.ROOK }} />
+        </div>
+        <div className="sidebar__user-section ">
+          <FontAwesomeIcon className="sidebar__user-icon" icon={faCircleUser} />
+          <p className="sidebar__username">Guest</p>
+        </div>
+        <hr className="sidebar__divider" />
+        {links.map((link, index) => (
+          <SidebarLink
+            key={link.text}
+            icon={link.icon}
+            text={link.text}
+            isActive={activeLinkIndex == index}
+          />
+        ))}
+      </div>
+    </>
+  );
+};
+
+export type SidebarLayoutProps = {
+  children?: React.ReactNode;
+};
+
+export const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
+  return (
+    <div className="sidebar-layout">
+      <Sidebar />
+      <div className="sidebar-layout__main-content">{children}</div>
+    </div>
+  );
+};

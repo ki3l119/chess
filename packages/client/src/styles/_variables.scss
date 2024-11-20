@@ -1,0 +1,36 @@
+$primary-color: (
+  "base": #542d92,
+  "contrast": #ffffff,
+  "light": #805fad,
+  "dark": #3c1384
+);
+
+$surface-color: (
+  "base": #282828,
+  "contrast": #ffffff,
+  "dark": #121212,
+  "light": #3f3f3f
+);
+
+$error-color: (
+  "base": #BE2332,
+  "contrast": #ffffff
+);
+
+
+$font-family: ui-sans-serif, system-ui, sans-serif;
+
+$font-sizes: (
+  "xs": 0.5rem,
+  "sm": 0.75rem,
+  "base": 1rem,
+  "lg": 1.5rem,
+  "xl": 2rem
+);
+
+$breakpoints: (
+  "sm": 576px,
+  "md": 768px,
+  "lg": 992px,
+  "xl": 1200px
+)

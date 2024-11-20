@@ -1,0 +1,132 @@
+@use "sass:map";
+@use "../../styles/_variables" as var;
+
+.sidebar {
+  background-color: map.get(var.$surface-color, "base");
+  color: map.get(var.$surface-color, "contrast");
+  font-family: var.$font-family;
+  display: none;
+  height: 100vh;
+  width: 30%;
+  z-index: 100;
+  padding: 0.1rem 0.5rem;
+  flex-direction: column;
+  row-gap: 15px;
+
+  @media (max-width: map.get(var.$breakpoints, "lg")) {
+    position: fixed;
+    display: none;
+
+    &--active {
+      display: block;
+      padding: 0.1rem 1.5rem;
+      position: fixed;
+      width: 100vw;
+    }
+  }
+
+  @media (min-width: map.get(var.$breakpoints, "lg")) {
+    display: flex;
+    width: 20%;
+    position: relative;
+  }
+
+  &__user-section {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    column-gap: 0.5rem;
+    padding: 0.2rem 0.3rem;
+  }
+
+  &__user-icon {
+    font-size: map.get(var.$font-sizes, "lg");
+  }
+
+  &__divider {
+    width: 100%;
+    opacity: 0.2;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+
+    &--active {
+      background-color: map.get(var.$primary-color, "light");
+      color: map.get(var.$primary-color, "contrast");
+      border-radius: 10px;
+    }
+
+    &:hover:not(&--active) {
+      cursor: pointer;
+      background-color: map.get(var.$primary-color, "light");
+      color: map.get(var.$primary-color, "contrast");
+      border-radius: 10px;
+    }
+  }
+
+  &__link-icon {
+    font-size: map.get(var.$font-sizes, "lg");
+    margin-right: 1rem;
+  }
+
+  &__link-text {
+    font-weight: bold;
+  }
+
+  &__header{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding-top: 20px;
+  }
+
+  &__trigger {
+    position: fixed;
+    top: 2%;
+    left: 2%;
+    font-size: map.get(var.$font-sizes, "lg");
+    color: map.get(var.$surface-color, "contrast");
+    &:hover {
+      cursor: pointer;
+    }
+    @media (min-width: map.get(var.$breakpoints, "lg")) {
+      display: none;
+    }
+  }
+
+  &__closer {
+    position: absolute;
+    top: 2%;
+    right: 5%;
+    font-size: map.get(var.$font-sizes, "xl");
+    color: map.get(var.$surface-color, "contrast");
+    &:hover {
+      cursor: pointer;
+    }
+    @media (min-width: map.get(var.$breakpoints, "lg")) {
+      display: none;
+    }
+  }
+}
+
+.sidebar-layout {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  
+
+  &__main-content {
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+  }
+
+}
+
+
+

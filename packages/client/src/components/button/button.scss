@@ -1,0 +1,39 @@
+@use "sass:map";
+@use "../../styles/_variables" as var;
+
+@mixin button-color($color) {
+  background-color: $color;
+  border-color: $color;
+}
+
+.button {
+  color: map.get(var.$primary-color, "contrast");
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: var.$font-family;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @include button-color(map.get(var.$primary-color, "base"));
+  padding: 1rem;
+
+  &__icon {
+    margin-right: 0.5rem;
+    font-size: 1.2em;
+  }
+  
+  &:hover {
+    @include button-color(map.get(var.$primary-color, "dark"));
+    cursor: pointer;
+  }
+
+  &:disabled {
+    @include button-color(map.get(var.$primary-color, "light"));
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
