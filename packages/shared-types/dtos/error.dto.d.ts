@@ -1,7 +1,8 @@
-export type ValidationError = {
-  message: string;
-  details: {
+export interface ProblemDetails {
+  readonly title: string;
+  readonly details: string;
+  readonly validationErrors?: {
     message: string;
     path: (string | number)[];
   }[];
-};
+}
