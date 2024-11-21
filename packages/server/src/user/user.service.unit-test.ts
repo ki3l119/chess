@@ -4,7 +4,10 @@ import { UserRepository } from "./user.repository";
 import { UserService } from "./user.service";
 import { afterEach } from "node:test";
 import { CreateUserDto, UserDto } from "chess-shared-types";
-import { InvalidUserException } from "./user.exception";
+import {
+  DuplicateEmailException,
+  DuplicateUsernameException,
+} from "./user.exception";
 
 describe("UserService", () => {
   const userRepositoryMock = {
@@ -53,9 +56,9 @@ describe("UserService", () => {
       expect(actual).toEqual(expected);
     });
 
-    it("Rethrows InvalidUserException from repository", async () => {
+    it("Rethrows DuplicateEmailException from repository", async () => {
       userRepositoryMock.insert.mockImplementationOnce(() =>
-        Promise.reject(new InvalidUserException("Username already exists.")),
+        Promise.reject(new DuplicateEmailException("test@gmail.com")),
       );
 
       const actual = userService.create({
@@ -64,7 +67,21 @@ describe("UserService", () => {
         password: "p@ssword",
       });
 
-      await expect(actual).rejects.toBeInstanceOf(InvalidUserException);
+      await expect(actual).rejects.toBeInstanceOf(DuplicateEmailException);
+    });
+
+    it("Rethrows DuplicateUsernameException from repository", async () => {
+      userRepositoryMock.insert.mockImplementationOnce(() =>
+        Promise.reject(new DuplicateUsernameException("test")),
+      );
+
+      const actual = userService.create({
+        username: "test",
+        email: "test@gmail.com",
+        password: "p@ssword",
+      });
+
+      await expect(actual).rejects.toBeInstanceOf(DuplicateUsernameException);
     });
   });
 });
