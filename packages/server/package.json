@@ -4,8 +4,8 @@
   "author": "Joshua Kiel Gaurano",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
-    "build:dev": "tsc --sourceMap",
+    "build": "tsc --project tsconfig.production.json",
+    "build:dev": "tsc --sourceMap --project tsconfig.production.json",
     "start": "node dist/main.js",
     "test": "jest"
   },

@@ -6,7 +6,6 @@
     "target": "ES2022",
     "esModuleInterop": true,
     "moduleResolution": "Node16",
-    "outDir": "dist",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
