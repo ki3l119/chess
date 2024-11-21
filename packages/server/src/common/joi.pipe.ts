@@ -1,31 +1,26 @@
 import { PipeTransform, Injectable, BadRequestException } from "@nestjs/common";
 import { ObjectSchema } from "joi";
 
-import { ValidationError } from "chess-shared-types";
+import { UserErrorException } from "./user-error.exception";
 
 @Injectable()
 export class JoiValidationPipe implements PipeTransform {
-  private readonly errorMessage: string;
-
-  constructor(
-    private readonly schema: ObjectSchema,
-    errorMessage?: string,
-  ) {
-    this.errorMessage = errorMessage || "Validation error.";
-  }
+  constructor(private readonly schema: ObjectSchema) {}
 
   transform(value: any): any {
     const result = this.schema.validate(value);
 
     if (result.error) {
-      const validationError: ValidationError = {
-        message: this.errorMessage,
-        details: result.error.details.map((error) => ({
-          message: error.message,
-          path: error.path,
-        })),
-      };
-      throw new BadRequestException(validationError);
+      const validationErrors = result.error.details.map((error) => ({
+        message: error.message,
+        path: error.path,
+      }));
+
+      throw new UserErrorException({
+        title: "Invalid input.",
+        details: "Encountered validation errors in input.",
+        validationErrors,
+      });
     }
     return result.value;
   }

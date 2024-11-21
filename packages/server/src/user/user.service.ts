@@ -2,6 +2,10 @@ import { Injectable } from "@nestjs/common";
 import bcrypt from "bcrypt";
 
 import { UserDto, CreateUserDto } from "chess-shared-types";
+import {
+  DuplicateEmailException,
+  DuplicateUsernameException,
+} from "./user.exception";
 import { UserRepository } from "./user.repository";
 
 @Injectable()
@@ -14,8 +18,8 @@ export class UserService {
    * @param createUserDto - Info regarding the new user.
    * @returns Resolves to the newly created user.
    *
-   * @throws {InvalidUserException}
-   * Thrown if the email or username already exists.
+   * @throws {DuplicateEmailException}
+   * @throws {DuplicateUsernameException}
    */
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);

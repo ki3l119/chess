@@ -2,7 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { DatabaseError } from "pg";
 
 import { User, NewUser, Database } from "../db";
-import { InvalidUserException } from "./user.exception";
+import {
+  DuplicateEmailException,
+  DuplicateUsernameException,
+} from "./user.exception";
 
 @Injectable()
 export class UserRepository {
@@ -15,8 +18,8 @@ export class UserRepository {
    * should be hashed with bcrypt.
    * @returns Resolves to the newly created user.
    *
-   * @throws {InvalidUserException}
-   * Thrown if the email or username already exists.
+   * @throws {DuplicateEmailException}
+   * @throws {DuplicateUsernameException}
    */
   async insert(
     newUser: Pick<NewUser, "username" | "email" | "password">,
@@ -28,10 +31,10 @@ export class UserRepository {
     } catch (e) {
       if (e instanceof DatabaseError) {
         if (e.constraint == "users_username_idx") {
-          throw new InvalidUserException("Username already exists.");
+          throw new DuplicateUsernameException(newUser.username);
         }
         if (e.constraint == "users_email_idx") {
-          throw new InvalidUserException("Email is already in use.");
+          throw new DuplicateEmailException(newUser.email);
         }
       }
       throw e;
