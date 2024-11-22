@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -8,8 +8,9 @@ import {
   faChess,
   faAddressCard,
 } from "@fortawesome/free-solid-svg-icons";
-import "./sidebar.scss";
+import { Link, useLocation } from "react-router-dom";
 
+import "./sidebar.scss";
 import { PieceColor, PieceName } from "../../utils/chess";
 import { Piece } from "../piece/piece";
 
@@ -17,11 +18,13 @@ type SidebarLinkProps = {
   icon: IconDefinition;
   text: string;
   isActive?: boolean;
+  destination: string;
 };
 
 const SidebarLink: React.FC<SidebarLinkProps> = ({
   icon,
   text,
+  destination,
   isActive = false,
 }) => {
   const classes = ["sidebar__link"];
@@ -30,27 +33,41 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({
     classes.push("sidebar__link--active");
   }
   return (
-    <div className={classes.join(" ")}>
+    <Link to={destination} className={classes.join(" ")}>
       <FontAwesomeIcon className="sidebar__link-icon" icon={icon} />
-      <a className="sidebar__link-text">{text}</a>
-    </div>
+      <p className="sidebar__link-text">{text}</p>
+    </Link>
   );
 };
+
+const links: Pick<SidebarLinkProps, "icon" | "text" | "destination">[] = [
+  {
+    icon: faChess,
+    text: "Game",
+    destination: "/game",
+  },
+  {
+    icon: faAddressCard,
+    text: "Register",
+    destination: "/register",
+  },
+];
 
 export const Sidebar: React.FC = () => {
   const [activeLinkIndex, setActiveLinkIndex] = useState(0);
   const [isActive, setIsActive] = useState(false);
+  const location = useLocation();
 
-  const links: Pick<SidebarLinkProps, "icon" | "text">[] = [
-    {
-      icon: faChess,
-      text: "Game",
-    },
-    {
-      icon: faAddressCard,
-      text: "Register",
-    },
-  ];
+  useEffect(() => {
+    let activeIndex = 0;
+    for (let i = 0; i < links.length; i++) {
+      if (links[i].destination === location.pathname) {
+        activeIndex = i;
+      }
+    }
+
+    setActiveLinkIndex(activeIndex);
+  }, [location]);
 
   const sidebarClasses = ["sidebar"];
 
@@ -93,6 +110,7 @@ export const Sidebar: React.FC = () => {
             icon={link.icon}
             text={link.text}
             isActive={activeLinkIndex == index}
+            destination={link.destination}
           />
         ))}
       </div>

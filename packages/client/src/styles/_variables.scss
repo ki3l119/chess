@@ -17,6 +17,11 @@ $error-color: (
   "contrast": #ffffff
 );
 
+$success-color: (
+  "base": #55883b,
+  "contrast": #ffffff
+);
+
 
 $font-family: ui-sans-serif, system-ui, sans-serif;
 
@@ -32,5 +37,6 @@ $breakpoints: (
   "sm": 576px,
   "md": 768px,
   "lg": 992px,
-  "xl": 1200px
+  "xl": 1200px,
+  "xxl": 1400px
 )

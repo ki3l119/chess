@@ -1,0 +1,10 @@
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  row-gap: 15px;
+
+  & > .alert, .input, .button {
+    width: 100%;
+  }
+}

@@ -7,6 +7,7 @@ import {
 
 import "./styles/base.scss";
 import { HomePage } from "./pages/home/home-page";
+import { RegistrationPage } from "./pages/registration/registration-page";
 
 const router = createBrowserRouter([
   {
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
   {
     path: "/game",
     element: <HomePage />,
+  },
+  {
+    path: "/register",
+    element: <RegistrationPage />,
   },
 ]);
 

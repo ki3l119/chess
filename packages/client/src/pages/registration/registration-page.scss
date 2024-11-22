@@ -1,0 +1,44 @@
+@use "sass:map";
+@use "../../styles/_variables" as var;
+
+.registration-page {
+  width: 100%;
+  height: 100%;
+  background-color: map.get(var.$surface-color, "dark");
+  font-family: var.$font-family;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: map.get(var.$surface-color, "contrast");
+
+  &__content {
+    width: 80%;
+    
+
+    @media (min-width: map.get(var.$breakpoints, "lg")) {
+      width: 60%;
+    }
+
+    @media (min-width: map.get(var.$breakpoints, "xl")) {
+      width: 40%;
+    }
+
+    @media (min-width: map.get(var.$breakpoints, "xxl")) {
+      width: 30%;
+    }
+
+    & .registration-form {
+      padding: 15px;
+    }
+  }
+
+  &__form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 15px;
+  }
+}
