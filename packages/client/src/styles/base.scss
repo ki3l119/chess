@@ -1,15 +1,17 @@
 @use "sass:map";
 @use "./variables" as var;
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-body {
+* {
+  font: inherit;
   margin: 0;
+  padding: 0;
 }
 
-p {
-  margin: 0;
+body {
+  font-family: var.$font-family;
   font-size: map.get(var.$font-sizes, "base");
 }

@@ -1,10 +1,6 @@
 @use "sass:map";
 @use "../../styles/_variables" as var;
 
-.input {
-  font-family: var.$font-family;
-}
-
 .input__label {
   display: flex;
   justify-content: center;

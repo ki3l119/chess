@@ -9,7 +9,7 @@ export const RegistrationPage: React.FC = () => {
   return (
     <SidebarLayout>
       <div className="registration-page">
-        <h1>Register</h1>
+        <h1 className="registration-page__title">Register</h1>
         <div className="registration-page__content">
           <Card>
             <RegistrationForm />
