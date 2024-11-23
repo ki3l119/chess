@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -126,7 +127,10 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
   return (
     <div className="sidebar-layout">
       <Sidebar />
-      <div className="sidebar-layout__main-content">{children}</div>
+      <div className="sidebar-layout__main-content">
+        <Outlet />
+        {children}
+      </div>
     </div>
   );
 };

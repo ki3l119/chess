@@ -6,21 +6,28 @@ import {
 } from "react-router-dom";
 
 import "./styles/base.scss";
+import { SidebarLayout } from "./components/sidebar/sidebar";
 import { HomePage } from "./pages/home/home-page";
 import { RegistrationPage } from "./pages/registration/registration-page";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    loader: () => redirect("/game"),
-  },
-  {
-    path: "/game",
-    element: <HomePage />,
-  },
-  {
-    path: "/register",
-    element: <RegistrationPage />,
+    element: <SidebarLayout />,
+    children: [
+      {
+        index: true,
+        loader: () => redirect("/game"),
+      },
+      {
+        path: "/game",
+        element: <HomePage />,
+      },
+      {
+        path: "/register",
+        element: <RegistrationPage />,
+      },
+    ],
   },
 ]);
 
