@@ -1,9 +1,16 @@
 import Joi from "joi";
 
-import type { CreateUserDto } from "chess-shared-types";
+import type { LoginDto, CreateUserDto } from "chess-shared-types";
+
+const emailSchema = Joi.string().required().trim().max(350).email();
 
 export const createUserDtoSchema = Joi.object<CreateUserDto>({
   username: Joi.string().required().trim().max(50).min(1).token(),
-  email: Joi.string().required().trim().max(350).email(),
+  email: emailSchema,
   password: Joi.string().required().min(8).max(128),
+});
+
+export const loginDtoSchema = Joi.object<LoginDto>({
+  email: emailSchema,
+  password: Joi.string().required().max(128),
 });
