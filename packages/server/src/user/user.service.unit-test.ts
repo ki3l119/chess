@@ -1,9 +1,8 @@
 import bcrypt from "bcrypt";
-import { describe, jest, it, expect } from "@jest/globals";
+import { describe, jest, it, expect, afterEach } from "@jest/globals";
 
 import { UserRepository } from "./user.repository";
 import { UserService } from "./user.service";
-import { afterEach } from "node:test";
 import { CreateUserDto, LoginDto, UserDto } from "chess-shared-types";
 import {
   DuplicateEmailException,
