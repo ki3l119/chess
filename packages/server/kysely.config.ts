@@ -1,4 +1,7 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({
+  path: "../../.env",
+});
 import { Pool } from "pg";
 import { defineConfig } from "kysely-ctl";
 
