@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { createUserDtoSchema } from "./user.validator";
+import { createUserDtoSchema, loginDtoSchema } from "./user.validator";
 
 describe("User DTO validation schemas", () => {
   describe("createUserDtoSchema", () => {
@@ -116,6 +116,74 @@ describe("User DTO validation schemas", () => {
       expect(actual.error).toBeDefined();
       expect(actual.error!.details.length).toBe(1);
       expect(actual.error!.details[0].path).toEqual(["email"]);
+    });
+  });
+
+  describe("loginDtoSchema", () => {
+    it("No errors on valid dto", () => {
+      const input = {
+        email: "test@gmail.com",
+        password: "p@ssword",
+      };
+
+      const actual = loginDtoSchema.validate(input);
+      expect(actual.error).toBeUndefined();
+      expect(actual.value).toEqual(input);
+    });
+
+    it("Trims email", () => {
+      const input = {
+        email: "    test@gmail.com    ",
+        password: "p@ssword",
+      };
+
+      const expected = {
+        email: "test@gmail.com",
+        password: "p@ssword",
+      };
+
+      const actual = loginDtoSchema.validate(input);
+      expect(actual.error).toBeUndefined();
+      expect(actual.value).toEqual(expected);
+    });
+
+    it("Error on email with more than 350 characters", () => {
+      const input = {
+        email: `${"b".repeat(341)}@test.com`,
+        password: "p@ssword",
+      };
+
+      const actual = loginDtoSchema.validate(input);
+      expect(actual.error).toBeDefined();
+      expect(actual.error!.details.length).toBe(1);
+      expect(actual.error!.details[0].path).toEqual(["email"]);
+    });
+
+    it.each(["", "  ", "no_domain", "@domain.com"])(
+      "Error on invalid email (input='%s')",
+      (email) => {
+        const input = {
+          email,
+          password: "p@ssword",
+        };
+
+        const actual = loginDtoSchema.validate(input);
+        expect(actual.error).toBeDefined();
+        expect(actual.error!.details.length).toBe(1);
+        expect(actual.error!.details[0].path).toEqual(["email"]);
+      },
+    );
+
+    it("Error password with more than 128 characters", () => {
+      const input = {
+        email: "test@test.com",
+        password: "p".repeat(129),
+      };
+
+      const actual = loginDtoSchema.validate(input);
+      expect(actual.error).toBeDefined();
+      expect(actual.error!.details.length).toBe(1);
+      expect(actual.error!.details[0].path).toEqual(["password"]);
     });
   });
 });
