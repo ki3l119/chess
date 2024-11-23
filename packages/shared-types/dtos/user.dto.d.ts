@@ -9,3 +9,15 @@ export type UserDto = {
   username: string;
   email: string;
 };
+
+export type LoginDto = {
+  email: string;
+  password: string;
+};
+
+export type SessionDto = {
+  id: string;
+  userId: string;
+  createdAt: Date;
+  expiresAt: Date;
+};
