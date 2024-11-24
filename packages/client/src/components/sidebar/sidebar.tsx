@@ -8,6 +8,7 @@ import {
   IconDefinition,
   faChess,
   faAddressCard,
+  faRightToBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import { Link, useLocation } from "react-router-dom";
 
@@ -52,6 +53,11 @@ const links: Pick<SidebarLinkProps, "icon" | "text" | "destination">[] = [
     text: "Register",
     destination: "/register",
   },
+  {
+    icon: faRightToBracket,
+    text: "Login",
+    destination: "/login",
+  },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -60,7 +66,7 @@ export const Sidebar: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    let activeIndex = 0;
+    let activeIndex = -1;
     for (let i = 0; i < links.length; i++) {
       if (links[i].destination === location.pathname) {
         activeIndex = i;
