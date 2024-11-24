@@ -69,4 +69,30 @@ export class UserService {
     });
     return session;
   }
+
+  /**
+   * Checks if the session exists and has not expired.
+   *
+   * @param id - The id of the session.
+   * @returns Resolves to the user for valid sessions; otherwise, resolves to
+   * null.
+   */
+  async validateSession(id: string): Promise<UserDto | null> {
+    const result = await this.userRepository.findSessionById(id);
+    if (result == null) {
+      return null;
+    }
+
+    const today = new Date();
+
+    if (today.getTime() >= result.session.expiresAt.getTime()) {
+      return null;
+    }
+
+    return {
+      id: result.user.id,
+      username: result.user.username,
+      email: result.user.email,
+    };
+  }
 }

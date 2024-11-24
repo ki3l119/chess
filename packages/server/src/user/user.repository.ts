@@ -60,4 +60,45 @@ export class UserRepository {
     const session = await query.executeTakeFirstOrThrow();
     return session;
   }
+
+  async findSessionById(
+    id: string,
+  ): Promise<{ session: Session; user: User } | null> {
+    let query = this.db
+      .selectFrom("sessions")
+      .innerJoin("users", "users.id", "sessions.userId")
+      .select([
+        "users.id as userId",
+        "sessions.id as sessionId",
+        "sessions.createdAt as sessionCreatedAt",
+        "users.createdAt as userCreatedAt",
+        "expiresAt",
+        "password",
+        "email",
+        "username",
+      ])
+      .where("sessions.id", "=", id);
+
+    const result = await query.executeTakeFirst();
+
+    if (result == undefined) {
+      return null;
+    }
+
+    return {
+      session: {
+        id: result.sessionId,
+        createdAt: result.sessionCreatedAt,
+        userId: result.userId,
+        expiresAt: result.expiresAt,
+      },
+      user: {
+        id: result.userId,
+        username: result.username,
+        password: result.password,
+        email: result.email,
+        createdAt: result.userCreatedAt,
+      },
+    };
+  }
 }

@@ -2,9 +2,11 @@ import { Response } from "express";
 import {
   Body,
   Controller,
+  Get,
   Post,
   Res,
   UnauthorizedException,
+  UseGuards,
   UsePipes,
 } from "@nestjs/common";
 
@@ -15,13 +17,13 @@ import {
   UserDto,
 } from "chess-shared-types";
 import { JoiValidationPipe } from "../common";
+import { COOKIE_SESSION_KEY } from "./constants";
 import { createUserDtoSchema, loginDtoSchema } from "./user.validator";
 import { UserService } from "./user.service";
+import { AuthGuard, CurrentUser } from "./auth.guard";
 
 @Controller("users")
 export class UserController {
-  private static COOKIE_SESSION_KEY = "session";
-
   constructor(private readonly userService: UserService) {}
 
   @Post()
@@ -43,9 +45,15 @@ export class UserController {
       };
       throw new UnauthorizedException(problemDetails);
     }
-    response.cookie(UserController.COOKIE_SESSION_KEY, result.id, {
+    response.cookie(COOKIE_SESSION_KEY, result.id, {
       httpOnly: true,
       expires: result.expiresAt,
     });
+  }
+
+  @Get("/me")
+  @UseGuards(AuthGuard)
+  async getMe(@CurrentUser() user: UserDto) {
+    return user;
   }
 }

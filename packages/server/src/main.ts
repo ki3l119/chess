@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import { NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 
@@ -14,6 +15,7 @@ async function main() {
     origin: clientDomain,
     credentials: true,
   });
+  app.use(cookieParser());
   await app.listen(port);
 }
 
