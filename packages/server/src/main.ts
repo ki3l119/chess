@@ -9,10 +9,11 @@ async function main() {
   app.setGlobalPrefix("api");
   const config = app.get(ConfigService<Config>);
   const port = config.getOrThrow("PORT", { infer: true });
-  const nodeEnv = config.getOrThrow("NODE_ENV", { infer: true });
-  if (nodeEnv == "development") {
-    app.enableCors();
-  }
+  const clientDomain = config.getOrThrow("CLIENT_DOMAIN", { infer: true });
+  app.enableCors({
+    origin: clientDomain,
+    credentials: true,
+  });
   await app.listen(port);
 }
 
