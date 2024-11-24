@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import React from "react";
+import { useForm } from "react-hook-form";
 
 import { CreateUserDto } from "chess-shared-types";
 import "./registration-form.scss";
-import { userService, ServiceException } from "../../services";
+import { userService } from "../../services";
+import { useFormSubmitHandler } from "../../hooks/form-submit-handler";
 import { Button } from "../button/button";
 import { Input } from "../input/input";
 import { Alert } from "../alert/alert";
@@ -16,36 +17,16 @@ export const RegistrationForm: React.FC = () => {
     setError,
     reset,
   } = useForm<CreateUserDto>();
-
-  const onSubmit: SubmitHandler<CreateUserDto> = async (data) => {
-    try {
+  const { submitHandler } = useFormSubmitHandler<CreateUserDto>({
+    onSubmit: async (data) => {
       await userService.register(data);
       reset();
-    } catch (error) {
-      if (error instanceof ServiceException) {
-        setError("root.serverError", {
-          type: "custom",
-          message: error.details.details,
-        });
-        if (error.details.validationErrors != undefined) {
-          for (const validationError of error.details.validationErrors) {
-            setError(validationError.path[0] as keyof CreateUserDto, {
-              type: "custom",
-              message: validationError.message,
-            });
-          }
-        }
-      } else {
-        setError("root.serverError", {
-          type: "custom",
-          message: "Unknown error has occured. Please try again later.",
-        });
-      }
-    }
-  };
+    },
+    setError,
+  });
 
   return (
-    <form className="registration-form" onSubmit={handleSubmit(onSubmit)}>
+    <form className="registration-form" onSubmit={handleSubmit(submitHandler)}>
       {isSubmitSuccessful && (
         <Alert type="success" message="Successfully created user account." />
       )}
