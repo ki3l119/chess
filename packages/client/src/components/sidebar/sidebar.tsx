@@ -15,6 +15,10 @@ import { Link, useLocation } from "react-router-dom";
 import "./sidebar.scss";
 import { PieceColor, PieceName } from "../../utils/chess";
 import { Piece } from "../piece/piece";
+import { UserDto } from "chess-shared-types";
+import { userService } from "../../services";
+import { UserContext } from "../../contexts";
+import { Spinner } from "../spinner/spinner";
 
 type SidebarLinkProps = {
   icon: IconDefinition;
@@ -42,28 +46,38 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({
   );
 };
 
-const links: Pick<SidebarLinkProps, "icon" | "text" | "destination">[] = [
-  {
-    icon: faChess,
-    text: "Game",
-    destination: "/game",
-  },
-  {
-    icon: faAddressCard,
-    text: "Register",
-    destination: "/register",
-  },
-  {
-    icon: faRightToBracket,
-    text: "Login",
-    destination: "/login",
-  },
-];
+type SidebarProps = {
+  user?: UserDto;
+  isUserLoading?: boolean;
+};
 
-export const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({ user, isUserLoading = false }) => {
   const [activeLinkIndex, setActiveLinkIndex] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const location = useLocation();
+
+  const links: Pick<SidebarLinkProps, "icon" | "text" | "destination">[] = [
+    {
+      icon: faChess,
+      text: "Game",
+      destination: "/game",
+    },
+  ];
+
+  if (!user) {
+    links.push(
+      {
+        icon: faAddressCard,
+        text: "Register",
+        destination: "/register",
+      },
+      {
+        icon: faRightToBracket,
+        text: "Login",
+        destination: "/login",
+      },
+    );
+  }
 
   useEffect(() => {
     let activeIndex = -1;
@@ -106,20 +120,33 @@ export const Sidebar: React.FC = () => {
         <div className="sidebar__header">
           <Piece type={{ color: PieceColor.WHITE, name: PieceName.ROOK }} />
         </div>
-        <div className="sidebar__user-section ">
-          <FontAwesomeIcon className="sidebar__user-icon" icon={faCircleUser} />
-          <p className="sidebar__username">Guest</p>
-        </div>
-        <hr className="sidebar__divider" />
-        {links.map((link, index) => (
-          <SidebarLink
-            key={link.text}
-            icon={link.icon}
-            text={link.text}
-            isActive={activeLinkIndex == index}
-            destination={link.destination}
-          />
-        ))}
+        {isUserLoading ? (
+          <div className="sidebar__spinner">
+            <Spinner />
+          </div>
+        ) : (
+          <>
+            <div className="sidebar__user-section ">
+              <FontAwesomeIcon
+                className="sidebar__user-icon"
+                icon={faCircleUser}
+              />
+              <p className="sidebar__username">
+                {user ? user.username : "Guest"}
+              </p>
+            </div>
+            <hr className="sidebar__divider" />
+            {links.map((link, index) => (
+              <SidebarLink
+                key={link.text}
+                icon={link.icon}
+                text={link.text}
+                isActive={activeLinkIndex == index}
+                destination={link.destination}
+              />
+            ))}
+          </>
+        )}
       </div>
     </>
   );
@@ -130,12 +157,43 @@ export type SidebarLayoutProps = {
 };
 
 export const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
+  const [user, setUser] = useState<UserDto>();
+  const [isUserLoading, setIsUserLoading] = useState(true);
+
+  const loadUser = async () => {
+    try {
+      setIsUserLoading(true);
+      const currentUser = await userService.getCurrentUser();
+      setUser(currentUser);
+    } catch (e) {
+      setUser(undefined);
+    } finally {
+      setIsUserLoading(false);
+    }
+  };
+
+  const onSuccessfulLogin = (user: UserDto) => {
+    setUser(user);
+  };
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
   return (
     <div className="sidebar-layout">
-      <Sidebar />
+      <Sidebar user={user} isUserLoading={isUserLoading} />
       <div className="sidebar-layout__main-content">
-        <Outlet />
-        {children}
+        {isUserLoading ? (
+          <div className="sidebar-layout__spinner">
+            <Spinner />
+          </div>
+        ) : (
+          <UserContext.Provider value={{ user, onSuccessfulLogin }}>
+            <Outlet />
+            {children}
+          </UserContext.Provider>
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 
 import "./login-form.scss";
 import { LoginDto } from "chess-shared-types";
+import { UserContext } from "../../contexts";
 import { Input } from "../input/input";
 import { Button } from "../button/button";
 import { userService } from "../../services";
@@ -19,9 +20,12 @@ export const LoginForm: React.FC = () => {
     reset,
   } = useForm<LoginDto>();
   const navigate = useNavigate();
+  const { onSuccessfulLogin } = useContext(UserContext);
   const { submitHandler } = useFormSubmitHandler<LoginDto>({
     onSubmit: async (data) => {
       await userService.login(data);
+      const user = await userService.getCurrentUser();
+      onSuccessfulLogin(user);
       reset();
       navigate("/game");
     },

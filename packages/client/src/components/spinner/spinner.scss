@@ -1,0 +1,23 @@
+@use "sass:map";
+@use "../../styles/_variables" as var;
+
+
+.spinner {
+  border-radius: 50%;
+  border: 5px solid map.get(var.$surface-color, "light");
+  border-top-color: map.get(var.$primary-color, "light");
+  height: 40px;
+  width: 40px;
+  animation: 1s infinite normal spinner-rotation;
+  animation-timing-function: linear;
+}
+
+@keyframes spinner-rotation {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

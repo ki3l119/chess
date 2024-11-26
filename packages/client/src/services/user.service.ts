@@ -18,4 +18,11 @@ export class UserService {
       withCredentials: true,
     });
   }
+
+  async getCurrentUser(): Promise<UserDto> {
+    const response = await this.axios.get<UserDto>("/api/users/me", {
+      withCredentials: true,
+    });
+    return response.data;
+  }
 }
