@@ -14,6 +14,7 @@ describe("UserService", () => {
     insert: jest.fn<typeof UserRepository.prototype.insert>(),
     findByEmail: jest.fn<typeof UserRepository.prototype.findByEmail>(),
     insertSession: jest.fn<typeof UserRepository.prototype.insertSession>(),
+    findSessionById: jest.fn<typeof UserRepository.prototype.findSessionById>(),
   };
   const userService = new UserService(
     userRepositoryMock as unknown as UserRepository,
@@ -159,6 +160,61 @@ describe("UserService", () => {
       });
 
       const actual = await userService.login(input);
+      expect(actual).toBeNull();
+    });
+  });
+
+  describe("validateSession", () => {
+    const dummyUserId = "6680afcd-2e05-45b7-9376-b5a48473e101";
+    const findSessionMockImplementation = (id: string) => {
+      const createdAt = new Date();
+      createdAt.setDate(createdAt.getDate() - 10);
+      const expiresAt = new Date(createdAt.getTime());
+      expiresAt.setDate(createdAt.getDate() + 30);
+      const userCreation = new Date();
+      userCreation.setDate(userCreation.getDate() - 70);
+      return Promise.resolve({
+        session: {
+          id,
+          createdAt,
+          expiresAt,
+          userId: dummyUserId,
+        },
+        user: {
+          id: dummyUserId,
+          username: "username",
+          email: "test@email.com",
+          createdAt: userCreation,
+          password: bcrypt.hashSync("p@ssword", 10),
+        },
+      });
+    };
+
+    it("Resolves to user on valid session", async () => {
+      const input = "d24aa6a1-835f-401d-afd9-2c826a728ef5";
+
+      userRepositoryMock.findSessionById.mockImplementationOnce(
+        findSessionMockImplementation,
+      );
+
+      const actual = await userService.validateSession(input);
+      expect(actual).not.toBeNull();
+      expect(actual!.id).toEqual(dummyUserId);
+    });
+
+    it("Resolves to null on expired session", async () => {
+      const input = "d24aa6a1-835f-401d-afd9-2c826a728ef5";
+
+      userRepositoryMock.findSessionById.mockImplementationOnce(async (id) => {
+        const mockResult = await findSessionMockImplementation(id);
+        mockResult.session.expiresAt = new Date();
+        mockResult.session.expiresAt.setDate(
+          mockResult.session.expiresAt.getDate() - 1,
+        );
+        return mockResult;
+      });
+
+      const actual = await userService.validateSession(input);
       expect(actual).toBeNull();
     });
   });
