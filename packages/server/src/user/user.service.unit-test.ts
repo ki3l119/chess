@@ -121,7 +121,8 @@ describe("UserService", () => {
       const actual = await userService.login(input);
 
       expect(actual).not.toBeNull();
-      expect(actual!.id).toEqual(dummySessionId);
+      expect(actual!.session.id).toEqual(dummySessionId);
+      expect(actual!.user.id).toEqual(dummyUserId);
     });
 
     it("Returns null if no user has the given email", async () => {
