@@ -36,7 +36,7 @@ export class UserController {
   async postAuth(
     @Body(new JoiValidationPipe(loginDtoSchema)) loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<void> {
+  ): Promise<UserDto> {
     const result = await this.userService.login(loginDto);
     if (result == null) {
       const problemDetails: ProblemDetails = {
@@ -45,10 +45,12 @@ export class UserController {
       };
       throw new UnauthorizedException(problemDetails);
     }
-    response.cookie(COOKIE_SESSION_KEY, result.id, {
+    response.cookie(COOKIE_SESSION_KEY, result.session.id, {
       httpOnly: true,
-      expires: result.expiresAt,
+      expires: result.session.expiresAt,
     });
+
+    return result.user;
   }
 
   @Get("/me")

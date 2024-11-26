@@ -44,10 +44,12 @@ export class UserService {
    * Creates a login session for the user.
    *
    * @param loginDto - The user's credentials.
-   * @returns If the user's credentials are valid, resolves to the newly created
-   * login session; otherwise, resolves to null.
+   * @returns If the user's credentials are valid, resolves to the user and
+   * newly created login session; otherwise, resolves to null.
    */
-  async login(loginDto: LoginDto): Promise<SessionDto | null> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ user: UserDto; session: SessionDto } | null> {
     const user = await this.userRepository.findByEmail(loginDto.email);
     if (user == null) {
       return null;
@@ -67,7 +69,19 @@ export class UserService {
       createdAt: today,
       expiresAt: expirationDate,
     });
-    return session;
+    return {
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      },
+      session: {
+        id: session.id,
+        userId: session.userId,
+        createdAt: session.createdAt,
+        expiresAt: session.expiresAt,
+      },
+    };
   }
 
   /**
