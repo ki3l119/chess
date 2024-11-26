@@ -13,10 +13,15 @@ export class UserService {
     return response.data;
   }
 
-  async login(loginDto: LoginDto): Promise<void> {
-    await this.axios.post<UserDto>("/api/users/auth", loginDto, {
-      withCredentials: true,
-    });
+  async login(loginDto: LoginDto): Promise<UserDto> {
+    const response = await this.axios.post<UserDto>(
+      "/api/users/auth",
+      loginDto,
+      {
+        withCredentials: true,
+      },
+    );
+    return response.data;
   }
 
   async getCurrentUser(): Promise<UserDto> {

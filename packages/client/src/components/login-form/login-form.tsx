@@ -23,8 +23,7 @@ export const LoginForm: React.FC = () => {
   const { onSuccessfulLogin } = useContext(UserContext);
   const { submitHandler } = useFormSubmitHandler<LoginDto>({
     onSubmit: async (data) => {
-      await userService.login(data);
-      const user = await userService.getCurrentUser();
+      const user = await userService.login(data);
       onSuccessfulLogin(user);
       reset();
       navigate("/game");
