@@ -30,4 +30,10 @@ export class UserService {
     });
     return response.data;
   }
+
+  async logout(): Promise<void> {
+    return this.axios.delete("/api/users/auth", {
+      withCredentials: true,
+    });
+  }
 }

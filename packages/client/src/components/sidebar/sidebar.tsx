@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBars,
@@ -9,6 +9,7 @@ import {
   faChess,
   faAddressCard,
   faRightToBracket,
+  faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import { Link, useLocation } from "react-router-dom";
 
@@ -24,7 +25,11 @@ type SidebarLinkProps = {
   icon: IconDefinition;
   text: string;
   isActive?: boolean;
-  destination: string;
+  /**
+   * Either destination or onClick can be defined, but not both.
+   */
+  destination?: string;
+  onClick?: () => void;
 };
 
 const SidebarLink: React.FC<SidebarLinkProps> = ({
@@ -32,31 +37,57 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({
   text,
   destination,
   isActive = false,
+  onClick,
 }) => {
-  const classes = ["sidebar__link"];
+  const sidebarClasses = ["sidebar__link"];
 
   if (isActive) {
-    classes.push("sidebar__link--active");
+    sidebarClasses.push("sidebar__link--active");
   }
-  return (
-    <Link to={destination} className={classes.join(" ")}>
+  const children = (
+    <>
       <FontAwesomeIcon className="sidebar__link-icon" icon={icon} />
       <p className="sidebar__link-text">{text}</p>
-    </Link>
+    </>
+  );
+
+  const sidebarClassesString = sidebarClasses.join(" ");
+  return (
+    <>
+      {destination ? (
+        <Link to={destination} className={sidebarClassesString}>
+          {children}
+        </Link>
+      ) : (
+        onClick && (
+          <div onClick={onClick} className={sidebarClassesString}>
+            {children}
+          </div>
+        )
+      )}
+    </>
   );
 };
 
 type SidebarProps = {
   user?: UserDto;
   isUserLoading?: boolean;
+  onLogout?: () => void;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ user, isUserLoading = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  user,
+  isUserLoading = false,
+  onLogout,
+}) => {
   const [activeLinkIndex, setActiveLinkIndex] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const location = useLocation();
 
-  const links: Pick<SidebarLinkProps, "icon" | "text" | "destination">[] = [
+  const links: Pick<
+    SidebarLinkProps,
+    "icon" | "text" | "destination" | "onClick"
+  >[] = [
     {
       icon: faChess,
       text: "Game",
@@ -77,6 +108,12 @@ const Sidebar: React.FC<SidebarProps> = ({ user, isUserLoading = false }) => {
         destination: "/login",
       },
     );
+  } else {
+    links.push({
+      icon: faRightFromBracket,
+      text: "Logout",
+      onClick: onLogout,
+    });
   }
 
   useEffect(() => {
@@ -88,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, isUserLoading = false }) => {
     }
 
     setActiveLinkIndex(activeIndex);
-  }, [location]);
+  }, [location, user]);
 
   const sidebarClasses = ["sidebar"];
 
@@ -143,6 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, isUserLoading = false }) => {
                 text={link.text}
                 isActive={activeLinkIndex == index}
                 destination={link.destination}
+                onClick={link.onClick}
               />
             ))}
           </>
@@ -159,6 +197,7 @@ export type SidebarLayoutProps = {
 export const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
   const [user, setUser] = useState<UserDto>();
   const [isUserLoading, setIsUserLoading] = useState(true);
+  const navigate = useNavigate();
 
   const loadUser = async () => {
     try {
@@ -172,17 +211,28 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
     }
   };
 
-  const onSuccessfulLogin = (user: UserDto) => {
-    setUser(user);
-  };
-
   useEffect(() => {
     loadUser();
   }, []);
 
+  const onSuccessfulLogin = (user: UserDto) => {
+    setUser(user);
+  };
+
+  const onLogout = async () => {
+    try {
+      setIsUserLoading(true);
+      await userService.logout();
+      setUser(undefined);
+      navigate("/login");
+    } finally {
+      setIsUserLoading(false);
+    }
+  };
+
   return (
     <div className="sidebar-layout">
-      <Sidebar user={user} isUserLoading={isUserLoading} />
+      <Sidebar user={user} isUserLoading={isUserLoading} onLogout={onLogout} />
       <div className="sidebar-layout__main-content">
         {isUserLoading ? (
           <div className="sidebar-layout__spinner">
