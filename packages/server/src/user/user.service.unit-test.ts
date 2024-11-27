@@ -15,6 +15,7 @@ describe("UserService", () => {
     findByEmail: jest.fn<typeof UserRepository.prototype.findByEmail>(),
     insertSession: jest.fn<typeof UserRepository.prototype.insertSession>(),
     findSessionById: jest.fn<typeof UserRepository.prototype.findSessionById>(),
+    deleteSession: jest.fn<typeof UserRepository.prototype.deleteSession>(),
   };
   const userService = new UserService(
     userRepositoryMock as unknown as UserRepository,
@@ -216,6 +217,28 @@ describe("UserService", () => {
 
       const actual = await userService.validateSession(input);
       expect(actual).toBeNull();
+    });
+  });
+
+  describe("logout", () => {
+    it("Resolves to true on successful session delete", async () => {
+      const input = "d24aa6a1-835f-401d-afd9-2c826a728ef5";
+
+      userRepositoryMock.deleteSession.mockResolvedValueOnce(true);
+
+      const actual = await userService.logout(input);
+
+      expect(actual).toBe(true);
+    });
+
+    it("Resolves to false on successful session delete", async () => {
+      const input = "d24aa6a1-835f-401d-afd9-2c826a728ef5";
+
+      userRepositoryMock.deleteSession.mockResolvedValueOnce(false);
+
+      const actual = await userService.logout(input);
+
+      expect(actual).toBe(false);
     });
   });
 });
