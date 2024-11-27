@@ -109,4 +109,14 @@ export class UserService {
       email: result.user.email,
     };
   }
+
+  /**
+   * Removes the session of the user.
+   *
+   * @param sessionId - The id of the session.
+   * @returns Wether the session was deleted successfully.
+   */
+  async logout(sessionId: string): Promise<boolean> {
+    return this.userRepository.deleteSession(sessionId);
+  }
 }

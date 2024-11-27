@@ -12,6 +12,7 @@ import { UserService } from "./user.service";
 
 type RequestWithUser = Request & {
   user?: UserDto;
+  sessionId?: string;
 };
 
 @Injectable()
@@ -24,6 +25,7 @@ export class AuthGuard implements CanActivate {
     const user = await this.userService.validateSession(sessionId);
     if (user) {
       request.user = user;
+      request.sessionId = sessionId;
       return true;
     }
     return false;
@@ -37,5 +39,15 @@ export const CurrentUser = createParamDecorator(
       throw new Error("Current user is not defined.");
     }
     return request.user;
+  },
+);
+
+export const SessionId = createParamDecorator(
+  (data: unknown, context: ExecutionContext) => {
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    if (!request.sessionId) {
+      throw new Error("Request is not associated with a session.");
+    }
+    return request.sessionId;
   },
 );

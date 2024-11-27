@@ -1,8 +1,11 @@
 import { Response } from "express";
 import {
+  BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Post,
   Res,
   UnauthorizedException,
@@ -20,7 +23,7 @@ import { JoiValidationPipe } from "../common";
 import { COOKIE_SESSION_KEY } from "./constants";
 import { createUserDtoSchema, loginDtoSchema } from "./user.validator";
 import { UserService } from "./user.service";
-import { AuthGuard, CurrentUser } from "./auth.guard";
+import { AuthGuard, CurrentUser, SessionId } from "./auth.guard";
 
 @Controller("users")
 export class UserController {
@@ -57,5 +60,23 @@ export class UserController {
   @UseGuards(AuthGuard)
   async getMe(@CurrentUser() user: UserDto) {
     return user;
+  }
+
+  @Delete("auth")
+  @UseGuards(AuthGuard)
+  @HttpCode(204)
+  async deleteAuth(
+    @SessionId() sessionId: string,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    const result = await this.userService.logout(sessionId);
+    response.clearCookie(COOKIE_SESSION_KEY);
+    if (!result) {
+      const problemDetails: ProblemDetails = {
+        title: "Session not found.",
+        details: "Cannot logout as there is no existing session.",
+      };
+      throw new BadRequestException(problemDetails);
+    }
   }
 }

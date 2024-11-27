@@ -101,4 +101,10 @@ export class UserRepository {
       },
     };
   }
+
+  async deleteSession(sessionId: string): Promise<boolean> {
+    const query = this.db.deleteFrom("sessions").where("id", "=", sessionId);
+    const result = await query.executeTakeFirst();
+    return result.numDeletedRows == 1n;
+  }
 }
