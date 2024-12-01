@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import { NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
+import { WebSocketAdapter } from "./ws";
 
 import { Config } from "./config";
 import { AppModule } from "./app.module";
@@ -16,6 +17,7 @@ async function main() {
     credentials: true,
   });
   app.use(cookieParser());
+  app.useWebSocketAdapter(new WebSocketAdapter(app));
   await app.listen(port);
 }
 

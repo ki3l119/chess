@@ -7,6 +7,8 @@ import { UserErrorExceptionFilter } from "./user-error.exception.filter";
 import { DatabaseModule } from "./db";
 import { UserModule } from "./user";
 import { LoggerMiddleware } from "./logger.middleware";
+import { GameModule } from "./game";
+import { WebSocketModule } from "./ws";
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { LoggerMiddleware } from "./logger.middleware";
     }),
     DatabaseModule,
     UserModule,
+    WebSocketModule,
+    GameModule,
   ],
   providers: [
     {
