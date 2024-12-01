@@ -1,7 +1,4 @@
-export type {
-  WebSocketExtended,
-  WebSocketMessage as WebSocketEvent,
-} from "./types";
+export type { WebSocketExtended, WebSocketMessage } from "./types";
 export { WebSocketException } from "./ws.exception";
 export { WebSocketExceptionFilter } from "./ws-exception.filter";
 export { WebSocketJoiValidationPipe } from "./ws-joi-validation.pipe";
