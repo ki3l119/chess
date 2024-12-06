@@ -30,10 +30,6 @@
     display: flex;
     justify-content: center;
 
-    & > .card {
-      width: 100%;
-    }
-
     @media (min-width: map.get(var.$breakpoints, "md")) {
       width: 60%;
     }

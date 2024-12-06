@@ -2,6 +2,10 @@
 @use "../../styles/_variables" as var;
 @use "../../styles/_mixins";
 
+.input {
+  width: 100%;
+}
+
 .input__label {
   display: flex;
   justify-content: center;

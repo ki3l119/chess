@@ -11,6 +11,8 @@
   align-items: center;
   font-size: map.get(var.$font-sizes, "base");
 
+  width: 100%;
+
   &--info {
     background-color: map.get(var.$primary-color, "base");
     border-color: map.get(var.$primary-color, "light");

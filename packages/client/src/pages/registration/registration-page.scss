@@ -25,10 +25,6 @@
     @media (min-width: map.get(var.$breakpoints, "xxl")) {
       width: 30%;
     }
-
-    & .registration-form {
-      padding: 15px;
-    }
   }
 
   &__title {

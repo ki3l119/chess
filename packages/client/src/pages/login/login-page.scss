@@ -27,11 +27,6 @@
     @media (min-width: map.get(var.$breakpoints, "xxl")) {
       width: 30%;
     }
-
-    & > .card {
-      width: 100%;
-      padding: 30px;
-    }
   }
 
   &__title {
