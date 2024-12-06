@@ -1,0 +1,26 @@
+@use "sass:map";
+@use "./_variables" as var;
+
+@mixin form-input {
+  padding: 1rem;
+  background-color: map.get(var.$surface-color, "base");
+  color: map.get(var.$surface-color, "contrast");
+  border: 2px solid map.get(var.$surface-color, "light");
+  border-radius: 4px;
+  width: 100%;
+
+  &:focus {
+    border-color: map.get(var.$primary-color, "base");
+    border-width: 2.5px;
+    outline: none;
+  }
+
+  &:disabled {
+    background-color: map.get(var.$surface-color, "light");
+    opacity: 0.5;
+  }
+
+  &--error {
+    border-color: map.get(var.$error-color, "base");
+  }
+}

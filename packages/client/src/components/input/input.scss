@@ -1,5 +1,6 @@
 @use "sass:map";
 @use "../../styles/_variables" as var;
+@use "../../styles/_mixins";
 
 .input__label {
   display: flex;
@@ -11,30 +12,7 @@
 
 .input__element {
   
-  font-size: map.get(var.$font-sizes, "base");
-  padding: 1rem;
-  background-color: map.get(var.$surface-color, "base");
-  color: map.get(var.$surface-color, "contrast");
-
-  border: 2px solid map.get(var.$surface-color, "light");
-  border-radius: 4px;
-
-  width: 100%;
-
-  &:focus {
-    border-color: map.get(var.$primary-color, "base");
-    border-width: 2.5px;
-    outline: none;
-  }
-
-  &:disabled {
-    background-color: map.get(var.$surface-color, "light");
-    opacity: 0.5;
-  }
-
-  &--error {
-    border-color: map.get(var.$error-color, "base");
-  }
+  @include mixins.form-input;
 
 }
 
