@@ -9,3 +9,13 @@ export type CreateGameSuccessDto = {
 export type JoinGameDto = {
   gameId: string;
 };
+
+export type JoinGameSuccessDto = {
+  gameId: string;
+  you: string;
+  opponent: string;
+};
+
+export type NewPlayerDto = {
+  player: string;
+};
