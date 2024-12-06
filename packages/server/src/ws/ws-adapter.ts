@@ -45,7 +45,7 @@ export class WebSocketAdapter extends WsAdapter {
       this.userService.validateSession(sessionId).then(
         (userDto) => {
           if (userDto != null) {
-            info.req.userId = userDto.id;
+            info.req.user = userDto;
             this.logger.log(
               `${requestInfo} - Successfully upgraded to websocket for logged-in user`,
             );
@@ -77,7 +77,7 @@ export class WebSocketAdapter extends WsAdapter {
       "connection",
       (socket: WebSocketExtended, request: IncomingMessageWithUser) => {
         socket.id = randomUUID();
-        socket.userId = request.userId;
+        socket.user = request.user;
         this.logger.log(`New client connected: ${socket.id}`);
       },
     );

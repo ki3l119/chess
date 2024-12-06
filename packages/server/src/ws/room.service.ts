@@ -59,4 +59,9 @@ export class RoomService {
     const room = this.rooms.get(roomId);
     return room ? room.getSocketCount() : null;
   }
+
+  getSockets(roomId: string): WebSocketExtended[] | null {
+    const room = this.rooms.get(roomId);
+    return room ? room.getSockets() : null;
+  }
 }

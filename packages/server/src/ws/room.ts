@@ -42,4 +42,8 @@ export class Room {
       socket.send(formatEvent(message));
     }
   }
+
+  getSockets() {
+    return Array.from(this.sockets.values());
+  }
 }

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+
 import { CreateGameDto } from "chess-shared-types";
 import { Game, PieceColor } from "./models/game";
 
@@ -37,5 +38,10 @@ export class GameService {
     if (result) {
       this.logger.log(`Deleted game ${gameId}`);
     }
+  }
+
+  checkExists(id: string): boolean {
+    const game = this.games.get(id);
+    return game !== undefined;
   }
 }

@@ -9,7 +9,12 @@ import {
   WsResponse,
 } from "@nestjs/websockets";
 
-import { CreateGameDto, CreateGameSuccessDto } from "chess-shared-types";
+import {
+  CreateGameDto,
+  CreateGameSuccessDto,
+  JoinGameSuccessDto,
+  JoinGameDto,
+} from "chess-shared-types";
 import {
   type WebSocketExtended,
   WebSocketException,
@@ -19,7 +24,7 @@ import {
 } from "../ws";
 import { PieceColor } from "./models/game";
 import { GameService } from "./game.service";
-import { createGameDtoSchema } from "./game.validator";
+import { createGameDtoSchema, joinGameDtoSchema } from "./game.validator";
 
 const serverOptions: ServerOptions = {
   path: "/games",
@@ -78,6 +83,73 @@ export class GameGateway implements OnGatewayDisconnect {
       event: "create:success",
       data: {
         gameId,
+      },
+    };
+  }
+
+  @SubscribeMessage("join")
+  handleJoin(
+    @ConnectedSocket() socket: WebSocketPlayer,
+    @MessageBody(
+      new WebSocketJoiValidationPipe(joinGameDtoSchema, "join:error"),
+    )
+    joinGameDto: JoinGameDto,
+  ): WsResponse<JoinGameSuccessDto> {
+    if (socket.player) {
+      throw new WebSocketException("join:error", {
+        title: "Cannot join game.",
+        details: "You are already part of an existing game.",
+      });
+    }
+
+    const gameExist = this.gameService.checkExists(joinGameDto.gameId);
+
+    if (!gameExist) {
+      throw new WebSocketException("join:error", {
+        title: "Cannot join game.",
+        details: "The game does not exist.",
+      });
+    }
+
+    const roomSockets = this.roomService.getSockets(joinGameDto.gameId);
+
+    if (!roomSockets) {
+      throw new WebSocketException("join:error", {
+        title: "Cannot join game.",
+        details: "An unexpected error has occured.",
+      });
+    }
+
+    const hostSocket: WebSocketPlayer = roomSockets[0];
+
+    const hostPlayerName = hostSocket.user?.username || "Guest";
+
+    const joiningPlayerName = socket.user?.username || "Guest";
+
+    this.roomService.join(joinGameDto.gameId, socket);
+
+    socket.player = {
+      gameId: joinGameDto.gameId,
+      color:
+        hostSocket.player!.color === PieceColor.WHITE
+          ? PieceColor.BLACK
+          : PieceColor.WHITE,
+    };
+
+    this.roomService.emit(
+      joinGameDto.gameId,
+      { event: "join", data: { player: joiningPlayerName } },
+      {
+        exclude: [socket.id],
+      },
+    );
+
+    return {
+      event: "join:success",
+      data: {
+        gameId: joinGameDto.gameId,
+        you: joiningPlayerName,
+        opponent: hostPlayerName,
       },
     };
   }
