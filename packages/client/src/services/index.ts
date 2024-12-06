@@ -1,16 +1,12 @@
 import axios, { AxiosError } from "axios";
-import { ProblemDetails } from "chess-shared-types";
 
+import { config } from "../config";
+import { ServiceException } from "../models";
 import { UserService } from "./user.service";
-
-export class ServiceException extends Error {
-  constructor(readonly details: ProblemDetails) {
-    super(details.title);
-  }
-}
+import { GameService } from "./game.service";
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_SERVER_BASE_URL,
+  baseURL: config.serverBaseUrl,
 });
 
 axiosInstance.interceptors.response.use(null, (error) => {
@@ -30,3 +26,4 @@ axiosInstance.interceptors.response.use(null, (error) => {
 });
 
 export const userService = new UserService(axiosInstance);
+export const gameService = new GameService(config.serverBaseUrl);
