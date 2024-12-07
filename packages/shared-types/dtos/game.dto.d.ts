@@ -1,5 +1,7 @@
+export type PieceColorChoice = "WHITE" | "BLACK" | "RANDOM";
+
 export type CreateGameDto = {
-  color: "WHITE" | "BLACK" | "RANDOM";
+  color: PieceColorChoice;
 };
 
 export type CreateGameSuccessDto = {
@@ -14,6 +16,7 @@ export type JoinGameSuccessDto = {
   gameId: string;
   you: string;
   opponent: string;
+  color: PieceColorChoice;
 };
 
 export type NewPlayerDto = {
