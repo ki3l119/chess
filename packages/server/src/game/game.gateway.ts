@@ -150,6 +150,7 @@ export class GameGateway implements OnGatewayDisconnect {
         gameId: joinGameDto.gameId,
         you: joiningPlayerName,
         opponent: hostPlayerName,
+        color: socket.player.color,
       },
     };
   }

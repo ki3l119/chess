@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 
 export enum PieceColor {
-  WHITE,
-  BLACK,
+  WHITE = "WHITE",
+  BLACK = "BLACK",
 }
 
 export class Game {
