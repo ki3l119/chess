@@ -22,19 +22,12 @@ import {
   WebSocketJoiValidationPipe,
   WebSocketExceptionFilter,
 } from "../ws";
-import { PieceColor } from "./models/game";
 import { GameService } from "./game.service";
 import { createGameDtoSchema, joinGameDtoSchema } from "./game.validator";
+import { GameException } from "./game.exception";
 
 const serverOptions: ServerOptions = {
   path: "/games",
-};
-
-type WebSocketPlayer = WebSocketExtended & {
-  player?: {
-    gameId: string;
-    color: PieceColor;
-  };
 };
 
 @UseFilters(WebSocketExceptionFilter)
@@ -45,113 +38,90 @@ export class GameGateway implements OnGatewayDisconnect {
     private readonly roomService: RoomService,
   ) {}
 
-  handleDisconnect(socket: WebSocketPlayer) {
-    if (socket.player) {
-      const remainingPlayers = this.roomService.getSocketCount(
-        socket.player.gameId,
-      );
-      if (remainingPlayers === 1) {
-        this.gameService.delete(socket.player.gameId);
-      }
-      this.roomService.leave(socket.player.gameId, socket);
+  handleDisconnect(socket: WebSocketExtended) {
+    const player = this.gameService.findPlayerById(socket.id);
+    if (player) {
+      this.roomService.leave(player.gameId, socket);
     }
+    this.gameService.removePlayer(socket.id);
   }
 
   @SubscribeMessage("create")
   handleCreate(
-    @ConnectedSocket() socket: WebSocketPlayer,
+    @ConnectedSocket() socket: WebSocketExtended,
     @MessageBody(
       new WebSocketJoiValidationPipe(createGameDtoSchema, "create:error"),
     )
     createGameDto: CreateGameDto,
   ): WsResponse<CreateGameSuccessDto> {
-    if (socket.player) {
-      throw new WebSocketException("create:error", {
-        title: "Cannot create game.",
-        details: "You are already part of an existing game.",
-      });
+    try {
+      const { gameId } = this.gameService.create(
+        { id: socket.id, user: socket.user },
+        createGameDto,
+      );
+      this.roomService.join(gameId, socket);
+      return {
+        event: "create:success",
+        data: {
+          gameId: gameId,
+        },
+      };
+    } catch (e) {
+      if (e instanceof GameException) {
+        throw new WebSocketException("create:error", e.problemDetails);
+      }
+      throw e;
     }
-
-    const { color, gameId } = this.gameService.create(createGameDto);
-    this.roomService.join(gameId, socket);
-    socket.player = {
-      gameId,
-      color,
-    };
-
-    return {
-      event: "create:success",
-      data: {
-        gameId,
-      },
-    };
   }
 
   @SubscribeMessage("join")
   handleJoin(
-    @ConnectedSocket() socket: WebSocketPlayer,
+    @ConnectedSocket() socket: WebSocketExtended,
     @MessageBody(
       new WebSocketJoiValidationPipe(joinGameDtoSchema, "join:error"),
     )
     joinGameDto: JoinGameDto,
   ): WsResponse<JoinGameSuccessDto> {
-    if (socket.player) {
-      throw new WebSocketException("join:error", {
-        title: "Cannot join game.",
-        details: "You are already part of an existing game.",
-      });
+    try {
+      const { waitingRoom, host } = this.gameService.join(
+        { id: socket.id, user: socket.user },
+        joinGameDto,
+      );
+      this.roomService.join(waitingRoom.gameId, socket);
+      const playerName = socket.user?.username || "Guest";
+      this.roomService.emit(
+        waitingRoom.gameId,
+        {
+          event: "join",
+          data: {
+            player: playerName,
+          },
+        },
+        {
+          exclude: [socket.id],
+        },
+      );
+
+      if (!waitingRoom.opponent) {
+        throw new Error(
+          "Opponent not defined for waiting room even after joining.",
+        );
+      }
+
+      return {
+        event: "join:success",
+        data: {
+          gameId: waitingRoom.gameId,
+          you: socket.user?.username || "Guest",
+          opponent: host.user?.username || "Guest",
+          color: waitingRoom.opponent!.color,
+        },
+      };
+    } catch (e) {
+      if (e instanceof GameException) {
+        throw new WebSocketException("join:error", e.problemDetails);
+      }
+      throw e;
     }
-
-    const gameExist = this.gameService.checkExists(joinGameDto.gameId);
-
-    if (!gameExist) {
-      throw new WebSocketException("join:error", {
-        title: "Cannot join game.",
-        details: "The game does not exist.",
-      });
-    }
-
-    const roomSockets = this.roomService.getSockets(joinGameDto.gameId);
-
-    if (!roomSockets) {
-      throw new WebSocketException("join:error", {
-        title: "Cannot join game.",
-        details: "An unexpected error has occured.",
-      });
-    }
-
-    const hostSocket: WebSocketPlayer = roomSockets[0];
-
-    const hostPlayerName = hostSocket.user?.username || "Guest";
-
-    const joiningPlayerName = socket.user?.username || "Guest";
-
-    this.roomService.join(joinGameDto.gameId, socket);
-
-    socket.player = {
-      gameId: joinGameDto.gameId,
-      color:
-        hostSocket.player!.color === PieceColor.WHITE
-          ? PieceColor.BLACK
-          : PieceColor.WHITE,
-    };
-
-    this.roomService.emit(
-      joinGameDto.gameId,
-      { event: "join", data: { player: joiningPlayerName } },
-      {
-        exclude: [socket.id],
-      },
-    );
-
-    return {
-      event: "join:success",
-      data: {
-        gameId: joinGameDto.gameId,
-        you: joiningPlayerName,
-        opponent: hostPlayerName,
-        color: socket.player.color,
-      },
-    };
   }
 }
