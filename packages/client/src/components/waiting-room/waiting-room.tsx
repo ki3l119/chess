@@ -97,8 +97,11 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
         <WaitingRoomPlayer displayName={host} isUser={isHost} />
         <WaitingRoomPlayer displayName={otherPlayer} isUser={!isHost} />
       </div>
-
-      <Button disabled={opponent === undefined}>Start Game</Button>
+      {isHost ? (
+        <Button disabled={opponent === undefined}>Start Game</Button>
+      ) : (
+        <p>Waiting for host to start the game...</p>
+      )}
     </div>
   );
 };

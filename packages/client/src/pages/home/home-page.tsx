@@ -8,17 +8,24 @@ import { Button } from "../../components/button/button";
 import { Card } from "../../components/card/card";
 import { Game } from "../../components/game/game";
 import { Spinner } from "../../components/spinner/spinner";
+import { JoinGameForm } from "../../components/join-game-form/join-game-form";
 import { GameManager } from "../../models";
 import { gameService } from "../../services";
 import { GameManagerContext } from "../../contexts";
 import { ServiceException } from "../../models";
 import { Alert } from "../../components/alert/alert";
 import { WaitingRoom } from "../../components/waiting-room/waiting-room";
-import { CreateGameSuccessDto, NewPlayerDto } from "chess-shared-types";
+import {
+  CreateGameSuccessDto,
+  JoinGameDto,
+  JoinGameSuccessDto,
+  NewPlayerDto,
+} from "chess-shared-types";
 
 enum GameInitStage {
   INIT_OPTIONS,
   CREATE_GAME,
+  JOIN_GAME,
   WAITING_ROOM,
 }
 
@@ -94,6 +101,13 @@ export const HomePage: React.FC = () => {
     setIsHost(true);
   };
 
+  const onGameJoin = (data: JoinGameSuccessDto) => {
+    setGameId(data.gameId);
+    setInitStage(GameInitStage.WAITING_ROOM);
+    setIsHost(false);
+    setOpponent(data.opponent);
+  };
+
   const onPlayerJoin = (newPlayerDto: NewPlayerDto) => {
     setOpponent(newPlayerDto.player);
   };
@@ -107,6 +121,9 @@ export const HomePage: React.FC = () => {
           <div className="home-page__init-options">
             <Button onClick={() => setInitStage(GameInitStage.CREATE_GAME)}>
               Create New Game
+            </Button>
+            <Button onClick={() => setInitStage(GameInitStage.JOIN_GAME)}>
+              Join Game
             </Button>
           </div>
         );
@@ -135,6 +152,16 @@ export const HomePage: React.FC = () => {
           );
           break;
         }
+      case GameInitStage.JOIN_GAME:
+        gameInitNode = (
+          <GameInitWindow
+            title="Join Game"
+            onBack={() => setInitStage(GameInitStage.INIT_OPTIONS)}
+          >
+            <JoinGameForm onJoin={onGameJoin} />
+          </GameInitWindow>
+        );
+        break;
     }
   } else if (isConnecting) {
     gameInitNode = <Spinner />;

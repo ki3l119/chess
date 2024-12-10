@@ -1,3 +1,6 @@
+import { ProblemDetails } from "chess-shared-types";
+import { ServiceException } from "./service.exception";
+
 export type WebSocketMessage = {
   event: string;
   data: any;
@@ -8,6 +11,11 @@ export type WebSocketMessageWithResult = WebSocketMessage & {
 };
 
 export type EventMessageCallback = (data: any) => void;
+
+export type SendEventMessageOptions = {
+  onSuccess?: (data: any) => void;
+  onError?: (data: ProblemDetails) => void;
+};
 
 /**
  * A WebSocket that is expected to send/recieve messages in the form
@@ -37,6 +45,33 @@ export class EventMessageWebSocket extends WebSocket {
    */
   sendEventMessage(message: WebSocketMessage) {
     this.send(JSON.stringify(message));
+  }
+
+  /**
+   * Sends the event message with an expected response from server.
+   *
+   * The server is expected to emit a event:success or event:error message.
+   */
+  sendEventMessageWithResponse<T>(message: WebSocketMessage): Promise<T> {
+    let successCallback: (data: T) => void;
+    let errorCallback: (data: ProblemDetails) => void;
+    const successEvent = `${message.event}:success`;
+    const errorEvent = `${message.event}:error`;
+    return new Promise<T>((resolve, reject) => {
+      successCallback = (data) => {
+        resolve(data);
+      };
+      errorCallback = (data) => {
+        reject(new ServiceException(data));
+      };
+      this.addEventMessageHandler(successEvent, successCallback);
+      this.addEventMessageHandler(errorEvent, errorCallback);
+
+      this.sendEventMessage(message);
+    }).finally(() => {
+      this.removeEventMessageHandler(successEvent, successCallback);
+      this.removeEventMessageHandler(errorEvent, errorCallback);
+    });
   }
 
   /**
