@@ -13,17 +13,20 @@ import { gameService } from "../../services";
 import { GameManagerContext } from "../../contexts";
 import { ServiceException } from "../../models";
 import { Alert } from "../../components/alert/alert";
+import { WaitingRoom } from "../../components/waiting-room/waiting-room";
+import { CreateGameSuccessDto, NewPlayerDto } from "chess-shared-types";
 
 enum GameInitStage {
   INIT_OPTIONS,
   CREATE_GAME,
+  WAITING_ROOM,
 }
 
 type GameInitCardProps = {
   /**
    * Executed when the back icon is pressed
    */
-  onBack: () => void;
+  onBack?: () => void;
   title: string;
   children?: React.ReactNode;
 };
@@ -35,11 +38,14 @@ const GameInitWindow: React.FC<GameInitCardProps> = ({
 }) => {
   return (
     <Card title={title}>
-      <FontAwesomeIcon
-        icon={faArrowLeft}
-        className="home-page__game-init-back"
-        onClick={onBack}
-      />
+      {onBack && (
+        <FontAwesomeIcon
+          icon={faArrowLeft}
+          className="home-page__game-init-back"
+          onClick={onBack}
+        />
+      )}
+
       {children}
     </Card>
   );
@@ -52,6 +58,9 @@ export const HomePage: React.FC = () => {
   const [gameManager, setGameManager] = useState<GameManager | null>(null);
   const [isConnecting, setIsConnecting] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [gameId, setGameId] = useState<string | null>(null);
+  const [isHost, setIsHost] = useState(false);
+  const [opponent, setOpponent] = useState<string | null>(null);
 
   useEffect(() => {
     const initGameManager = async () => {
@@ -79,6 +88,16 @@ export const HomePage: React.FC = () => {
     };
   }, []);
 
+  const onGameCreate = (createGameSuccessDto: CreateGameSuccessDto) => {
+    setGameId(createGameSuccessDto.gameId);
+    setInitStage(GameInitStage.WAITING_ROOM);
+    setIsHost(true);
+  };
+
+  const onPlayerJoin = (newPlayerDto: NewPlayerDto) => {
+    setOpponent(newPlayerDto.player);
+  };
+
   let gameInitNode: React.ReactNode | undefined;
 
   if (gameManager && !errorMessage) {
@@ -98,10 +117,24 @@ export const HomePage: React.FC = () => {
             title="Create New Game"
             onBack={() => setInitStage(GameInitStage.INIT_OPTIONS)}
           >
-            <CreateGameForm />
+            <CreateGameForm onCreate={onGameCreate} />
           </GameInitWindow>
         );
         break;
+      case GameInitStage.WAITING_ROOM:
+        if (gameId) {
+          gameInitNode = (
+            <GameInitWindow title="Game">
+              <WaitingRoom
+                gameId={gameId}
+                opponent={opponent || undefined}
+                isHost={isHost}
+                onJoin={onPlayerJoin}
+              />
+            </GameInitWindow>
+          );
+          break;
+        }
     }
   } else if (isConnecting) {
     gameInitNode = <Spinner />;
