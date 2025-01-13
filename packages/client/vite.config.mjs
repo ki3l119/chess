@@ -19,6 +19,9 @@ const config = {
       stage: 3,
     }),
   ],
+  resolve: {
+    preserveSymlinks: true
+  }
 };
 
 export default config;
