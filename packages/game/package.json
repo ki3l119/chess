@@ -1,0 +1,17 @@
+{
+  "name": "chess-game",
+  "description": "Implements the rules for chess.",
+  "main": "dist/index.js",
+  "author": "Joshua Kiel Gaurano",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.3"
+  }
+}
