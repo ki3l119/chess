@@ -2,7 +2,7 @@ import { it, describe, expect } from "@jest/globals";
 
 import { parseFEN, ParseFENException, ParseFENResult } from "./fen-parser";
 import { Piece, PieceColor, PIECES } from "../models/piece";
-import { Board, BoardSquare } from "../models/board";
+import { Board, BoardCoordinate } from "../models/board";
 
 describe("parseFEN", () => {
   it("Parses starting position", () => {
@@ -10,7 +10,7 @@ describe("parseFEN", () => {
       "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     );
 
-    const expectedPosition: Board = [
+    const expectedPosition = new Board([
       [
         PIECES["R"],
         PIECES["N"],
@@ -34,7 +34,7 @@ describe("parseFEN", () => {
         PIECES["n"],
         PIECES["r"],
       ],
-    ];
+    ]);
 
     const expectedResult: ParseFENResult = {
       board: expectedPosition,
@@ -62,7 +62,7 @@ describe("parseFEN", () => {
       "r4b1r/pp1Qpkpp/2p4q/8/8/2N5/PPPP1PPP/R1B2RK1 b - - 0 11",
     );
 
-    const expectedPosition: Board = [
+    const expectedPosition = new Board([
       [
         PIECES["R"],
         null,
@@ -98,7 +98,7 @@ describe("parseFEN", () => {
         PIECES["p"],
       ],
       [PIECES["r"], null, null, null, null, PIECES["b"], null, PIECES["r"]],
-    ];
+    ]);
 
     const expected: ParseFENResult = {
       board: expectedPosition,
@@ -213,7 +213,7 @@ describe("parseFEN", () => {
     const actual = parseFEN(
       "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
     );
-    const expected: BoardSquare = {
+    const expected: BoardCoordinate = {
       file: 4,
       rank: 2,
     };

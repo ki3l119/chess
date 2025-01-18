@@ -1,5 +1,5 @@
-import type { Board, BoardElement, BoardSquare } from "../models/board";
-import { PieceColor, PIECES, type Piece } from "../models/piece";
+import { Board, BoardElement, BoardCoordinate } from "../models/board";
+import { PieceColor, PIECES } from "../models/piece";
 import { parseSquare } from "./algebraic-notation";
 
 export class ParseFENException extends Error {}
@@ -15,7 +15,7 @@ export type ParseFENResult = {
   castlingRights: {
     [key in PieceColor]: CastlingRights;
   };
-  enPassantTarget: BoardSquare | null;
+  enPassantTarget: BoardCoordinate | null;
   halfmoveClock: number;
   fullmoveCount: number;
 };
@@ -32,7 +32,7 @@ function parsePiecePlacement(piecePlacement: string): Board {
     throw new ParseFENException("Must provide 8 ranks.");
   }
 
-  const board: Board = [];
+  const boardState: BoardElement[][] = [];
 
   for (const rank of ranks.reverse()) {
     const pieces: BoardElement[] = [];
@@ -66,9 +66,9 @@ function parsePiecePlacement(piecePlacement: string): Board {
       throw new ParseFENException("A rank must contain 8 elements");
     }
 
-    board.push(pieces);
+    boardState.push(pieces);
   }
-  return board;
+  return new Board(boardState);
 }
 
 /**
@@ -133,7 +133,7 @@ export function parseFEN(fenString: string): ParseFENResult {
   }
 
   // En Passant
-  let enPassantTarget: BoardSquare | null = null;
+  let enPassantTarget: BoardCoordinate | null = null;
   if (fields[3] !== "-") {
     enPassantTarget = parseSquare(fields[3]);
     if (enPassantTarget === null) {

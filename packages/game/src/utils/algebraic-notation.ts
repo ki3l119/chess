@@ -1,11 +1,11 @@
-import type { BoardSquare } from "../models/board";
+import type { BoardCoordinate } from "../models/board";
 
 /**
  * Converts the algebraic notation of the board square to a Square object.
  *
  * Returns null for those with invalid format.
  */
-export function parseSquare(algebraicNotation: string): BoardSquare | null {
+export function parseSquare(algebraicNotation: string): BoardCoordinate | null {
   if (algebraicNotation.length !== 2) {
     return null;
   }
