@@ -213,11 +213,8 @@ describe("parseFEN", () => {
     const actual = parseFEN(
       "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
     );
-    const expected: BoardCoordinate = {
-      file: 4,
-      rank: 2,
-    };
-    expect(actual.enPassantTarget).toEqual(expected);
+    const expected = new BoardCoordinate(2, 4);
+    expect(actual.enPassantTarget).toStrictEqual(expected);
   });
 
   it("Throws exception on invalid halfmove clock", () => {

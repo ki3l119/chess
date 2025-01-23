@@ -1,4 +1,4 @@
-import type { BoardCoordinate } from "../models/board";
+import { BoardCoordinate } from "../models/board";
 
 /**
  * Converts the algebraic notation of the board square to a Square object.
@@ -24,8 +24,5 @@ export function parseSquare(algebraicNotation: string): BoardCoordinate | null {
     return null;
   }
 
-  return {
-    file: fileCharCode % 97,
-    rank: rankNumber,
-  };
+  return new BoardCoordinate(rankNumber, fileCharCode % 97);
 }
