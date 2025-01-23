@@ -38,10 +38,62 @@ export class BoardCoordinate {
   }
 }
 
-export class Board {
+export enum Direction {
+  NORTH,
+  SOUTH,
+  EAST,
+  WEST,
+  NORTH_EAST,
+  NORTH_WEST,
+  SOUTH_EAST,
+  SOUTH_WEST,
+}
+
+export type TranverseDirectionOptions = {
   /**
-   *
+   * The maximum number of steps to take from the origin.
    */
+  maxSteps?: number;
+};
+
+export class Board {
+  private static directionSteps: {
+    [key in Direction]: BoardCoordinateOffset;
+  } = {
+    [Direction.NORTH]: {
+      rank: 1,
+      file: 0,
+    },
+    [Direction.SOUTH]: {
+      rank: -1,
+      file: 0,
+    },
+    [Direction.EAST]: {
+      rank: 0,
+      file: 1,
+    },
+    [Direction.WEST]: {
+      rank: 0,
+      file: -1,
+    },
+    [Direction.NORTH_EAST]: {
+      rank: 1,
+      file: 1,
+    },
+    [Direction.NORTH_WEST]: {
+      rank: 1,
+      file: -1,
+    },
+    [Direction.SOUTH_EAST]: {
+      rank: -1,
+      file: 1,
+    },
+    [Direction.SOUTH_WEST]: {
+      rank: -1,
+      file: -1,
+    },
+  };
+
   private elements: BoardElement[][];
 
   /**
@@ -68,6 +120,15 @@ export class Board {
     return boardCopy;
   }
 
+  private isWithinBoard(coordinate: BoardCoordinate) {
+    return (
+      coordinate.rank >= 0 &&
+      coordinate.rank < this.elements.length &&
+      coordinate.file >= 0 &&
+      coordinate.file < this.elements[coordinate.rank].length
+    );
+  }
+
   getElement(square: BoardCoordinate): BoardElement {
     return this.elements[square.rank][square.file];
   }
@@ -77,5 +138,60 @@ export class Board {
    */
   getBoardElements() {
     return Board.copyBoardState(this.elements);
+  }
+
+  /**
+   * Traverses to the given direction from the origin until it reaches the
+   * end of the board; unless otherwise specified.
+   */
+  *traverseDirection(
+    origin: BoardCoordinate,
+    direction: Direction,
+    options: TranverseDirectionOptions = {},
+  ): Generator<BoardCoordinate> {
+    const directionOffset = Board.directionSteps[direction];
+    let coordinate = origin.addOffset(directionOffset);
+    let stepCount = 1;
+    while (this.isWithinBoard(coordinate)) {
+      yield coordinate;
+      if (stepCount === options.maxSteps) {
+        break;
+      }
+      coordinate = coordinate.addOffset(directionOffset);
+      stepCount += 1;
+    }
+  }
+
+  /**
+   * Traverses all coordinates that are within offsets from the origin.
+   */
+  *traverseOffsets(
+    origin: BoardCoordinate,
+    offsets: BoardCoordinateOffset[],
+  ): Generator<BoardCoordinate> {
+    for (const offset of offsets) {
+      const coordinate = origin.addOffset(offset);
+      if (this.isWithinBoard(coordinate)) {
+        yield coordinate;
+      }
+    }
+  }
+
+  /**
+   * Iterates over all pieces present within the board, alongside their
+   * coordinates
+   */
+  *pieces(): Generator<{ piece: Piece; coordinate: BoardCoordinate }> {
+    for (let i = 0; i < this.elements.length; i++) {
+      for (let j = 0; j < this.elements[i].length; j++) {
+        const piece = this.elements[i][j];
+        if (piece !== null) {
+          yield {
+            piece,
+            coordinate: new BoardCoordinate(i, j),
+          };
+        }
+      }
+    }
   }
 }
