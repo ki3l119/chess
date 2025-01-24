@@ -1,4 +1,4 @@
-import { Piece, PieceColor, PieceType } from "./piece";
+import { Piece, PieceColor, PieceType } from "./models/piece";
 
 export type BoardElement = Piece | null;
 

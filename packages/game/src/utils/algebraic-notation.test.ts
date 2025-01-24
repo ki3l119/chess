@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 
 import { parseSquare } from "./algebraic-notation";
-import { BoardCoordinate } from "../models/board";
+import { BoardCoordinate } from "../board";
 
 describe("parseSquare", () => {
   it.each([

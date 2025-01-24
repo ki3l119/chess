@@ -2,7 +2,7 @@ import { it, describe, expect } from "@jest/globals";
 
 import { parseFEN, ParseFENException, ParseFENResult } from "./fen-parser";
 import { Piece, PieceColor, PIECES } from "../models/piece";
-import { Board, BoardCoordinate } from "../models/board";
+import { Board, BoardCoordinate } from "../board";
 
 describe("parseFEN", () => {
   it("Parses starting position", () => {

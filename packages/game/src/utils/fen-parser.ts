@@ -1,4 +1,4 @@
-import { Board, BoardElement, BoardCoordinate } from "../models/board";
+import { Board, BoardElement, BoardCoordinate } from "../board";
 import { PieceColor, PIECES } from "../models/piece";
 import { parseSquare } from "./algebraic-notation";
 

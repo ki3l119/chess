@@ -1,4 +1,4 @@
-import { BoardCoordinate } from "../models/board";
+import { BoardCoordinate } from "../board";
 
 /**
  * Converts the algebraic notation of the board square to a Square object.
