@@ -20,6 +20,9 @@ export type ParseFENResult = {
   fullmoveCount: number;
 };
 
+export const startingBoardFENString =
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 /**
  * Creates a board representation from a FEN string.
  *

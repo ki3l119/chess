@@ -1,14 +1,17 @@
 import { it, describe, expect } from "@jest/globals";
 
-import { parseFEN, ParseFENException, ParseFENResult } from "./fen-parser";
+import {
+  parseFEN,
+  ParseFENException,
+  ParseFENResult,
+  startingBoardFENString,
+} from "./fen-parser";
 import { Piece, PieceColor, PIECES } from "../models/piece";
 import { Board, BoardCoordinate } from "../board";
 
 describe("parseFEN", () => {
   it("Parses starting position", () => {
-    const actual = parseFEN(
-      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    );
+    const actual = parseFEN(startingBoardFENString);
 
     const expectedPosition = new Board([
       [

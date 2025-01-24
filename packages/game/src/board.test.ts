@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 
-import { parseFEN } from "./utils/fen-parser";
+import { parseFEN, startingBoardFENString } from "./utils/fen-parser";
 import {
   BoardCoordinate,
   BoardCoordinateOffset,
@@ -10,9 +10,7 @@ import {
 import { Piece, PIECES } from "./models/piece";
 
 describe("Board", () => {
-  const { board: startingBoard } = parseFEN(
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  );
+  const { board: startingBoard } = parseFEN(startingBoardFENString);
   describe("traverseDirection", () => {
     it.each([
       [
