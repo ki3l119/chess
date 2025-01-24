@@ -1,5 +1,5 @@
 import type { Board, BoardCoordinate } from "./board";
-import type { PieceColor } from "./models/piece";
+import type { PieceColor } from "./pieces";
 
 export type CastlingRights = {
   kingside: boolean;

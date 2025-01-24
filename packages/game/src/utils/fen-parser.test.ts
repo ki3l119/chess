@@ -6,7 +6,7 @@ import {
   ParseFENException,
   startingBoardFENString,
 } from "./fen-parser";
-import { Piece, PieceColor, PIECES } from "../models/piece";
+import { Piece, PieceColor, PIECES } from "../pieces";
 import { Board, BoardCoordinate } from "../board";
 
 describe("parseFEN", () => {

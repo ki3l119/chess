@@ -1,6 +1,6 @@
 import { GameState, CastlingRights } from "../types";
 import { Board, BoardElement, BoardCoordinate } from "../board";
-import { PieceColor, PIECES } from "../models/piece";
+import { PieceColor, PIECES } from "../pieces";
 import { parseSquare } from "./algebraic-notation";
 
 export class ParseFENException extends Error {}

@@ -7,7 +7,7 @@ import {
   BoardElement,
   Direction,
 } from "./board";
-import { Piece, PIECES } from "./models/piece";
+import { Piece, PIECES } from "./pieces";
 
 describe("Board", () => {
   const { board: startingBoard } = parseFEN(startingBoardFENString);
