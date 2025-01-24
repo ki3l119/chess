@@ -54,7 +54,7 @@ describe("parseFEN", () => {
       fullmoveCount: 1,
     };
 
-    expect(actual).toEqual(expectedResult);
+    expect(actual).toStrictEqual(expectedResult);
   });
 
   it("Parses a midgame position", () => {
@@ -118,7 +118,7 @@ describe("parseFEN", () => {
       fullmoveCount: 11,
     };
 
-    expect(actual).toEqual(expected);
+    expect(actual).toStrictEqual(expected);
   });
 
   it.each([
@@ -198,7 +198,7 @@ describe("parseFEN", () => {
     const actual = parseFEN(
       `rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w ${castlingRightsInput} - 0 1`,
     );
-    expect(actual.castlingRights).toEqual(expected);
+    expect(actual.castlingRights).toStrictEqual(expected);
   });
 
   it("Throws exception on invalid castling rights", () => {
