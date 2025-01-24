@@ -1,24 +1,9 @@
+import { GameState, CastlingRights } from "../types";
 import { Board, BoardElement, BoardCoordinate } from "../board";
 import { PieceColor, PIECES } from "../models/piece";
 import { parseSquare } from "./algebraic-notation";
 
 export class ParseFENException extends Error {}
-
-type CastlingRights = {
-  kingside: boolean;
-  queenside: boolean;
-};
-
-export type ParseFENResult = {
-  board: Board;
-  activeColor: PieceColor;
-  castlingRights: {
-    [key in PieceColor]: CastlingRights;
-  };
-  enPassantTarget: BoardCoordinate | null;
-  halfmoveClock: number;
-  fullmoveCount: number;
-};
 
 export const startingBoardFENString =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -79,7 +64,7 @@ function parsePiecePlacement(piecePlacement: string): Board {
  *
  * @throws {ParseFENException} Throws on invalid FEN input.
  */
-export function parseFEN(fenString: string): ParseFENResult {
+export function parseFEN(fenString: string): GameState {
   const fields = fenString.split(" ");
 
   if (fields.length !== 6) {

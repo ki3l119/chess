@@ -1,9 +1,9 @@
 import { it, describe, expect } from "@jest/globals";
 
+import { GameState } from "../types";
 import {
   parseFEN,
   ParseFENException,
-  ParseFENResult,
   startingBoardFENString,
 } from "./fen-parser";
 import { Piece, PieceColor, PIECES } from "../models/piece";
@@ -39,7 +39,7 @@ describe("parseFEN", () => {
       ],
     ]);
 
-    const expectedResult: ParseFENResult = {
+    const expectedResult: GameState = {
       board: expectedPosition,
       activeColor: PieceColor.WHITE,
       castlingRights: {
@@ -103,7 +103,7 @@ describe("parseFEN", () => {
       [PIECES["r"], null, null, null, null, PIECES["b"], null, PIECES["r"]],
     ]);
 
-    const expected: ParseFENResult = {
+    const expected: GameState = {
       board: expectedPosition,
       activeColor: PieceColor.BLACK,
       castlingRights: {
