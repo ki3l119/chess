@@ -129,7 +129,7 @@ export class Board {
     );
   }
 
-  getElement(square: BoardCoordinate): BoardElement {
+  getPiece(square: BoardCoordinate): BoardElement {
     return this.elements[square.rank][square.file];
   }
 
