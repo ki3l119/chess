@@ -1,4 +1,5 @@
-import type { Board, BoardCoordinate } from "../board";
+import type { BoardCoordinate } from "../board";
+import type { GameState } from "../types";
 
 export enum PieceColor {
   WHITE = "WHITE",
@@ -12,12 +13,12 @@ export abstract class Piece {
    * Gets all possible coordinates that the piece can reach from the specified
    * origin.
    *
-   * @param board - The current state of the board.
+   * @param gameState - The current state of the chess game.
    * @param origin - Where the piece currently resides.
    * @returns A list of destination coordinates.
    */
   abstract generatePseudoLegalMoves(
-    board: Board,
+    gameState: GameState,
     origin: BoardCoordinate,
   ): BoardCoordinate[];
 

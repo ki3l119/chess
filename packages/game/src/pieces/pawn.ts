@@ -1,9 +1,10 @@
-import { Board, BoardCoordinate } from "../board";
+import { BoardCoordinate } from "../board";
+import type { GameState } from "../types";
 import { Piece } from "./piece";
 
 export class Pawn extends Piece {
   generatePseudoLegalMoves(
-    board: Board,
+    gameState: GameState,
     origin: BoardCoordinate,
   ): BoardCoordinate[] {
     throw new Error("Method not implemented.");
