@@ -1,12 +1,13 @@
-import { BoardCoordinate } from "../board";
-import type { GameState } from "../types";
-import { Piece } from "./piece";
+import { Direction } from "../board";
+import { SlidingPiece } from "./sliding-piece";
 
-export class Bishop extends Piece {
-  generatePseudoLegalMoves(
-    gameState: GameState,
-    origin: BoardCoordinate,
-  ): BoardCoordinate[] {
-    throw new Error("Method not implemented.");
+export class Bishop extends SlidingPiece {
+  protected getDirections(): Direction[] {
+    return [
+      Direction.NORTH_EAST,
+      Direction.NORTH_WEST,
+      Direction.SOUTH_EAST,
+      Direction.SOUTH_WEST,
+    ];
   }
 }
