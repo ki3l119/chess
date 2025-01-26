@@ -3,6 +3,7 @@ import { PieceColor } from "./piece";
 import { parseFEN, startingBoardFENString } from "../utils/fen-parser";
 import { BoardCoordinate } from "../board";
 import { Pawn } from "./pawn";
+import { testPieceMovement } from "../../.jest/piece-utils";
 
 function testPawnMovement(
   color: PieceColor,
@@ -10,14 +11,8 @@ function testPawnMovement(
   origin: BoardCoordinate,
   expected: BoardCoordinate[],
 ) {
-  const gameState = parseFEN(gameFEN);
   const pawn = new Pawn(color);
-  const actual = pawn.generatePseudoLegalMoves(gameState, origin);
-  const sortFunction = (a: BoardCoordinate, b: BoardCoordinate) =>
-    a.rank - b.rank || a.file - b.file;
-  expect([...actual].sort(sortFunction)).toStrictEqual(
-    [...expected].sort(sortFunction),
-  );
+  testPieceMovement(pawn, gameFEN, origin, expected);
 }
 
 describe("Pawn", () => {
