@@ -1,12 +1,8 @@
-import { BoardCoordinate } from "../board";
-import type { GameState } from "../types";
-import { Piece } from "./piece";
+import { Direction } from "../board";
+import { SlidingPiece } from "./sliding-piece";
 
-export class Rook extends Piece {
-  generatePseudoLegalMoves(
-    gameState: GameState,
-    origin: BoardCoordinate,
-  ): BoardCoordinate[] {
-    throw new Error("Method not implemented.");
+export class Rook extends SlidingPiece {
+  protected getDirections(): Direction[] {
+    return [Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST];
   }
 }
