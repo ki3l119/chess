@@ -6,7 +6,7 @@ import { Bishop } from "./bishop";
 import { Queen } from "./queen";
 import { King } from "./king";
 
-export { PieceColor, Piece };
+export { PieceColor, Piece, Pawn, Knight, Rook, Bishop, Queen, King };
 
 export type FENPieceName =
   | "P"
