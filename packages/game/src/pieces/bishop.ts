@@ -2,7 +2,7 @@ import { Direction } from "../board";
 import { SlidingPiece } from "./sliding-piece";
 
 export class Bishop extends SlidingPiece {
-  protected getDirections(): Direction[] {
+  getDirections(): Direction[] {
     return [
       Direction.NORTH_EAST,
       Direction.NORTH_WEST,

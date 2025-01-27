@@ -2,7 +2,7 @@ import type { BoardCoordinateOffset } from "../board";
 import { OffsetPiece } from "./offset-piece";
 
 export class Knight extends OffsetPiece {
-  protected getOffsets(): BoardCoordinateOffset[] {
+  getOffsets(): BoardCoordinateOffset[] {
     return [
       {
         rank: 2,

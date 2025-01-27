@@ -6,7 +6,7 @@ export abstract class SlidingPiece extends Piece {
   /**
    * @returns A list of all direction the piece can move to.
    */
-  protected abstract getDirections(): Direction[];
+  abstract getDirections(): Direction[];
 
   generatePseudoLegalMoves(
     gameState: GameState,

@@ -2,7 +2,7 @@ import { Direction } from "../board";
 import { SlidingPiece } from "./sliding-piece";
 
 export class Queen extends SlidingPiece {
-  protected getDirections(): Direction[] {
+  getDirections(): Direction[] {
     return [
       Direction.NORTH,
       Direction.SOUTH,
