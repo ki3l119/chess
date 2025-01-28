@@ -1,4 +1,4 @@
-import type { Piece } from "./pieces";
+import type { Piece, PieceColor } from "./pieces";
 
 export type Move = {
   from: BoardCoordinate;
@@ -59,6 +59,13 @@ export type TranverseDirectionOptions = {
    * The maximum number of steps to take from the origin.
    */
   maxSteps?: number;
+};
+
+export type PiecesIteratorOptions = {
+  /**
+   * Only consider pieces with the specified color
+   */
+  color?: PieceColor;
 };
 
 export class Board {
@@ -186,11 +193,17 @@ export class Board {
    * Iterates over all pieces present within the board, alongside their
    * coordinates
    */
-  *pieces(): Generator<{ piece: Piece; coordinate: BoardCoordinate }> {
+  *pieces(
+    options: PiecesIteratorOptions = {},
+  ): Generator<{ piece: Piece; coordinate: BoardCoordinate }> {
     for (let i = 0; i < this.elements.length; i++) {
       for (let j = 0; j < this.elements[i].length; j++) {
         const piece = this.elements[i][j];
         if (piece !== null) {
+          if (options.color !== undefined && piece.color !== options.color) {
+            continue;
+          }
+
           yield {
             piece,
             coordinate: new BoardCoordinate(i, j),

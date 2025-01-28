@@ -7,7 +7,7 @@ import {
   BoardElement,
   Direction,
 } from "./board";
-import { Piece, PIECES } from "./pieces";
+import { Piece, PieceColor, PIECES } from "./pieces";
 
 describe("Board", () => {
   const { board: startingBoard } = parseFEN(startingBoardFENString);
@@ -258,6 +258,53 @@ describe("Board", () => {
         const expected: Piece[] = [];
 
         const actual = Array.from(emptyBoard.pieces());
+        expect(actual).toStrictEqual(expected);
+      });
+
+      it("Yields only pieces with specified color if provided", () => {
+        const expected = [
+          ...new Array<BoardElement>(8)
+            .fill(PIECES["p"])
+            .map((piece, index) => ({
+              piece: piece,
+              coordinate: new BoardCoordinate(6, index),
+            })),
+          {
+            piece: PIECES["r"],
+            coordinate: new BoardCoordinate(7, 0),
+          },
+          {
+            piece: PIECES["n"],
+            coordinate: new BoardCoordinate(7, 1),
+          },
+          {
+            piece: PIECES["b"],
+            coordinate: new BoardCoordinate(7, 2),
+          },
+          {
+            piece: PIECES["q"],
+            coordinate: new BoardCoordinate(7, 3),
+          },
+          {
+            piece: PIECES["k"],
+            coordinate: new BoardCoordinate(7, 4),
+          },
+          {
+            piece: PIECES["b"],
+            coordinate: new BoardCoordinate(7, 5),
+          },
+          {
+            piece: PIECES["n"],
+            coordinate: new BoardCoordinate(7, 6),
+          },
+          {
+            piece: PIECES["r"],
+            coordinate: new BoardCoordinate(7, 7),
+          },
+        ];
+        const actual = Array.from(
+          startingBoard.pieces({ color: PieceColor.BLACK }),
+        );
         expect(actual).toStrictEqual(expected);
       });
     });
