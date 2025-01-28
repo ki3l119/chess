@@ -1,5 +1,10 @@
 import type { Piece } from "./pieces";
 
+export type Move = {
+  from: BoardCoordinate;
+  to: BoardCoordinate;
+};
+
 export type BoardElement = Piece | null;
 
 export type BoardCoordinateOffset = {
@@ -192,6 +197,27 @@ export class Board {
           };
         }
       }
+    }
+  }
+
+  /**
+   * Updates the element in specified coordinate.
+   */
+  set(coordinate: BoardCoordinate, element: BoardElement) {
+    this.elements[coordinate.rank][coordinate.file] = element;
+  }
+
+  /**
+   * Updates the board with the piece movement.
+   *
+   * If the there is no piece placed in the origin of the movement, the board
+   * is not updated.
+   */
+  movePiece(move: Move) {
+    const piece = this.getPiece(move.from);
+    if (piece) {
+      this.set(move.from, null);
+      this.set(move.to, piece);
     }
   }
 }
