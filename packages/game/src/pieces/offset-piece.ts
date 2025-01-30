@@ -10,7 +10,7 @@ export abstract class OffsetPiece extends Piece {
   /**
    * @returns A list of offsets the piece can move to from its current position.
    */
-  abstract getOffsets(): BoardCoordinateOffset[];
+  protected abstract getOffsets(): BoardCoordinateOffset[];
 
   generatePseudoLegalMoves(
     gameState: GameState,
