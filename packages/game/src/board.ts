@@ -132,7 +132,7 @@ export class Board {
     return boardCopy;
   }
 
-  private isWithinBoard(coordinate: BoardCoordinate) {
+  isWithinBoard(coordinate: BoardCoordinate): boolean {
     return (
       coordinate.rank >= 0 &&
       coordinate.rank < this.elements.length &&
