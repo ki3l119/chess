@@ -71,4 +71,8 @@ export class Pawn extends Piece {
 
     return destinationCoordinates;
   }
+
+  getFENString(): string {
+    return this.color === PieceColor.WHITE ? "P" : "p";
+  }
 }

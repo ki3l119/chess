@@ -1,4 +1,5 @@
 import { Direction } from "../board";
+import { PieceColor } from "./piece";
 import { SlidingPiece } from "./sliding-piece";
 
 export class Queen extends SlidingPiece {
@@ -13,5 +14,9 @@ export class Queen extends SlidingPiece {
       Direction.SOUTH_EAST,
       Direction.SOUTH_WEST,
     ];
+  }
+
+  getFENString(): string {
+    return this.color === PieceColor.WHITE ? "Q" : "q";
   }
 }

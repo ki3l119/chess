@@ -27,4 +27,6 @@ export abstract class Piece {
       ? PieceColor.BLACK
       : PieceColor.WHITE;
   }
+
+  abstract getFENString(): string;
 }

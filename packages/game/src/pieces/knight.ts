@@ -1,5 +1,6 @@
 import type { BoardCoordinateOffset } from "../board";
 import { OffsetPiece } from "./offset-piece";
+import { PieceColor } from "./piece";
 
 export class Knight extends OffsetPiece {
   static readonly offsets: readonly BoardCoordinateOffset[] = [
@@ -39,5 +40,9 @@ export class Knight extends OffsetPiece {
 
   protected getOffsets(): BoardCoordinateOffset[] {
     return [...Knight.offsets];
+  }
+
+  getFENString(): string {
+    return this.color === PieceColor.WHITE ? "N" : "n";
   }
 }
