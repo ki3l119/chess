@@ -41,8 +41,8 @@ export class Chess {
    * @throws {Error} When the king does not exist on the board.
    */
   private static findKing(board: Board, color: PieceColor): BoardCoordinate {
-    for (const { piece, coordinate } of board.pieces()) {
-      if (piece instanceof King && piece.color === color) {
+    for (const { piece, coordinate } of board.pieces({ color: color })) {
+      if (piece instanceof King) {
         return coordinate;
       }
     }
