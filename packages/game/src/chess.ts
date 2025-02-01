@@ -49,7 +49,7 @@ export class Chess {
     throw new Error("Invalid game state. King no longer exists.");
   }
 
-  private static getOpposingColor(color: PieceColor): PieceColor {
+  static getOpposingColor(color: PieceColor): PieceColor {
     return color === PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE;
   }
 
@@ -504,5 +504,9 @@ export class Chess {
 
   getGameState(): GameState {
     return this.deepCopyGameState();
+  }
+
+  getActiveColor(): PieceColor {
+    return this.gameState.activeColor;
   }
 }
