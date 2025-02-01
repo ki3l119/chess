@@ -39,11 +39,11 @@ export class GameGateway implements OnGatewayDisconnect {
   ) {}
 
   handleDisconnect(socket: WebSocketExtended) {
-    const player = this.gameService.findPlayerById(socket.id);
-    if (player) {
-      this.roomService.leave(player.gameId, socket);
+    const gameId = this.gameService.findPlayerGame(socket.id);
+    if (gameId !== null) {
+      this.gameService.delete(gameId);
+      this.roomService.leave(gameId, socket);
     }
-    this.gameService.removePlayer(socket.id);
   }
 
   @SubscribeMessage("create")
@@ -55,8 +55,11 @@ export class GameGateway implements OnGatewayDisconnect {
     createGameDto: CreateGameDto,
   ): WsResponse<CreateGameSuccessDto> {
     try {
-      const { gameId } = this.gameService.create(
-        { id: socket.id, user: socket.user },
+      const gameId = this.gameService.create(
+        {
+          id: socket.id,
+          name: socket.user?.username,
+        },
         createGameDto,
       );
       this.roomService.join(gameId, socket);
@@ -83,18 +86,18 @@ export class GameGateway implements OnGatewayDisconnect {
     joinGameDto: JoinGameDto,
   ): WsResponse<JoinGameSuccessDto> {
     try {
-      const { waitingRoom, host } = this.gameService.join(
-        { id: socket.id, user: socket.user },
+      const joinResult = this.gameService.join(
+        { id: socket.id, name: socket.user?.username },
         joinGameDto,
       );
-      this.roomService.join(waitingRoom.gameId, socket);
-      const playerName = socket.user?.username || "Guest";
+      this.roomService.join(joinResult.gameId, socket);
+
       this.roomService.emit(
-        waitingRoom.gameId,
+        joinResult.gameId,
         {
           event: "join",
           data: {
-            player: playerName,
+            player: joinResult.player.name,
           },
         },
         {
@@ -102,19 +105,13 @@ export class GameGateway implements OnGatewayDisconnect {
         },
       );
 
-      if (!waitingRoom.opponent) {
-        throw new Error(
-          "Opponent not defined for waiting room even after joining.",
-        );
-      }
-
       return {
         event: "join:success",
         data: {
-          gameId: waitingRoom.gameId,
-          you: socket.user?.username || "Guest",
-          opponent: host.user?.username || "Guest",
-          color: waitingRoom.opponent!.color,
+          gameId: joinResult.gameId,
+          you: joinResult.player.name,
+          opponent: joinResult.host.name,
+          color: joinResult.player.color,
         },
       };
     } catch (e) {

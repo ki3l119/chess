@@ -5,137 +5,111 @@ import {
   CreateGameDto,
   JoinGameDto,
   PieceColorChoice,
-  UserDto,
 } from "chess-shared-types";
 import {
   InvalidGameCreationException,
   InvalidGameJoinException,
   GameNotFoundException,
 } from "./game.exception";
-import { Game } from "./models/game";
-
-type WaitingPlayer = {
-  playerId: string;
-  color: PieceColorChoice;
-};
-type WaitingRoom = {
-  gameId: string;
-  host: WaitingPlayer;
-  opponent?: WaitingPlayer;
-};
-
-type Player = {
-  id: string;
-  user?: UserDto;
-  gameId: string;
-};
+import { Game, Player } from "./game";
 
 @Injectable()
 export class GameService {
+  // Maps each player id to their game id
+  private readonly playerGameMapping: Map<string, string>;
+
   private readonly games: Map<string, Game>;
-  private readonly waitingRooms: Map<string, WaitingRoom>;
-  private readonly players: Map<string, Player>;
   private readonly logger: Logger;
 
   constructor() {
     this.games = new Map();
-    this.logger = new Logger(GameService.name);
-    this.players = new Map();
-    this.waitingRooms = new Map();
+    this.playerGameMapping = new Map();
+    this.logger = new Logger();
   }
 
   /**
-   * Creates a new waiting room for a game.
+   * Creates a new game with the player as the host.
+   *
+   * @returns The id of the newly created game.
+   * @throws {InvalidGameCreationException}
    */
   create(
-    player: Pick<Player, "id" | "user">,
+    newPlayer: { id: string; name?: string },
     createGameDto: CreateGameDto,
-  ): WaitingRoom {
-    if (this.players.get(player.id)) {
+  ): string {
+    if (this.playerGameMapping.get(newPlayer.id)) {
       throw new InvalidGameCreationException(
         "You are already part of an existing game.",
       );
     }
-    const waitingRoom: WaitingRoom = {
-      gameId: randomUUID(),
-      host: {
-        playerId: player.id,
-        color: createGameDto.color,
-      },
-    };
-    this.players.set(player.id, {
-      id: player.id,
-      user: player.user,
-      gameId: waitingRoom.gameId,
+
+    const game = new Game(randomUUID(), {
+      id: newPlayer.id,
+      name: newPlayer.name || "Guest",
+      color: createGameDto.color,
     });
-    this.waitingRooms.set(waitingRoom.gameId, waitingRoom);
-    this.logger.log(`Created waiting room for game ${waitingRoom.gameId}`);
-    return waitingRoom;
+    this.games.set(game.id, game);
+    this.playerGameMapping.set(newPlayer.id, game.id);
+    this.logger.log(`Created game ${game.id}`);
+    return game.id;
   }
 
   /**
    * Joins the waiting room for an existing game.
+   *
+   * @throws {InvalidGameJoinException | GameNotFoundException}
    */
   join(
-    player: Pick<Player, "id" | "user">,
+    newPlayer: { id: string; name?: string },
     joinGameDto: JoinGameDto,
-  ): {
-    waitingRoom: WaitingRoom;
-    host: Player;
-  } {
-    if (this.players.get(player.id)) {
+  ): { gameId: string; host: Player; color: PieceColorChoice; player: Player } {
+    if (this.playerGameMapping.get(newPlayer.id)) {
       throw new InvalidGameJoinException(
         "You are already part of an existing game.",
       );
     }
 
-    const waitingRoom = this.waitingRooms.get(joinGameDto.gameId);
-    if (!waitingRoom) {
+    const game = this.games.get(joinGameDto.gameId);
+    if (!game) {
       throw new GameNotFoundException(joinGameDto.gameId);
-    } else if (waitingRoom.opponent) {
+    }
+
+    const isGameFull = game.getPlayer() !== undefined;
+
+    if (isGameFull) {
       throw new InvalidGameJoinException("The game is already full.");
     }
 
-    let color = waitingRoom.host.color;
-    if (color !== "RANDOM") {
-      color = waitingRoom.host.color === "WHITE" ? "BLACK" : "WHITE";
-    }
-
-    this.players.set(player.id, {
-      id: player.id,
-      user: player.user,
-      gameId: waitingRoom.gameId,
+    const player = game.setPlayer({
+      id: newPlayer.id,
+      name: newPlayer.name || "Guest",
     });
-    waitingRoom.opponent = {
-      playerId: player.id,
-      color,
-    };
 
-    const host = this.players.get(waitingRoom.host.playerId);
-
-    if (!host) {
-      throw new Error("Host not defined in players for existing game.");
-    }
-
-    this.logger.log(`Player ${player.id} joined game ${waitingRoom.gameId}`);
+    this.playerGameMapping.set(player.id, game.id);
+    this.logger.log(`Player ${player.id} joined game ${game.id}`);
 
     return {
-      waitingRoom,
-      host,
+      gameId: game.id,
+      host: game.getHost(),
+      color: game.isRandomColorChoice ? "RANDOM" : player.color,
+      player: player,
     };
   }
 
-  findPlayerById(id: string): Player | null {
-    return this.players.get(id) || null;
+  delete(gameId: string): boolean {
+    const game = this.games.get(gameId);
+    if (!game) {
+      return false;
+    }
+    this.playerGameMapping.delete(game.getHost().id);
+    const player = game.getPlayer();
+    if (player) {
+      this.playerGameMapping.delete(player.id);
+    }
+    return this.playerGameMapping.delete(gameId);
   }
 
-  removePlayer(playerId: string) {
-    const player = this.players.get(playerId);
-    if (player) {
-      this.waitingRooms.delete(player.gameId);
-      this.games.delete(player.gameId);
-      this.logger.log(`Removed game ${player.gameId}`);
-      this.players.delete(playerId);
-    }
+  findPlayerGame(playerId: string): string | null {
+    return this.playerGameMapping.get(playerId) || null;
   }
 }
