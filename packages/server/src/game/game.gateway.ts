@@ -1,5 +1,5 @@
 import { ServerOptions } from "ws";
-import { UseFilters } from "@nestjs/common";
+import { UseFilters, UseGuards } from "@nestjs/common";
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -14,6 +14,7 @@ import {
   CreateGameSuccessDto,
   JoinGameSuccessDto,
   JoinGameDto,
+  StartGameDto,
 } from "chess-shared-types";
 import {
   type WebSocketExtended,
@@ -25,6 +26,9 @@ import {
 import { GameService } from "./game.service";
 import { createGameDtoSchema, joinGameDtoSchema } from "./game.validator";
 import { GameException } from "./game.exception";
+import { GameSocket } from "./types";
+import { GameGuard } from "./game.guard";
+import { CurrentGame } from "./game.decorator";
 
 const serverOptions: ServerOptions = {
   path: "/games",
@@ -38,17 +42,16 @@ export class GameGateway implements OnGatewayDisconnect {
     private readonly roomService: RoomService,
   ) {}
 
-  handleDisconnect(socket: WebSocketExtended) {
-    const gameId = this.gameService.findPlayerGame(socket.id);
-    if (gameId !== null) {
-      this.gameService.delete(gameId);
-      this.roomService.leave(gameId, socket);
+  handleDisconnect(socket: GameSocket) {
+    if (socket.gameId) {
+      this.gameService.delete(socket.gameId);
+      this.roomService.leave(socket.gameId, socket);
     }
   }
 
   @SubscribeMessage("create")
   handleCreate(
-    @ConnectedSocket() socket: WebSocketExtended,
+    @ConnectedSocket() socket: GameSocket,
     @MessageBody(
       new WebSocketJoiValidationPipe(createGameDtoSchema, "create:error"),
     )
@@ -63,6 +66,7 @@ export class GameGateway implements OnGatewayDisconnect {
         createGameDto,
       );
       this.roomService.join(gameId, socket);
+      socket.gameId = gameId;
       return {
         event: "create:success",
         data: {
@@ -79,7 +83,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage("join")
   handleJoin(
-    @ConnectedSocket() socket: WebSocketExtended,
+    @ConnectedSocket() socket: GameSocket,
     @MessageBody(
       new WebSocketJoiValidationPipe(joinGameDtoSchema, "join:error"),
     )
@@ -91,7 +95,7 @@ export class GameGateway implements OnGatewayDisconnect {
         joinGameDto,
       );
       this.roomService.join(joinResult.gameId, socket);
-
+      socket.gameId = joinResult.gameId;
       this.roomService.emit(
         joinResult.gameId,
         {
@@ -120,5 +124,18 @@ export class GameGateway implements OnGatewayDisconnect {
       }
       throw e;
     }
+  }
+
+  @SubscribeMessage("start")
+  @UseGuards(GameGuard)
+  handleStart(@CurrentGame() gameId: string) {
+    const pieces = this.gameService.start(gameId);
+    const startGameDto: StartGameDto = {
+      pieces,
+    };
+    this.roomService.emit(gameId, {
+      event: "start",
+      data: startGameDto,
+    });
   }
 }

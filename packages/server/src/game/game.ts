@@ -1,5 +1,12 @@
-import { Chess, PieceColor } from "chess-game";
-import { PieceColorChoice } from "chess-shared-types";
+import {
+  Chess,
+  parseFEN,
+  PieceColor,
+  startingBoardFENString,
+} from "chess-game";
+import { PieceColorChoice, PieceDto } from "chess-shared-types";
+
+import { InvalidStartException } from "./game.exception";
 
 export { PieceColor };
 
@@ -14,6 +21,8 @@ export class Game {
   readonly isRandomColorChoice: boolean;
   private readonly host: Player;
   private player?: Player;
+
+  private chess?: Chess;
 
   constructor(
     public readonly id: string,
@@ -55,5 +64,38 @@ export class Game {
     };
 
     return this.player;
+  }
+
+  /**
+   * Initializes the chess board and starts the game.
+   *
+   * @returns A list of all pieces present within the board.
+   * @throws {InvalidStartException}
+   */
+  start(): PieceDto[] {
+    if (this.chess) {
+      throw new InvalidStartException("The game has already started.");
+    }
+
+    if (!this.player) {
+      throw new InvalidStartException("Missing a second player.");
+    }
+
+    this.chess = new Chess(parseFEN(startingBoardFENString));
+    const board = this.chess.getBoard();
+
+    const pieces: PieceDto[] = [];
+
+    for (const { piece, coordinate } of board.pieces()) {
+      pieces.push({
+        piece: piece.getFENString(),
+        coordinate: {
+          rank: coordinate.rank,
+          file: coordinate.file,
+        },
+      });
+    }
+
+    return pieces;
   }
 }

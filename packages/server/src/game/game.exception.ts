@@ -16,19 +16,28 @@ export class GameNotFoundException extends GameException {
 }
 
 export class InvalidGameCreationException extends GameException {
-  constructor(public readonly details: string) {
+  constructor(details: string) {
     super({
       title: "Cannot create game.",
-      details: details,
+      details,
     });
   }
 }
 
 export class InvalidGameJoinException extends GameException {
-  constructor(public readonly details: string) {
+  constructor(details: string) {
     super({
       title: "Cannot join game.",
-      details: details,
+      details,
+    });
+  }
+}
+
+export class InvalidStartException extends GameException {
+  constructor(details: string) {
+    super({
+      title: "Cannot start game.",
+      details,
     });
   }
 }

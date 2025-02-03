@@ -5,6 +5,7 @@ import {
   CreateGameDto,
   JoinGameDto,
   PieceColorChoice,
+  PieceDto,
 } from "chess-shared-types";
 import {
   InvalidGameCreationException,
@@ -111,5 +112,21 @@ export class GameService {
 
   findPlayerGame(playerId: string): string | null {
     return this.playerGameMapping.get(playerId) || null;
+  }
+
+  /**
+   * Initializes the game with the specified id.
+   *
+   * @returns The placement of each piece in the starting board.
+   * @throws {InvalidStartException}
+   */
+  start(gameId: string): PieceDto[] {
+    const game = this.games.get(gameId);
+
+    if (!game) {
+      throw new GameNotFoundException(gameId);
+    }
+
+    return game.start();
   }
 }
