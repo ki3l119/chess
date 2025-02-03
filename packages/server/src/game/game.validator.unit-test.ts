@@ -34,5 +34,10 @@ describe("Game DTO validation schemas", () => {
       expect(actual.error!.details.length).toBe(1);
       expect(actual.error!.details[0].path).toEqual(["color"]);
     });
+
+    it("Error on undefined", () => {
+      const actual = createGameDtoSchema.validate(undefined);
+      expect(actual.error);
+    });
   });
 });

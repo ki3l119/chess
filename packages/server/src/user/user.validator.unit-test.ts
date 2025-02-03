@@ -117,6 +117,11 @@ describe("User DTO validation schemas", () => {
       expect(actual.error!.details.length).toBe(1);
       expect(actual.error!.details[0].path).toEqual(["email"]);
     });
+
+    it("Error on undefined", () => {
+      const actual = createUserDtoSchema.validate(undefined);
+      expect(actual.error).toBeDefined();
+    });
   });
 
   describe("loginDtoSchema", () => {
@@ -184,6 +189,11 @@ describe("User DTO validation schemas", () => {
       expect(actual.error).toBeDefined();
       expect(actual.error!.details.length).toBe(1);
       expect(actual.error!.details[0].path).toEqual(["password"]);
+    });
+
+    it("Error on undefined", () => {
+      const actual = loginDtoSchema.validate(undefined);
+      expect(actual.error).toBeDefined();
     });
   });
 });

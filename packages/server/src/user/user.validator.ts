@@ -8,9 +8,9 @@ export const createUserDtoSchema = Joi.object<CreateUserDto>({
   username: Joi.string().required().trim().max(50).min(1).token(),
   email: emailSchema,
   password: Joi.string().required().min(8).max(128),
-});
+}).required();
 
 export const loginDtoSchema = Joi.object<LoginDto>({
   email: emailSchema,
   password: Joi.string().required().max(128),
-});
+}).required();
