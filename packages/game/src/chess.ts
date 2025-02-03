@@ -509,4 +509,27 @@ export class Chess {
   getActiveColor(): PieceColor {
     return this.gameState.activeColor;
   }
+
+  getBoard(): Board {
+    return new Board(this.gameState.board.getBoardElements());
+  }
+
+  getCastlingRights(
+    color: PieceColor,
+    side: "kingside" | "queenside",
+  ): boolean {
+    return this.gameState.castlingRights[color][side];
+  }
+
+  getEnPassantTarget(): BoardCoordinate | null {
+    return this.gameState.enPassantTarget;
+  }
+
+  getHalfmoveClock(): number {
+    return this.gameState.halfmoveClock;
+  }
+
+  getFullmoveCount(): number {
+    return this.gameState.fullmoveCount;
+  }
 }
