@@ -7,7 +7,7 @@ import {
 
 import "./styles/base.scss";
 import { SidebarLayout } from "./components/sidebar/sidebar";
-import { HomePage } from "./pages/home/home-page";
+import { GamePage } from "./pages/game/game-page";
 import { RegistrationPage } from "./pages/registration/registration-page";
 import { LoginPage } from "./pages/login/login-page";
 
@@ -22,7 +22,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/game",
-        element: <HomePage />,
+        element: <GamePage />,
       },
       {
         path: "/register",

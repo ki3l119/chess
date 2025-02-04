@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import "./home-page.scss";
+import "./game-page.scss";
 
 import { CreateGameForm } from "./create-game-form/create-game-form";
 import { Button } from "@/components/button/button";
@@ -56,7 +56,7 @@ const GameInitWindow: React.FC<GameInitCardProps> = ({
   );
 };
 
-export const HomePage: React.FC = () => {
+export const GamePage: React.FC = () => {
   const [initStage, setInitStage] = useState<GameInitStage | null>(
     GameInitStage.INIT_OPTIONS,
   );
