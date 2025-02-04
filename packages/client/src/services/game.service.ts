@@ -1,8 +1,7 @@
-import {
-  EventMessageWebSocket,
-  GameManager,
-  ServiceException,
-} from "../models";
+import { ServiceException } from "./service.exception";
+import { EventMessageWebSocket } from "@/ws";
+
+import { GameManager } from "./game-manager";
 
 export class GameService {
   constructor(private readonly webSocketServerBaseUrl: string) {}

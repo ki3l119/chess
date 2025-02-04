@@ -1,3 +1,5 @@
+import path from "path";
+
 import react from "@vitejs/plugin-react";
 import postCssPresetEnv from "postcss-preset-env"
 
@@ -20,7 +22,10 @@ const config = {
     }),
   ],
   resolve: {
-    preserveSymlinks: true
+    preserveSymlinks: true,
+    alias: {
+      "@": path.resolve(__dirname, "src")
+    }
   }
 };
 

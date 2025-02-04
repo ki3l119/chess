@@ -4,12 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 import "./login-form.scss";
 import { LoginDto } from "chess-shared-types";
-import { UserContext } from "../../contexts";
-import { Input } from "../input/input";
-import { Button } from "../button/button";
-import { userService } from "../../services";
-import { Alert } from "../alert/alert";
-import { useFormSubmitHandler } from "../../hooks/form-submit-handler";
+import { UserContext } from "@/contexts";
+import { Input } from "@/components/input/input";
+import { Button } from "@/components/button/button";
+import { userService } from "@/services";
+import { Alert } from "@/components/alert/alert";
+import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
 
 export const LoginForm: React.FC = () => {
   const {

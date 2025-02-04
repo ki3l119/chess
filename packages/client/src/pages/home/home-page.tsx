@@ -3,21 +3,19 @@ import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./home-page.scss";
 
-import { CreateGameForm } from "../../components/create-game-form/create-game-form";
-import { Button } from "../../components/button/button";
-import { Card } from "../../components/card/card";
-import { Game } from "../../components/game/game";
-import { Spinner } from "../../components/spinner/spinner";
-import { JoinGameForm } from "../../components/join-game-form/join-game-form";
-import { GameManager } from "../../models";
-import { gameService } from "../../services";
-import { GameManagerContext } from "../../contexts";
-import { ServiceException } from "../../models";
-import { Alert } from "../../components/alert/alert";
-import { WaitingRoom } from "../../components/waiting-room/waiting-room";
+import { CreateGameForm } from "./create-game-form/create-game-form";
+import { Button } from "@/components/button/button";
+import { Card } from "@/components/card/card";
+import { Spinner } from "@/components/spinner/spinner";
+import { gameService, ServiceException } from "@/services";
+import { Alert } from "@/components/alert/alert";
+import { GameManager } from "../../services/game-manager";
+import { GameContext } from "./game.context";
+import { JoinGameForm } from "./join-game-form/join-game-form";
+import { Game } from "./game/game";
+import { WaitingRoom } from "./waiting-room/waiting-room";
 import {
   CreateGameSuccessDto,
-  JoinGameDto,
   JoinGameSuccessDto,
   NewPlayerDto,
 } from "chess-shared-types";
@@ -182,7 +180,7 @@ export const HomePage: React.FC = () => {
     : null;
 
   return (
-    <GameManagerContext.Provider value={gameContext}>
+    <GameContext.Provider value={gameContext}>
       <div className="home-page">
         {gameInitNode && (
           <div className="home-page__game-init">{gameInitNode}</div>
@@ -191,6 +189,6 @@ export const HomePage: React.FC = () => {
           <Game />
         </div>
       </div>
-    </GameManagerContext.Provider>
+    </GameContext.Provider>
   );
 };

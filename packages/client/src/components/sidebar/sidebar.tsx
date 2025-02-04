@@ -14,11 +14,11 @@ import {
 import { Link, useLocation } from "react-router-dom";
 
 import "./sidebar.scss";
-import { PieceColor, PieceName } from "../../utils/chess";
+import { PieceColor, PieceName } from "@/utils/chess";
 import { Piece } from "../piece/piece";
 import { UserDto } from "chess-shared-types";
-import { userService } from "../../services";
-import { UserContext } from "../../contexts";
+import { userService } from "@/services";
+import { UserContext } from "@/contexts";
 import { Spinner } from "../spinner/spinner";
 
 type SidebarLinkProps = {

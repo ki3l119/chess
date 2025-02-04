@@ -3,11 +3,11 @@ import { useForm } from "react-hook-form";
 
 import { CreateUserDto } from "chess-shared-types";
 import "./registration-form.scss";
-import { userService } from "../../services";
-import { useFormSubmitHandler } from "../../hooks/form-submit-handler";
-import { Button } from "../button/button";
-import { Input } from "../input/input";
-import { Alert } from "../alert/alert";
+import { userService } from "@/services";
+import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
+import { Button } from "@/components/button/button";
+import { Input } from "@/components/input/input";
+import { Alert } from "@/components/alert/alert";
 
 export const RegistrationForm: React.FC = () => {
   const {

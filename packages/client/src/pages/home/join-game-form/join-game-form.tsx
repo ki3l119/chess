@@ -3,11 +3,11 @@ import { useForm } from "react-hook-form";
 
 import { JoinGameDto, JoinGameSuccessDto } from "chess-shared-types";
 import "./join-game-form.scss";
-import { Input } from "../input/input";
-import { Button } from "../button/button";
-import { useFormSubmitHandler } from "../../hooks/form-submit-handler";
-import { Alert } from "../alert/alert";
-import { useGame } from "../../contexts";
+import { useGame } from "../game.context";
+import { Input } from "@/components/input/input";
+import { Button } from "@/components/button/button";
+import { Alert } from "@/components/alert/alert";
+import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
 
 export type JoinGameFormProps = {
   onJoin?: (data: JoinGameSuccessDto) => void;

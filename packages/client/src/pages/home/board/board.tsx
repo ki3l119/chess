@@ -1,8 +1,8 @@
 import React from "react";
 import "./board.scss";
 
-import { BoardPiece } from "../../utils/chess";
-import { Piece } from "../piece/piece";
+import { BoardPiece } from "@/utils/chess";
+import { Piece } from "@/components/piece/piece";
 
 type BoardTileProps = {
   index: number;

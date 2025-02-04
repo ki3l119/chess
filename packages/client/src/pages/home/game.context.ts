@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-import { GameManager } from "../models";
+import { GameManager } from "../../services/game-manager";
 
 export const GameContext = createContext<{
   gameManager: GameManager;

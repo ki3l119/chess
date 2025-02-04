@@ -1,5 +1,5 @@
 @use "sass:map";
-@use "../../styles/variables" as var;
+@use "@/styles/variables" as var;
 
 .card {
   background-color: map.get(var.$surface-color, "base");

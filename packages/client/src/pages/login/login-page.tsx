@@ -1,8 +1,8 @@
 import React from "react";
 
 import "./login-page.scss";
-import { LoginForm } from "../../components/login-form/login-form";
-import { Card } from "../../components/card/card";
+import { Card } from "@/components/card/card";
+import { LoginForm } from "./login-form/login-form";
 
 export const LoginPage: React.FC = () => {
   return (

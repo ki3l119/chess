@@ -4,9 +4,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { NewPlayerDto } from "chess-shared-types";
 import "./waiting-room.scss";
-import { Button } from "../button/button";
-import { useGame, UserContext } from "../../contexts";
-import { JoinEvent } from "../../models";
+import { Button } from "@/components/button/button";
+import { UserContext } from "@/contexts";
+import { useGame } from "../game.context";
+import { JoinEvent } from "../../../services/game-manager";
 
 type WaitingRoomPlayerProps = {
   displayName?: string;

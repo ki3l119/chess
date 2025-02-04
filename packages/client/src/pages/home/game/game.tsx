@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Board } from "../board/board";
-import { BoardPiece, getStartingBoard } from "../../utils/chess";
 
 import "./game.scss";
+import { BoardPiece, getStartingBoard } from "@/utils/chess";
+import { Board } from "../board/board";
 
 const startingBoard = getStartingBoard();
 

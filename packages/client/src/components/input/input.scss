@@ -1,6 +1,6 @@
 @use "sass:map";
-@use "../../styles/_variables" as var;
-@use "../../styles/_mixins";
+@use "@/styles/_variables" as var;
+@use "@/styles/_mixins";
 
 .input {
   width: 100%;

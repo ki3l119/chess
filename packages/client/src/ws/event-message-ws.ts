@@ -1,28 +1,30 @@
 import { ProblemDetails } from "chess-shared-types";
-import { ServiceException } from "./service.exception";
 
 export type WebSocketMessage = {
   event: string;
   data: any;
 };
 
-export type WebSocketMessageWithResult = WebSocketMessage & {
-  id: string;
-};
+export type MessageCallback = (data: any) => void;
 
-export type EventMessageCallback = (data: any) => void;
-
-export type SendEventMessageOptions = {
-  onSuccess?: (data: any) => void;
-  onError?: (data: ProblemDetails) => void;
-};
+export class EventMessageWebSocketException extends Error {
+  constructor(
+    readonly problemDetails: ProblemDetails,
+    /**
+     * The event message sent by the client that caused the error.
+     */
+    readonly event: string,
+  ) {
+    super(problemDetails.details);
+  }
+}
 
 /**
  * A WebSocket that is expected to send/recieve messages in the form
  * { event, data } as a JSON string.
  */
 export class EventMessageWebSocket extends WebSocket {
-  private readonly eventMessageHandlers: Map<string, EventMessageCallback[]>;
+  private readonly eventMessageHandlers: Map<string, MessageCallback[]>;
 
   constructor(url: string | URL, protocols?: string | string[]) {
     super(url, protocols);
@@ -43,7 +45,7 @@ export class EventMessageWebSocket extends WebSocket {
   /**
    * Sends the specified message as a JSON string.
    */
-  sendEventMessage(message: WebSocketMessage) {
+  sendMessage(message: WebSocketMessage) {
     this.send(JSON.stringify(message));
   }
 
@@ -52,7 +54,7 @@ export class EventMessageWebSocket extends WebSocket {
    *
    * The server is expected to emit a event:success or event:error message.
    */
-  sendEventMessageWithResponse<T>(message: WebSocketMessage): Promise<T> {
+  sendMessageWithResponse<T>(message: WebSocketMessage): Promise<T> {
     let successCallback: (data: T) => void;
     let errorCallback: (data: ProblemDetails) => void;
     const successEvent = `${message.event}:success`;
@@ -62,15 +64,15 @@ export class EventMessageWebSocket extends WebSocket {
         resolve(data);
       };
       errorCallback = (data) => {
-        reject(new ServiceException(data));
+        reject(new EventMessageWebSocketException(data, message.event));
       };
-      this.addEventMessageHandler(successEvent, successCallback);
-      this.addEventMessageHandler(errorEvent, errorCallback);
+      this.addMessageListener(successEvent, successCallback);
+      this.addMessageListener(errorEvent, errorCallback);
 
-      this.sendEventMessage(message);
+      this.sendMessage(message);
     }).finally(() => {
-      this.removeEventMessageHandler(successEvent, successCallback);
-      this.removeEventMessageHandler(errorEvent, errorCallback);
+      this.removeMessageListener(successEvent, successCallback);
+      this.removeMessageListener(errorEvent, errorCallback);
     });
   }
 
@@ -78,7 +80,7 @@ export class EventMessageWebSocket extends WebSocket {
    * Invokes the callback whenever a JSON string message is received where
    * the event property is equal to the event.
    */
-  addEventMessageHandler(event: string, callback: EventMessageCallback) {
+  addMessageListener(event: string, callback: MessageCallback) {
     let handlers = this.eventMessageHandlers.get(event);
     if (!handlers) {
       handlers = [];
@@ -87,7 +89,7 @@ export class EventMessageWebSocket extends WebSocket {
     handlers.push(callback);
   }
 
-  removeEventMessageHandler(event: string, callback: EventMessageCallback) {
+  removeMessageListener(event: string, callback: MessageCallback) {
     let handlers = this.eventMessageHandlers.get(event);
     if (!handlers) {
       return;
@@ -95,6 +97,9 @@ export class EventMessageWebSocket extends WebSocket {
     const callbackIndex = handlers.indexOf(callback);
     if (callbackIndex !== -1) {
       handlers.splice(callbackIndex, 1);
+    }
+    if (handlers.length === 0) {
+      this.eventMessageHandlers.delete(event);
     }
   }
 }

@@ -1,6 +1,6 @@
 import { type Path, UseFormSetError, type FieldValues } from "react-hook-form";
 
-import { ServiceException } from "../models";
+import { ServiceException } from "@/services";
 
 type FormSubmitHandlerArgs<T extends FieldValues> = {
   onSubmit: (data: T) => Promise<void>;

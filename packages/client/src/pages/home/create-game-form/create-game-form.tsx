@@ -3,11 +3,11 @@ import { useForm } from "react-hook-form";
 
 import { CreateGameDto, CreateGameSuccessDto } from "chess-shared-types";
 import "./create-game-form.scss";
-import { Select } from "../select/select";
-import { Button } from "../button/button";
-import { useGame } from "../../contexts";
-import { useFormSubmitHandler } from "../../hooks/form-submit-handler";
-import { Alert } from "../alert/alert";
+import { Select } from "@/components/select/select";
+import { Button } from "@/components/button/button";
+import { useGame } from "../game.context";
+import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
+import { Alert } from "@/components/alert/alert";
 
 export type CreateGameFormProps = {
   onCreate?: (data: CreateGameSuccessDto) => void;
