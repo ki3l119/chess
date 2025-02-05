@@ -1,7 +1,7 @@
 import React from "react";
 import "./board.scss";
 
-import { BoardPiece } from "@/utils/chess";
+import { BoardPiece, getStartingBoard } from "@/utils/chess";
 import { Piece } from "@/components/piece/piece";
 
 type BoardTileProps = {
@@ -27,10 +27,12 @@ const BoardTile: React.FC<BoardTileProps> = ({ index, piece }) => {
 };
 
 export type BoardProps = {
-  board: BoardPiece[];
+  board?: BoardPiece[];
 };
 
-export const Board: React.FC<BoardProps> = ({ board }) => {
+const startingBoard = getStartingBoard();
+
+export const Board: React.FC<BoardProps> = ({ board = startingBoard }) => {
   return (
     <div className="chess-board">
       {board.map((piece, index) => (

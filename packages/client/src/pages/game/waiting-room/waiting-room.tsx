@@ -1,13 +1,12 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { faCopy, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { NewPlayerDto } from "chess-shared-types";
+import { PlayerDto } from "chess-shared-types";
 import "./waiting-room.scss";
 import { Button } from "@/components/button/button";
-import { UserContext } from "@/contexts";
-import { useGame } from "../game.context";
-import { JoinEvent } from "../../../services/game-manager";
+
+import { Game, JoinEvent } from "../game";
 
 type WaitingRoomPlayerProps = {
   displayName?: string;
@@ -36,25 +35,31 @@ const WaitingRoomPlayer: React.FC<WaitingRoomPlayerProps> = ({
 };
 
 type WaitingRoomProps = {
-  gameId: string;
-  opponent?: string;
-  isHost: boolean;
-  onJoin?: (newPlayer: NewPlayerDto) => void;
+  game: Game;
 };
 
-export const WaitingRoom: React.FC<WaitingRoomProps> = ({
-  gameId,
-  isHost,
-  opponent,
-  onJoin,
-}) => {
+export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game }) => {
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
-  const { gameManager } = useGame();
-  const { user } = useContext(UserContext);
-  const displayName = user?.username || "Guest";
+  const [opponent, setOpponent] = useState<PlayerDto | null>(null);
+
+  useEffect(() => {
+    const joinEventCallback = (event: JoinEvent) => {
+      setOpponent(event.player);
+    };
+    const player = game.getPlayer();
+    if (game.isHost && !player) {
+      game.addEventListener("join", joinEventCallback);
+    } else if (player) {
+      setOpponent(player);
+    }
+
+    return () => {
+      game.removeEventListener("join", joinEventCallback);
+    };
+  }, [game]);
 
   const onCopyClick = () => {
-    navigator.clipboard.writeText(gameId);
+    navigator.clipboard.writeText(game.getId());
 
     setShowCopiedMessage(true);
 
@@ -63,26 +68,11 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
     }, 1000);
   };
 
-  useEffect(() => {
-    const joinEventCallback = (event: JoinEvent) => {
-      if (onJoin) {
-        onJoin(event.newPlayer);
-      }
-    };
-    gameManager.addEventListener("join", joinEventCallback);
-
-    return () => {
-      gameManager.removeEventListener("join", joinEventCallback);
-    };
-  }, [gameManager]);
-
-  const host = isHost ? displayName : opponent;
-  const otherPlayer = isHost ? opponent : displayName;
   return (
     <div className="waiting-room">
       <p className="waiting-room__section-title">Game ID</p>
       <div className="waiting-room__game-id-section">
-        <p>{gameId}</p>
+        <p>{game.getId()}</p>
         {showCopiedMessage ? (
           <p>Copied</p>
         ) : (
@@ -95,10 +85,18 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({
       </div>
       <p className="waiting-room__section-title">Players</p>
       <div className="waiting-room__players">
-        <WaitingRoomPlayer displayName={host} isUser={isHost} />
-        <WaitingRoomPlayer displayName={otherPlayer} isUser={!isHost} />
+        <WaitingRoomPlayer
+          displayName={game.getHost().name}
+          isUser={game.isHost}
+        />
+        {opponent && (
+          <WaitingRoomPlayer
+            displayName={opponent.name}
+            isUser={!game.isHost}
+          />
+        )}
       </div>
-      {isHost ? (
+      {game.isHost ? (
         <Button disabled={opponent === undefined}>Start Game</Button>
       ) : (
         <p>Waiting for host to start the game...</p>

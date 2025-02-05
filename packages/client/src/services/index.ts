@@ -1,9 +1,8 @@
 import axios, { AxiosError } from "axios";
 
-import { config } from "../config";
+import { config } from "@/config";
 import { ServiceException } from "./service.exception";
 import { UserService } from "./user.service";
-import { GameService } from "./game.service";
 
 const axiosInstance = axios.create({
   baseURL: config.serverBaseUrl,
@@ -26,6 +25,4 @@ axiosInstance.interceptors.response.use(null, (error) => {
 });
 
 export const userService = new UserService(axiosInstance);
-export const gameService = new GameService(config.serverBaseUrl);
-
 export { ServiceException };

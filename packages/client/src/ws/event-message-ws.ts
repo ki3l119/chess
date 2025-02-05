@@ -1,13 +1,14 @@
 import { ProblemDetails } from "chess-shared-types";
+import { ServiceException } from "@/services";
 
 export type WebSocketMessage = {
   event: string;
-  data: any;
+  data?: any;
 };
 
 export type MessageCallback = (data: any) => void;
 
-export class EventMessageWebSocketException extends Error {
+export class EventMessageWebSocketException extends ServiceException {
   constructor(
     readonly problemDetails: ProblemDetails,
     /**
@@ -15,7 +16,7 @@ export class EventMessageWebSocketException extends Error {
      */
     readonly event: string,
   ) {
-    super(problemDetails.details);
+    super(problemDetails);
   }
 }
 
@@ -53,6 +54,8 @@ export class EventMessageWebSocket extends WebSocket {
    * Sends the event message with an expected response from server.
    *
    * The server is expected to emit a event:success or event:error message.
+   *
+   * @throws {EventMessageWebSocketException} When an event:error message is received.
    */
   sendMessageWithResponse<T>(message: WebSocketMessage): Promise<T> {
     let successCallback: (data: T) => void;

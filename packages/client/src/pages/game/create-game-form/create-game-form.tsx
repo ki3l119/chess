@@ -1,20 +1,24 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 
-import { CreateGameDto, CreateGameSuccessDto } from "chess-shared-types";
+import { CreateGameDto } from "chess-shared-types";
 import "./create-game-form.scss";
 import { Select } from "@/components/select/select";
 import { Button } from "@/components/button/button";
-import { useGame } from "../game.context";
 import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
 import { Alert } from "@/components/alert/alert";
+import { GameManager } from "../game-manager";
+import { Game } from "../game";
 
 export type CreateGameFormProps = {
-  onCreate?: (data: CreateGameSuccessDto) => void;
+  onCreate?: (game: Game) => void;
+  gameManager: GameManager;
 };
 
-export const CreateGameForm: React.FC<CreateGameFormProps> = ({ onCreate }) => {
-  const { gameManager } = useGame();
+export const CreateGameForm: React.FC<CreateGameFormProps> = ({
+  onCreate,
+  gameManager,
+}) => {
   const {
     register,
     handleSubmit,

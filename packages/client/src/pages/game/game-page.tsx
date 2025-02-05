@@ -1,76 +1,42 @@
 import React, { useState, useEffect } from "react";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import "./game-page.scss";
 
+import "./game-page.scss";
 import { CreateGameForm } from "./create-game-form/create-game-form";
 import { Button } from "@/components/button/button";
-import { Card } from "@/components/card/card";
 import { Spinner } from "@/components/spinner/spinner";
-import { gameService, ServiceException } from "@/services";
+import { ServiceException } from "@/services";
 import { Alert } from "@/components/alert/alert";
-import { GameManager } from "../../services/game-manager";
-import { GameContext } from "./game.context";
+import { config } from "@/config";
 import { JoinGameForm } from "./join-game-form/join-game-form";
-import { Game } from "./game/game";
 import { WaitingRoom } from "./waiting-room/waiting-room";
-import {
-  CreateGameSuccessDto,
-  JoinGameSuccessDto,
-  NewPlayerDto,
-} from "chess-shared-types";
+import { GameManager } from "./game-manager";
+import { Game } from "./game";
+import { GameModal } from "./game-modal/game-modal";
+import { Board } from "./board/board";
 
-enum GameInitStage {
-  INIT_OPTIONS,
-  CREATE_GAME,
-  JOIN_GAME,
+enum GameInitModal {
+  NONE,
+  CREATE,
+  JOIN,
   WAITING_ROOM,
 }
 
-type GameInitCardProps = {
-  /**
-   * Executed when the back icon is pressed
-   */
-  onBack?: () => void;
-  title: string;
-  children?: React.ReactNode;
-};
-
-const GameInitWindow: React.FC<GameInitCardProps> = ({
-  onBack,
-  title,
-  children,
-}) => {
-  return (
-    <Card title={title}>
-      {onBack && (
-        <FontAwesomeIcon
-          icon={faArrowLeft}
-          className="home-page__game-init-back"
-          onClick={onBack}
-        />
-      )}
-
-      {children}
-    </Card>
-  );
-};
-
 export const GamePage: React.FC = () => {
-  const [initStage, setInitStage] = useState<GameInitStage | null>(
-    GameInitStage.INIT_OPTIONS,
-  );
   const [gameManager, setGameManager] = useState<GameManager | null>(null);
   const [isConnecting, setIsConnecting] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [gameId, setGameId] = useState<string | null>(null);
-  const [isHost, setIsHost] = useState(false);
-  const [opponent, setOpponent] = useState<string | null>(null);
+  const [game, setGame] = useState<Game | null>(null);
+  const [gameInitModal, setGameInitModal] = useState<GameInitModal>(
+    GameInitModal.NONE,
+  );
+  const [hasGameStarted, setHasGameStarted] = useState(false);
 
   useEffect(() => {
     const initGameManager = async () => {
       try {
-        const manager = await gameService.createGameManager();
+        const webSocketUrl = new URL("/games", config.serverBaseUrl);
+        const manager = await GameManager.fromWebSocketUrl(webSocketUrl.href);
         setGameManager(manager);
         return manager;
       } catch (e) {
@@ -93,102 +59,77 @@ export const GamePage: React.FC = () => {
     };
   }, []);
 
-  const onGameCreate = (createGameSuccessDto: CreateGameSuccessDto) => {
-    setGameId(createGameSuccessDto.gameId);
-    setInitStage(GameInitStage.WAITING_ROOM);
-    setIsHost(true);
+  const onNewGame = (game: Game) => {
+    setGame(game);
   };
 
-  const onGameJoin = (data: JoinGameSuccessDto) => {
-    setGameId(data.gameId);
-    setInitStage(GameInitStage.WAITING_ROOM);
-    setIsHost(false);
-    setOpponent(data.opponent);
+  const closeInitModal = () => {
+    setGameInitModal(GameInitModal.NONE);
   };
-
-  const onPlayerJoin = (newPlayerDto: NewPlayerDto) => {
-    setOpponent(newPlayerDto.player);
-  };
-
-  let gameInitNode: React.ReactNode | undefined;
-
-  if (gameManager && !errorMessage) {
-    switch (initStage) {
-      case GameInitStage.INIT_OPTIONS:
-        gameInitNode = (
-          <div className="home-page__init-options">
-            <Button onClick={() => setInitStage(GameInitStage.CREATE_GAME)}>
-              Create New Game
-            </Button>
-            <Button onClick={() => setInitStage(GameInitStage.JOIN_GAME)}>
-              Join Game
-            </Button>
-          </div>
-        );
-        break;
-      case GameInitStage.CREATE_GAME:
-        gameInitNode = (
-          <GameInitWindow
-            title="Create New Game"
-            onBack={() => setInitStage(GameInitStage.INIT_OPTIONS)}
-          >
-            <CreateGameForm onCreate={onGameCreate} />
-          </GameInitWindow>
-        );
-        break;
-      case GameInitStage.WAITING_ROOM:
-        if (gameId) {
-          gameInitNode = (
-            <GameInitWindow title="Game">
-              <WaitingRoom
-                gameId={gameId}
-                opponent={opponent || undefined}
-                isHost={isHost}
-                onJoin={onPlayerJoin}
-              />
-            </GameInitWindow>
-          );
-          break;
-        }
-      case GameInitStage.JOIN_GAME:
-        gameInitNode = (
-          <GameInitWindow
-            title="Join Game"
-            onBack={() => setInitStage(GameInitStage.INIT_OPTIONS)}
-          >
-            <JoinGameForm onJoin={onGameJoin} />
-          </GameInitWindow>
-        );
-        break;
-    }
-  } else if (isConnecting) {
-    gameInitNode = <Spinner />;
-  } else if (errorMessage) {
-    gameInitNode = <Alert type="error" message={errorMessage} />;
-  }
-
-  const homePageOptions = ["home-page__game"];
-
-  if (initStage !== null) {
-    homePageOptions.push("home-page__game--blur");
-  }
-
-  const gameContext = gameManager
-    ? {
-        gameManager,
-      }
-    : null;
 
   return (
-    <GameContext.Provider value={gameContext}>
-      <div className="home-page">
-        {gameInitNode && (
-          <div className="home-page__game-init">{gameInitNode}</div>
-        )}
-        <div className={homePageOptions.join(" ")}>
-          <Game />
-        </div>
+    <div className="game-page">
+      {isConnecting ? (
+        <Spinner />
+      ) : errorMessage ? (
+        <Alert type="error" message={errorMessage} />
+      ) : (
+        gameManager &&
+        (!game ? (
+          <>
+            <GameModal
+              isOpen={gameInitModal === GameInitModal.CREATE}
+              title="Create Game"
+              icon={{
+                iconDefinition: faArrowLeft,
+                position: "left",
+                onClick: closeInitModal,
+              }}
+            >
+              <CreateGameForm onCreate={onNewGame} gameManager={gameManager} />
+            </GameModal>
+            <GameModal
+              isOpen={gameInitModal === GameInitModal.JOIN}
+              title="Join Game"
+              icon={{
+                iconDefinition: faArrowLeft,
+                position: "left",
+                onClick: closeInitModal,
+              }}
+            >
+              <JoinGameForm onJoin={onNewGame} gameManager={gameManager} />
+            </GameModal>
+            {gameInitModal === GameInitModal.NONE && (
+              <div className="game-page__init">
+                <div className="game-page__init-options">
+                  <Button
+                    onClick={() => setGameInitModal(GameInitModal.CREATE)}
+                  >
+                    Create New Game
+                  </Button>
+                  <Button onClick={() => setGameInitModal(GameInitModal.JOIN)}>
+                    Join Game
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          !hasGameStarted && (
+            <GameModal isOpen={true} title="Waiting Room">
+              <WaitingRoom game={game} />
+            </GameModal>
+          )
+        ))
+      )}
+      <div
+        className={
+          "game-page__game" +
+          (!game || !hasGameStarted ? " game-page__game--blur" : "")
+        }
+      >
+        <Board />
       </div>
-    </GameContext.Provider>
+    </div>
   );
 };

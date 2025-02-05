@@ -1,26 +1,30 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 
-import { JoinGameDto, JoinGameSuccessDto } from "chess-shared-types";
+import { JoinGameDto } from "chess-shared-types";
 import "./join-game-form.scss";
-import { useGame } from "../game.context";
 import { Input } from "@/components/input/input";
 import { Button } from "@/components/button/button";
 import { Alert } from "@/components/alert/alert";
 import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
+import { Game } from "../game";
+import { GameManager } from "../game-manager";
 
 export type JoinGameFormProps = {
-  onJoin?: (data: JoinGameSuccessDto) => void;
+  onJoin?: (game: Game) => void;
+  gameManager: GameManager;
 };
 
-export const JoinGameForm: React.FC<JoinGameFormProps> = ({ onJoin }) => {
+export const JoinGameForm: React.FC<JoinGameFormProps> = ({
+  onJoin,
+  gameManager,
+}) => {
   const {
     handleSubmit,
     register,
     setError,
     formState: { errors },
   } = useForm<JoinGameDto>();
-  const { gameManager } = useGame();
   const { submitHandler } = useFormSubmitHandler({
     onSubmit: async (data) => {
       const result = await gameManager.joinGame(data);
