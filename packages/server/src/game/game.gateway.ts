@@ -11,8 +11,7 @@ import {
 
 import {
   CreateGameDto,
-  CreateGameSuccessDto,
-  JoinGameSuccessDto,
+  GameInfoDto,
   JoinGameDto,
   StartGameDto,
 } from "chess-shared-types";
@@ -56,22 +55,20 @@ export class GameGateway implements OnGatewayDisconnect {
       new WebSocketJoiValidationPipe(createGameDtoSchema, "create:error"),
     )
     createGameDto: CreateGameDto,
-  ): WsResponse<CreateGameSuccessDto> {
+  ): WsResponse<GameInfoDto> {
     try {
-      const gameId = this.gameService.create(
+      const gameInfo = this.gameService.create(
         {
           id: socket.id,
           name: socket.user?.username,
         },
         createGameDto,
       );
-      this.roomService.join(gameId, socket);
-      socket.gameId = gameId;
+      this.roomService.join(gameInfo.id, socket);
+      socket.gameId = gameInfo.id;
       return {
         event: "create:success",
-        data: {
-          gameId: gameId,
-        },
+        data: gameInfo,
       };
     } catch (e) {
       if (e instanceof GameException) {
@@ -88,21 +85,19 @@ export class GameGateway implements OnGatewayDisconnect {
       new WebSocketJoiValidationPipe(joinGameDtoSchema, "join:error"),
     )
     joinGameDto: JoinGameDto,
-  ): WsResponse<JoinGameSuccessDto> {
+  ): WsResponse<GameInfoDto> {
     try {
-      const joinResult = this.gameService.join(
+      const gameInfo = this.gameService.join(
         { id: socket.id, name: socket.user?.username },
         joinGameDto,
       );
-      this.roomService.join(joinResult.gameId, socket);
-      socket.gameId = joinResult.gameId;
+      this.roomService.join(gameInfo.id, socket);
+      socket.gameId = gameInfo.id;
       this.roomService.emit(
-        joinResult.gameId,
+        gameInfo.id,
         {
           event: "join",
-          data: {
-            player: joinResult.player.name,
-          },
+          data: gameInfo.player,
         },
         {
           exclude: [socket.id],
@@ -111,12 +106,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
       return {
         event: "join:success",
-        data: {
-          gameId: joinResult.gameId,
-          you: joinResult.player.name,
-          opponent: joinResult.host.name,
-          color: joinResult.player.color,
-        },
+        data: gameInfo,
       };
     } catch (e) {
       if (e instanceof GameException) {

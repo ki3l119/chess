@@ -3,6 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 
 import {
   CreateGameDto,
+  GameInfoDto,
   JoinGameDto,
   PieceColorChoice,
   PieceDto,
@@ -31,13 +32,12 @@ export class GameService {
   /**
    * Creates a new game with the player as the host.
    *
-   * @returns The id of the newly created game.
    * @throws {InvalidGameCreationException}
    */
   create(
     newPlayer: { id: string; name?: string },
     createGameDto: CreateGameDto,
-  ): string {
+  ): GameInfoDto {
     if (this.playerGameMapping.get(newPlayer.id)) {
       throw new InvalidGameCreationException(
         "You are already part of an existing game.",
@@ -52,7 +52,12 @@ export class GameService {
     this.games.set(game.id, game);
     this.playerGameMapping.set(newPlayer.id, game.id);
     this.logger.log(`Created game ${game.id}`);
-    return game.id;
+    return {
+      id: game.id,
+      host: game.getHost(),
+      player: game.getPlayer(),
+      isColorRandom: game.isRandomColorChoice,
+    };
   }
 
   /**
@@ -63,7 +68,7 @@ export class GameService {
   join(
     newPlayer: { id: string; name?: string },
     joinGameDto: JoinGameDto,
-  ): { gameId: string; host: Player; color: PieceColorChoice; player: Player } {
+  ): Required<GameInfoDto> {
     if (this.playerGameMapping.get(newPlayer.id)) {
       throw new InvalidGameJoinException(
         "You are already part of an existing game.",
@@ -90,10 +95,10 @@ export class GameService {
     this.logger.log(`Player ${player.id} joined game ${game.id}`);
 
     return {
-      gameId: game.id,
+      id: game.id,
       host: game.getHost(),
-      color: game.isRandomColorChoice ? "RANDOM" : player.color,
       player: player,
+      isColorRandom: game.isRandomColorChoice,
     };
   }
 
