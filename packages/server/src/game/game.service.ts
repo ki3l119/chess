@@ -112,7 +112,7 @@ export class GameService {
     if (player) {
       this.playerGameMapping.delete(player.id);
     }
-    return this.playerGameMapping.delete(gameId);
+    return this.games.delete(gameId);
   }
 
   findPlayerGame(playerId: string): string | null {
