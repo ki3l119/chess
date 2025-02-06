@@ -1,4 +1,9 @@
-import { GameInfoDto, PlayerDto, StartGameDto } from "chess-shared-types";
+import {
+  GameInfoDto,
+  MoveDto,
+  PlayerDto,
+  StartGameDto,
+} from "chess-shared-types";
 import { EventMessageWebSocket } from "@/ws";
 import { TypedEventTarget } from "typescript-event-target";
 import { BoardPiece, PieceColor, PIECES } from "./utils/chess";
@@ -10,7 +15,10 @@ export class JoinEvent extends Event {
 }
 
 export class StartEvent extends Event {
-  constructor(public readonly startingPieces: BoardPiece[]) {
+  constructor(
+    public readonly startingPieces: BoardPiece[],
+    public readonly legalMoves: MoveDto[],
+  ) {
     super("start");
   }
 }
@@ -32,6 +40,8 @@ export class Game extends TypedEventTarget<GameEventMap> {
   private host: Player;
   private player?: Player;
 
+  private legalMoves: MoveDto[];
+
   constructor(
     private readonly socket: EventMessageWebSocket,
     id: string,
@@ -40,6 +50,7 @@ export class Game extends TypedEventTarget<GameEventMap> {
     player?: Player,
   ) {
     super();
+    this.legalMoves = [];
     this.host = host;
     this.id = id;
     if (player) {
@@ -55,7 +66,11 @@ export class Game extends TypedEventTarget<GameEventMap> {
         type: PIECES[pieceDto.piece],
         coordinate: pieceDto.coordinate,
       }));
-      this.dispatchTypedEvent("start", new StartEvent(this.pieces));
+      this.legalMoves = [...data.legalMoves];
+      this.dispatchTypedEvent(
+        "start",
+        new StartEvent(this.pieces, data.legalMoves),
+      );
     });
   }
 
@@ -132,5 +147,9 @@ export class Game extends TypedEventTarget<GameEventMap> {
 
   getPieces(): BoardPiece[] {
     return [...this.pieces];
+  }
+
+  getLegalMoves(): MoveDto[] {
+    return [...this.legalMoves];
   }
 }

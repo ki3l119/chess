@@ -9,6 +9,7 @@ import {
   BoardPiece,
 } from "@/pages/game/utils/chess";
 import { Piece } from "@/components/piece/piece";
+import { MoveDto } from "chess-shared-types";
 
 type BoardTileProps = {
   index: number;
@@ -34,11 +35,13 @@ const BoardTile: React.FC<BoardTileProps> = ({ index, piece }) => {
 export type BoardProps = {
   pieces?: BoardPiece[];
   perspective: PieceColor;
+  legalMoves?: MoveDto[];
 };
 
 export const Board: React.FC<BoardProps> = ({
   pieces = startingBoard,
   perspective,
+  legalMoves = [],
 }) => {
   const board: (PieceType | null)[] = new Array(64).fill(null);
   for (const piece of pieces) {
