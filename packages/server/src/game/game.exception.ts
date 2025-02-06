@@ -41,3 +41,12 @@ export class InvalidStartException extends GameException {
     });
   }
 }
+
+export class InvalidGameStateException extends GameException {
+  constructor(details: string) {
+    super({
+      title: "Invalid game state.",
+      details,
+    });
+  }
+}

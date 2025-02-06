@@ -4,9 +4,12 @@ import {
   PieceColor,
   startingBoardFENString,
 } from "chess-game";
-import { PieceColorChoice, PieceDto } from "chess-shared-types";
+import { MoveDto, PieceColorChoice, PieceDto } from "chess-shared-types";
 
-import { InvalidStartException } from "./game.exception";
+import {
+  InvalidGameStateException,
+  InvalidStartException,
+} from "./game.exception";
 
 export { PieceColor };
 
@@ -66,13 +69,19 @@ export class Game {
     return this.player;
   }
 
+  private getChessObject(): Chess {
+    if (!this.chess) {
+      throw new InvalidGameStateException("Game has not yet started.");
+    }
+    return this.chess;
+  }
+
   /**
    * Initializes the chess board and starts the game.
    *
-   * @returns A list of all pieces present within the board.
    * @throws {InvalidStartException}
    */
-  start(): PieceDto[] {
+  start() {
     if (this.chess) {
       throw new InvalidStartException("The game has already started.");
     }
@@ -82,9 +91,13 @@ export class Game {
     }
 
     this.chess = new Chess(parseFEN(startingBoardFENString));
-    const board = this.chess.getBoard();
+  }
+
+  getCurrentPosition(): PieceDto[] {
+    const chess = this.getChessObject();
 
     const pieces: PieceDto[] = [];
+    const board = chess.getBoard();
 
     for (const { piece, coordinate } of board.pieces()) {
       pieces.push({
@@ -97,5 +110,22 @@ export class Game {
     }
 
     return pieces;
+  }
+
+  getLegalMoves(): MoveDto[] {
+    const chess = this.getChessObject();
+
+    const legalMoves = chess.getLegalMoves();
+
+    return legalMoves.map((legalMove) => ({
+      from: {
+        rank: legalMove.from.rank,
+        file: legalMove.from.file,
+      },
+      to: {
+        rank: legalMove.to.rank,
+        file: legalMove.to.file,
+      },
+    }));
   }
 }
