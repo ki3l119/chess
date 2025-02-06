@@ -117,6 +117,19 @@ export class Game extends TypedEventTarget<GameEventMap> {
     return userPlayer;
   }
 
+  /**
+   * @returns The opponent of the current user.
+   */
+  getOpponent(): Player {
+    const opponent = this.isHost ? this.player : this.host;
+    if (!opponent) {
+      throw new Error(
+        "Invalid game state. Opponent of  player is not defined.",
+      );
+    }
+    return opponent;
+  }
+
   getPieces(): BoardPiece[] {
     return [...this.pieces];
   }
