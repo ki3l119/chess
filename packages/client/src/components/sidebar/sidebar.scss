@@ -98,6 +98,7 @@
     left: 2%;
     font-size: map.get(var.$font-sizes, "lg");
     color: map.get(var.$surface-color, "contrast");
+    z-index: 100;
     &:hover {
       cursor: pointer;
     }

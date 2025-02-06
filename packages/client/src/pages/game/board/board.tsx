@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./board.scss";
 
 import {
@@ -36,7 +36,83 @@ const BoardTile: React.FC<BoardTileProps> = ({
   onPieceMoveStart,
   onPieceMoveEnd,
 }) => {
-  const coordinate = indexToCoordinate(index);
+  const pieceRef = useRef<HTMLDivElement>(null);
+  let coordinate: BoardCoordinateDto;
+  useEffect(() => {
+    // For handling piece movement
+    let startMove: (event: MouseEvent) => void;
+    if (movablePiece && pieceRef.current) {
+      const draggingClass = "chess-board__tile-piece--moving";
+      const pieceElement = pieceRef.current;
+
+      // For tracking position of mouse during piece movement
+      let mouseClientX = 0;
+      let mouseClientY = 0;
+
+      startMove = (event) => {
+        if (event.button !== 0) {
+          return;
+        }
+
+        const onMouseMove = (event: MouseEvent) => {
+          const clientXDiff = event.clientX - mouseClientX;
+          const clientYDiff = event.clientY - mouseClientY;
+
+          mouseClientX = event.clientX;
+          mouseClientY = event.clientY;
+
+          const pieceBoundingRect = pieceElement.getBoundingClientRect();
+          pieceElement.style.top =
+            (pieceBoundingRect.y + clientYDiff).toString() + "px";
+          pieceElement.style.left =
+            (pieceBoundingRect.x + clientXDiff).toString() + "px";
+        };
+
+        const endMove = () => {
+          pieceElement.classList.remove(draggingClass);
+          pieceElement.style.removeProperty("top");
+          pieceElement.style.removeProperty("left");
+          pieceElement.style.removeProperty("height");
+          pieceElement.style.removeProperty("width");
+          document.removeEventListener("mousemove", onMouseMove);
+
+          if (onPieceMoveEnd) {
+            onPieceMoveEnd();
+          }
+        };
+
+        mouseClientX = event.clientX;
+        mouseClientY = event.clientY;
+
+        const boundingRect = pieceElement.getBoundingClientRect();
+        pieceElement.style.height = boundingRect.height.toString() + "px";
+        pieceElement.style.width = boundingRect.width.toString() + "px";
+
+        pieceElement.classList.add(draggingClass);
+        document.addEventListener("mouseup", endMove, { once: true });
+        document.addEventListener("mousemove", onMouseMove);
+
+        if (onPieceMoveStart) {
+          onPieceMoveStart(coordinate);
+        }
+      };
+
+      pieceElement.addEventListener("mousedown", startMove);
+    }
+
+    return () => {
+      if (movablePiece && pieceRef.current) {
+        pieceRef.current.removeEventListener("mousedown", startMove);
+      }
+    };
+  }, [pieceRef.current]);
+
+  const tilePieceClasses = ["chess-board__tile-piece"];
+
+  if (movablePiece) {
+    tilePieceClasses.push("chess-board__tile-piece--movable");
+  }
+  coordinate = indexToCoordinate(index);
   let tileModifier: string;
   if (coordinate.rank % 2 == 0) {
     tileModifier = index % 2 == 0 ? "light" : "dark";
@@ -52,14 +128,9 @@ const BoardTile: React.FC<BoardTileProps> = ({
 
   return (
     <div className={`chess-board__tile chess-board__tile--${tileModifier}`}>
-      {piece && (
-        <Piece
-          type={piece}
-          movable={movablePiece}
-          onMoveStart={onMoveStart}
-          onMoveEnd={onPieceMoveEnd}
-        />
-      )}
+      <div className={tilePieceClasses.join(" ")} ref={pieceRef}>
+        {piece && <Piece type={piece} />}
+      </div>
       {mark && (
         <div
           className={`chess-board__tile-mark chess-board__tile-mark--${tileModifier}`}

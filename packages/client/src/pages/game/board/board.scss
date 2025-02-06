@@ -28,12 +28,9 @@ $dark-tile-color: #777277;
     align-items: center;
     justify-content: center;
     position: relative;
+    z-index: 1;
 
-    & .chess-piece{
-      width: 80%;
-      height: 80%;
-      z-index: 2
-    }
+    
   
     &--light {
       background-color: $light-tile-color;
@@ -44,13 +41,33 @@ $dark-tile-color: #777277;
     }
   }
 
+  &__tile-piece {
+    width: 80%;
+    height: 80%;
+    z-index: 2;
+
+    &--movable {
+      &:hover {
+        cursor: grab;
+      }
+    }
+  
+    &--moving {
+      position: fixed;
+      z-index: 200;
+      &:hover {
+        cursor: grabbing;
+      }
+    }
+  }
+
   &__tile-mark {
     width: 30%;
     height: 30%;
     border-radius: 50%;
 
     position: absolute;
-    z-index: 1;
+    z-index: 3;
 
     filter: brightness(85%);
 

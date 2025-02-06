@@ -1,19 +1,4 @@
 .chess-piece {
-  
-
-  &--movable {
-    &:hover {
-      cursor: grab;
-    }
-
-    
-  }
-
-  &--moving {
-    position: fixed;
-
-    &:hover {
-      cursor: grabbing;
-    }
-  }
+  width: 100%;
+  height: 100%;
 }

@@ -155,7 +155,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClick={onSidebarClose}
         />
         <div className="sidebar__header">
-          <Piece type={{ color: PieceColor.WHITE, name: PieceName.ROOK }} />
+          <div className="sidebar__header-piece">
+            <Piece type={{ color: PieceColor.WHITE, name: PieceName.ROOK }} />
+          </div>
         </div>
         {isUserLoading ? (
           <div className="sidebar__spinner">
