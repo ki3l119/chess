@@ -45,6 +45,12 @@ export type PieceDto = {
   coordinate: BoardCoordinateDto;
 };
 
+export type MoveDto = {
+  from: BoardCoordinateDto;
+  to: BoardCoordinateDto;
+};
+
 export type StartGameDto = {
   pieces: PieceDto[];
+  legalMoves: MoveDto[];
 };
