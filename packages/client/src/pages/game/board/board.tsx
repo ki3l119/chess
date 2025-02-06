@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./board.scss";
 
 import {
@@ -7,42 +7,116 @@ import {
   coordinateToIndex,
   PieceColor,
   BoardPiece,
-} from "@/pages/game/utils/chess";
+  isCoordinateEqual,
+  indexToCoordinate,
+} from "../utils/chess";
 import { Piece } from "@/components/piece/piece";
-import { MoveDto } from "chess-shared-types";
+import { BoardCoordinateDto, MoveDto } from "chess-shared-types";
 
 type BoardTileProps = {
   index: number;
   piece: null | PieceType;
+  movablePiece: boolean;
+  mark?: boolean;
+  /**
+   * Called when the user moves the piece occupying the tile.
+   */
+  onPieceMoveStart?: (coordinate: BoardCoordinateDto) => void;
+  /**
+   * Called once the user stops moving the piece occupying the tile.
+   */
+  onPieceMoveEnd?: () => void;
 };
 
-const BoardTile: React.FC<BoardTileProps> = ({ index, piece }) => {
-  const rowIndex = Math.floor(index / 8);
-  let boardBlockModifier = "chess-board__block--";
-  if (rowIndex % 2 == 0) {
-    boardBlockModifier += index % 2 == 0 ? "light" : "dark";
+const BoardTile: React.FC<BoardTileProps> = ({
+  index,
+  piece,
+  movablePiece,
+  mark = false,
+  onPieceMoveStart,
+  onPieceMoveEnd,
+}) => {
+  const coordinate = indexToCoordinate(index);
+  let tileModifier: string;
+  if (coordinate.rank % 2 == 0) {
+    tileModifier = index % 2 == 0 ? "light" : "dark";
   } else {
-    boardBlockModifier += index % 2 == 0 ? "dark" : "light";
+    tileModifier = index % 2 == 0 ? "dark" : "light";
   }
 
+  const onMoveStart = () => {
+    if (onPieceMoveStart) {
+      onPieceMoveStart(coordinate);
+    }
+  };
+
   return (
-    <div className={`chess-board__block ${boardBlockModifier}`}>
-      {piece && <Piece type={piece} />}
+    <div className={`chess-board__tile chess-board__tile--${tileModifier}`}>
+      {piece && (
+        <Piece
+          type={piece}
+          movable={movablePiece}
+          onMoveStart={onMoveStart}
+          onMoveEnd={onPieceMoveEnd}
+        />
+      )}
+      {mark && (
+        <div
+          className={`chess-board__tile-mark chess-board__tile-mark--${tileModifier}`}
+        ></div>
+      )}
     </div>
   );
 };
 
 export type BoardProps = {
+  /**
+   * The location of each pieces in the board.
+   */
   pieces?: BoardPiece[];
+  /**
+   * From what side the user wil be seeing the board from.
+   */
   perspective: PieceColor;
+  /**
+   * Legal moves from the current position.
+   */
   legalMoves?: MoveDto[];
+  /**
+   * Wether the pieces can be moved.
+   */
+  movablePieces?: boolean;
 };
 
 export const Board: React.FC<BoardProps> = ({
   pieces = startingBoard,
   perspective,
   legalMoves = [],
+  movablePieces = false,
 }) => {
+  const [movingPiece, setMovingPiece] = useState<BoardCoordinateDto | null>(
+    null,
+  );
+
+  const onPieceMoveStart = (coordinate: BoardCoordinateDto) => {
+    setMovingPiece(coordinate);
+  };
+
+  const onPieceMoveEnd = () => {
+    setMovingPiece(null);
+  };
+
+  let markedBlocks: number[] | undefined;
+
+  if (movingPiece) {
+    const movingPieceLegalMoves = legalMoves.filter((legalMove) =>
+      isCoordinateEqual(legalMove.from, movingPiece),
+    );
+    markedBlocks = movingPieceLegalMoves.map((legalMove) => {
+      return coordinateToIndex(legalMove.to);
+    });
+  }
+
   const board: (PieceType | null)[] = new Array(64).fill(null);
   for (const piece of pieces) {
     const boardIndex = coordinateToIndex(piece.coordinate);
@@ -53,6 +127,13 @@ export const Board: React.FC<BoardProps> = ({
       key={`${index}-${piece ? `${piece.color}-${piece.name}` : "null"}`}
       index={index}
       piece={piece}
+      movablePiece={movablePieces}
+      mark={
+        markedBlocks &&
+        markedBlocks.find((markedIndex) => index === markedIndex) !== undefined
+      }
+      onPieceMoveStart={onPieceMoveStart}
+      onPieceMoveEnd={onPieceMoveEnd}
     />
   ));
 

@@ -20,17 +20,40 @@ $dark-tile-color: #777277;
     max-height: 100%;
   }
 
-  &__block {
+  
+
+  &__tile {
 
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 
     & .chess-piece{
       width: 80%;
       height: 80%;
+      z-index: 2
     }
   
+    &--light {
+      background-color: $light-tile-color;
+    }
+  
+    &--dark {
+      background-color: $dark-tile-color;
+    }
+  }
+
+  &__tile-mark {
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+
+    position: absolute;
+    z-index: 1;
+
+    filter: brightness(85%);
+
     &--light {
       background-color: $light-tile-color;
     }

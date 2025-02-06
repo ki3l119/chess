@@ -1,8 +1,19 @@
 .chess-piece {
+  
 
-  &--interctable {
+  &--movable {
     &:hover {
       cursor: grab;
+    }
+
+    
+  }
+
+  &--moving {
+    position: fixed;
+
+    &:hover {
+      cursor: grabbing;
     }
   }
 }

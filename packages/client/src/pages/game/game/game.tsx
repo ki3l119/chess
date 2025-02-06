@@ -28,6 +28,7 @@ export const Game: React.FC<GameProps> = ({ game }) => {
         pieces={pieces}
         perspective={userPlayer.color}
         legalMoves={legalMoves}
+        movablePieces
       />
       <div className="game__player">
         <FontAwesomeIcon icon={faUser} />

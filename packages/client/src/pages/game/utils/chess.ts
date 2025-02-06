@@ -101,19 +101,34 @@ export function coordinateToIndex(coordinate: BoardCoordinateDto): number {
   return coordinate.rank * 8 + coordinate.file;
 }
 
+export function indexToCoordinate(index: number): BoardCoordinateDto {
+  const rank = Math.floor(index / 8);
+  const file = index % 8;
+  return {
+    rank,
+    file,
+  };
+}
+
+export function isCoordinateEqual(
+  coordinate1: BoardCoordinateDto,
+  coordinate2: BoardCoordinateDto,
+): boolean {
+  return (
+    coordinate1.file === coordinate2.file &&
+    coordinate1.rank === coordinate2.rank
+  );
+}
+
 export const startingBoard: BoardPiece[] = [
   ...getBackRow(PieceColor.WHITE),
-  ...new Array(8)
-    .fill(0)
-    .map((_, index) => ({
-      type: PIECES["P"],
-      coordinate: { rank: 1, file: index },
-    })),
-  ...new Array(8)
-    .fill(0)
-    .map((_, index) => ({
-      type: PIECES["p"],
-      coordinate: { rank: 6, file: index },
-    })),
+  ...new Array(8).fill(0).map((_, index) => ({
+    type: PIECES["P"],
+    coordinate: { rank: 1, file: index },
+  })),
+  ...new Array(8).fill(0).map((_, index) => ({
+    type: PIECES["p"],
+    coordinate: { rank: 6, file: index },
+  })),
   ...getBackRow(PieceColor.BLACK),
 ];
