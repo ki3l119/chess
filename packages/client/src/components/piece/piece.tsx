@@ -1,7 +1,7 @@
 import React from "react";
 import "./piece.scss";
 
-import { PieceType } from "@/utils/chess";
+import { PieceType } from "@/pages/game/utils/chess";
 
 export type PieceProps = {
   type: PieceType;

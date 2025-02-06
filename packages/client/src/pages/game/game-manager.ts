@@ -1,5 +1,3 @@
-import { TypedEventTarget } from "typescript-event-target";
-
 import { CreateGameDto, GameInfoDto, JoinGameDto } from "chess-shared-types";
 import { ServiceException } from "@/services";
 import { EventMessageWebSocket } from "@/ws/event-message-ws";
@@ -47,7 +45,7 @@ export class GameManager {
       event: "create",
       data: createGameDto,
     });
-    return new Game(this.socket, gameInfo, true);
+    return Game.fromGameInfoDto(this.socket, gameInfo, true);
   }
 
   async joinGame(joinGameDto: JoinGameDto): Promise<Game> {
@@ -55,7 +53,7 @@ export class GameManager {
       event: "join",
       data: joinGameDto,
     });
-    return new Game(this.socket, gameInfo, false);
+    return Game.fromGameInfoDto(this.socket, gameInfo, false);
   }
 
   /**

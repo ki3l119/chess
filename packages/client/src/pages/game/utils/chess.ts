@@ -1,0 +1,119 @@
+import { BoardCoordinateDto } from "chess-shared-types";
+
+export enum PieceName {
+  KING = "king",
+  QUEEN = "queen",
+  BISHOP = "bishop",
+  KNIGHT = "knight",
+  ROOK = "rook",
+  PAWN = "pawn",
+}
+
+export enum PieceColor {
+  WHITE = "white",
+  BLACK = "black",
+}
+
+export type PieceType = Readonly<{
+  color: PieceColor;
+  name: PieceName;
+}>;
+
+export type BoardPiece = {
+  type: PieceType;
+  coordinate: BoardCoordinateDto;
+};
+
+export const PIECES: { [key: string]: PieceType } = {
+  P: {
+    name: PieceName.PAWN,
+    color: PieceColor.WHITE,
+  },
+  N: {
+    name: PieceName.KNIGHT,
+    color: PieceColor.WHITE,
+  },
+  B: {
+    name: PieceName.BISHOP,
+    color: PieceColor.WHITE,
+  },
+  R: {
+    name: PieceName.ROOK,
+    color: PieceColor.WHITE,
+  },
+  Q: {
+    name: PieceName.QUEEN,
+    color: PieceColor.WHITE,
+  },
+  K: {
+    name: PieceName.KING,
+    color: PieceColor.WHITE,
+  },
+  p: {
+    name: PieceName.PAWN,
+    color: PieceColor.BLACK,
+  },
+  n: {
+    name: PieceName.KNIGHT,
+    color: PieceColor.BLACK,
+  },
+  b: {
+    name: PieceName.BISHOP,
+    color: PieceColor.BLACK,
+  },
+  r: {
+    name: PieceName.ROOK,
+    color: PieceColor.BLACK,
+  },
+  q: {
+    name: PieceName.QUEEN,
+    color: PieceColor.BLACK,
+  },
+  k: {
+    name: PieceName.KING,
+    color: PieceColor.BLACK,
+  },
+};
+
+function getBackRow(color: PieceColor): BoardPiece[] {
+  const rank = color === PieceColor.WHITE ? 0 : 7;
+  let order = ["R", "N", "B", "Q", "K", "B", "N", "R"];
+
+  if (color === PieceColor.BLACK) {
+    order = order.map((piece) => piece.toLowerCase());
+  }
+
+  return order.map((piece, index) => ({
+    type: PIECES[piece],
+    coordinate: {
+      rank,
+      file: index,
+    },
+  }));
+}
+
+/**
+ * Converts the coordinate to an index for a 1-dimensional board representation.
+ *
+ * The 0-based goes from a1, a2, ..., h8.
+ */
+export function coordinateToIndex(coordinate: BoardCoordinateDto): number {
+  return coordinate.rank * 8 + coordinate.file;
+}
+
+export const startingBoard: BoardPiece[] = [
+  ...getBackRow(PieceColor.WHITE),
+  ...new Array(8)
+    .fill(0)
+    .map((_, index) => ({
+      type: PIECES["P"],
+      coordinate: { rank: 1, file: index },
+    })),
+  ...new Array(8)
+    .fill(0)
+    .map((_, index) => ({
+      type: PIECES["p"],
+      coordinate: { rank: 6, file: index },
+    })),
+  ...getBackRow(PieceColor.BLACK),
+];

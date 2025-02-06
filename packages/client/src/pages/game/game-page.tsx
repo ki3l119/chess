@@ -11,9 +11,11 @@ import { config } from "@/config";
 import { JoinGameForm } from "./join-game-form/join-game-form";
 import { WaitingRoom } from "./waiting-room/waiting-room";
 import { GameManager } from "./game-manager";
+import { Game as GameComponent } from "./game/game";
 import { Game } from "./game";
 import { GameModal } from "./game-modal/game-modal";
 import { Board } from "./board/board";
+import { PieceColor } from "./utils/chess";
 
 enum GameInitModal {
   NONE,
@@ -60,6 +62,9 @@ export const GamePage: React.FC = () => {
   }, []);
 
   const onNewGame = (game: Game) => {
+    game.addEventListener("start", () => {
+      setHasGameStarted(true);
+    });
     setGame(game);
   };
 
@@ -100,17 +105,13 @@ export const GamePage: React.FC = () => {
               <JoinGameForm onJoin={onNewGame} gameManager={gameManager} />
             </GameModal>
             {gameInitModal === GameInitModal.NONE && (
-              <div className="game-page__init">
-                <div className="game-page__init-options">
-                  <Button
-                    onClick={() => setGameInitModal(GameInitModal.CREATE)}
-                  >
-                    Create New Game
-                  </Button>
-                  <Button onClick={() => setGameInitModal(GameInitModal.JOIN)}>
-                    Join Game
-                  </Button>
-                </div>
+              <div className="game-page__init-options">
+                <Button onClick={() => setGameInitModal(GameInitModal.CREATE)}>
+                  Create New Game
+                </Button>
+                <Button onClick={() => setGameInitModal(GameInitModal.JOIN)}>
+                  Join Game
+                </Button>
               </div>
             )}
           </>
@@ -128,7 +129,11 @@ export const GamePage: React.FC = () => {
           (!game || !hasGameStarted ? " game-page__game--blur" : "")
         }
       >
-        <Board />
+        {game && hasGameStarted ? (
+          <GameComponent game={game} />
+        ) : (
+          <Board perspective={PieceColor.WHITE} />
+        )}
       </div>
     </div>
   );

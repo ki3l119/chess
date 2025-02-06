@@ -1,17 +1,20 @@
 import React, { useState } from "react";
 
 import "./game.scss";
-import { BoardPiece, getStartingBoard } from "@/utils/chess";
+import { Game as GameModel } from "../game";
 import { Board } from "../board/board";
+import { BoardPiece } from "../utils/chess";
 
-const startingBoard = getStartingBoard();
+export type GameProps = {
+  game: GameModel;
+};
 
-export const Game: React.FC = () => {
-  const [board, setBoard] = useState<BoardPiece[]>(startingBoard);
-
+export const Game: React.FC<GameProps> = ({ game }) => {
+  const [pieces, setPieces] = useState<BoardPiece[]>(game.getPieces());
+  const userPlayer = game.getUserPlayer();
   return (
     <div className="game">
-      <Board board={board} />
+      <Board pieces={pieces} perspective={userPlayer.color} />
     </div>
   );
 };

@@ -22,28 +22,9 @@
     }
   }
 
-  &__init {
+  &__init-options {
     position: absolute;
     z-index: 2;
-    width: 90%;
-
-    display: flex;
-    justify-content: center;
-
-    @media (min-width: map.get(var.$breakpoints, "md")) {
-      width: 60%;
-    }
-
-    @media (min-width: map.get(var.$breakpoints, "lg")) {
-      width: 40%;
-    }
-
-    @media (min-width: map.get(var.$breakpoints, "xxl")) {
-      width: 30%;
-    }
-  }
-
-  &__init-options {
     display: flex;
     justify-content: center;
     flex-direction: column;

@@ -2,11 +2,10 @@ import React, { useEffect, useState } from "react";
 import { faCopy, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { PlayerDto } from "chess-shared-types";
 import "./waiting-room.scss";
 import { Button } from "@/components/button/button";
 
-import { Game, JoinEvent } from "../game";
+import { Game, JoinEvent, Player } from "../game";
 
 type WaitingRoomPlayerProps = {
   displayName?: string;
@@ -40,7 +39,8 @@ type WaitingRoomProps = {
 
 export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game }) => {
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
-  const [opponent, setOpponent] = useState<PlayerDto | null>(null);
+  const [opponent, setOpponent] = useState<Player | null>(null);
+  const [isStarting, setIsStarting] = useState(false);
 
   useEffect(() => {
     const joinEventCallback = (event: JoinEvent) => {
@@ -66,6 +66,11 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game }) => {
     setTimeout(() => {
       setShowCopiedMessage(false);
     }, 1000);
+  };
+
+  const startGame = () => {
+    game.start();
+    setIsStarting(true);
   };
 
   return (
@@ -97,7 +102,12 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game }) => {
         )}
       </div>
       {game.isHost ? (
-        <Button disabled={opponent === undefined}>Start Game</Button>
+        <Button
+          disabled={opponent === undefined || isStarting}
+          onClick={startGame}
+        >
+          Start Game
+        </Button>
       ) : (
         <p>Waiting for host to start the game...</p>
       )}
