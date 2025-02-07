@@ -4,7 +4,7 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 import "./game.scss";
 import { Game as GameModel } from "../game";
 import { Board } from "../board/board";
-import { BoardPiece } from "../utils/chess";
+import { BoardPiece, PieceColor } from "../utils/chess";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { MoveDto } from "chess-shared-types";
 
@@ -15,6 +15,9 @@ export type GameProps = {
 export const Game: React.FC<GameProps> = ({ game }) => {
   const [pieces, setPieces] = useState<BoardPiece[]>(game.getPieces());
   const [legalMoves, setLegalMoves] = useState<MoveDto[]>(game.getLegalMoves());
+  const [activePlayer, setActivePlayer] = useState<PieceColor>(
+    PieceColor.WHITE,
+  );
   const userPlayer = game.getUserPlayer();
   const opponent = game.getOpponent();
 
@@ -28,7 +31,9 @@ export const Game: React.FC<GameProps> = ({ game }) => {
         pieces={pieces}
         perspective={userPlayer.color}
         legalMoves={legalMoves}
-        movablePieces
+        movablePieces={
+          activePlayer === userPlayer.color ? userPlayer.color : undefined
+        }
       />
       <div className="game__player">
         <FontAwesomeIcon icon={faUser} />

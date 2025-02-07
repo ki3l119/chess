@@ -120,12 +120,6 @@ const BoardTile: React.FC<BoardTileProps> = ({
     tileModifier = index % 2 == 0 ? "dark" : "light";
   }
 
-  const onMoveStart = () => {
-    if (onPieceMoveStart) {
-      onPieceMoveStart(coordinate);
-    }
-  };
-
   return (
     <div className={`chess-board__tile chess-board__tile--${tileModifier}`}>
       <div className={tilePieceClasses.join(" ")} ref={pieceRef}>
@@ -154,9 +148,12 @@ export type BoardProps = {
    */
   legalMoves?: MoveDto[];
   /**
-   * Wether the pieces can be moved.
+   * Wether the specified color pieces can be moved.
    */
-  movablePieces?: boolean;
+  movablePieces?: PieceColor;
+  /**
+   *
+   */
 };
 
 export const Board: React.FC<BoardProps> = ({
@@ -198,7 +195,7 @@ export const Board: React.FC<BoardProps> = ({
       key={`${index}-${piece ? `${piece.color}-${piece.name}` : "null"}`}
       index={index}
       piece={piece}
-      movablePiece={movablePieces}
+      movablePiece={piece !== null && piece.color === movablePieces}
       mark={
         markedBlocks &&
         markedBlocks.find((markedIndex) => index === markedIndex) !== undefined
