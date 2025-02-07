@@ -5,10 +5,12 @@ import {
   CreateGameDto,
   GameInfoDto,
   JoinGameDto,
+  MoveDto,
   PieceColorChoice,
   PieceDto,
   StartGameDto,
 } from "chess-shared-types";
+import { Chess, Board, Move } from "chess-game";
 import {
   InvalidGameCreationException,
   InvalidGameJoinException,
@@ -120,6 +122,35 @@ export class GameService {
     return this.playerGameMapping.get(playerId) || null;
   }
 
+  private static boardToPieceCentricRepresentation(board: Board) {
+    const pieces: PieceDto[] = [];
+
+    for (const { piece, coordinate } of board.pieces()) {
+      pieces.push({
+        piece: piece.getFENString(),
+        coordinate: {
+          rank: coordinate.rank,
+          file: coordinate.file,
+        },
+      });
+    }
+
+    return pieces;
+  }
+
+  private static mapToLegalMoveDtos(legalMoves: Move[]): MoveDto[] {
+    return legalMoves.map((legalMove) => ({
+      from: {
+        rank: legalMove.from.rank,
+        file: legalMove.from.file,
+      },
+      to: {
+        rank: legalMove.to.rank,
+        file: legalMove.to.file,
+      },
+    }));
+  }
+
   /**
    * Initializes the game with the specified id.
    *
@@ -135,9 +166,11 @@ export class GameService {
 
     game.start();
 
+    const chess = game.getChessObject();
+
     return {
-      pieces: game.getCurrentPosition(),
-      legalMoves: game.getLegalMoves(),
+      pieces: GameService.boardToPieceCentricRepresentation(chess.getBoard()),
+      legalMoves: GameService.mapToLegalMoveDtos(chess.getLegalMoves()),
     };
   }
 }

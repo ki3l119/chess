@@ -4,7 +4,7 @@ import {
   PieceColor,
   startingBoardFENString,
 } from "chess-game";
-import { MoveDto, PieceColorChoice, PieceDto } from "chess-shared-types";
+import { PieceColorChoice } from "chess-shared-types";
 
 import {
   InvalidGameStateException,
@@ -69,7 +69,10 @@ export class Game {
     return this.player;
   }
 
-  private getChessObject(): Chess {
+  /**
+   * @returns The chess object that manages the state of the chess game.
+   */
+  getChessObject(): Chess {
     if (!this.chess) {
       throw new InvalidGameStateException("Game has not yet started.");
     }
@@ -91,41 +94,5 @@ export class Game {
     }
 
     this.chess = new Chess(parseFEN(startingBoardFENString));
-  }
-
-  getCurrentPosition(): PieceDto[] {
-    const chess = this.getChessObject();
-
-    const pieces: PieceDto[] = [];
-    const board = chess.getBoard();
-
-    for (const { piece, coordinate } of board.pieces()) {
-      pieces.push({
-        piece: piece.getFENString(),
-        coordinate: {
-          rank: coordinate.rank,
-          file: coordinate.file,
-        },
-      });
-    }
-
-    return pieces;
-  }
-
-  getLegalMoves(): MoveDto[] {
-    const chess = this.getChessObject();
-
-    const legalMoves = chess.getLegalMoves();
-
-    return legalMoves.map((legalMove) => ({
-      from: {
-        rank: legalMove.from.rank,
-        file: legalMove.from.file,
-      },
-      to: {
-        rank: legalMove.to.rank,
-        file: legalMove.to.file,
-      },
-    }));
   }
 }
