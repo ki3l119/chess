@@ -31,7 +31,7 @@ import {
 } from "./game.validator";
 import { GameException } from "./game.exception";
 import { GameSocket } from "./types";
-import { GameGuard } from "./game.guard";
+import { GameGuard, GameGuardWithResponse } from "./game.guard";
 import { CurrentGame } from "./game.decorator";
 
 const serverOptions: ServerOptions = {
@@ -135,7 +135,7 @@ export class GameGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage("move")
-  @UseGuards(GameGuard)
+  @UseGuards(GameGuardWithResponse)
   handleMove(
     @CurrentGame() gameId: string,
     @ConnectedSocket() socket: GameSocket,
