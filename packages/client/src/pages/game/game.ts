@@ -1,6 +1,9 @@
 import {
   GameInfoDto,
   MoveDto,
+  MoveSuccessDto,
+  OpponentMoveDto,
+  PieceDto,
   PlayerDto,
   StartGameDto,
 } from "chess-shared-types";
@@ -23,9 +26,20 @@ export class StartEvent extends Event {
   }
 }
 
+export class OpponentMoveEvent extends Event {
+  constructor(
+    readonly move: MoveDto,
+    readonly newPosition: BoardPiece[],
+    readonly legalMoves: MoveDto[],
+  ) {
+    super("opponentmove");
+  }
+}
+
 interface GameEventMap {
   join: JoinEvent;
   start: StartEvent;
+  opponentmove: OpponentMoveEvent;
 }
 
 export type Player = {
@@ -62,16 +76,32 @@ export class Game extends TypedEventTarget<GameEventMap> {
       this.dispatchTypedEvent("join", new JoinEvent(player));
     });
     this.socket.addMessageListener("start", (data: StartGameDto) => {
-      this.pieces = data.pieces.map((pieceDto) => ({
-        type: PIECES[pieceDto.piece],
-        coordinate: pieceDto.coordinate,
-      }));
-      this.legalMoves = [...data.legalMoves];
+      this.pieces = Game.dtoToBoardPieces(data.pieces);
+      this.legalMoves = data.legalMoves;
       this.dispatchTypedEvent(
         "start",
-        new StartEvent(this.pieces, data.legalMoves),
+        new StartEvent(this.getPieces(), this.getLegalMoves()),
       );
     });
+    this.socket.addMessageListener("opponent-move", (data: OpponentMoveDto) => {
+      this.pieces = Game.dtoToBoardPieces(data.newPosition);
+      this.legalMoves = data.legalMoves;
+      this.dispatchTypedEvent(
+        "opponentmove",
+        new OpponentMoveEvent(
+          data.move,
+          this.getPieces(),
+          this.getLegalMoves(),
+        ),
+      );
+    });
+  }
+
+  private static dtoToBoardPieces(pieceDtos: PieceDto[]): BoardPiece[] {
+    return pieceDtos.map((pieceDto) => ({
+      type: PIECES[pieceDto.piece],
+      coordinate: pieceDto.coordinate,
+    }));
   }
 
   /**
@@ -151,5 +181,23 @@ export class Game extends TypedEventTarget<GameEventMap> {
 
   getLegalMoves(): MoveDto[] {
     return [...this.legalMoves];
+  }
+
+  async move(
+    moveDto: MoveDto,
+  ): Promise<{ newPosition: BoardPiece[]; legalMoves: MoveDto[] }> {
+    const moveSuccessDto =
+      await this.socket.sendMessageWithResponse<MoveSuccessDto>({
+        event: "move",
+        data: moveDto,
+      });
+
+    this.pieces = Game.dtoToBoardPieces(moveSuccessDto.newPosition);
+    this.legalMoves = [...moveSuccessDto.legalMoves];
+
+    return {
+      newPosition: this.pieces,
+      legalMoves: this.legalMoves,
+    };
   }
 }

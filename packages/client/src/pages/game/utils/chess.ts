@@ -120,6 +120,10 @@ export function isCoordinateEqual(
   );
 }
 
+export function getOppositeColor(color: PieceColor) {
+  return color === PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE;
+}
+
 export const startingBoard: BoardPiece[] = [
   ...getBackRow(PieceColor.WHITE),
   ...new Array(8).fill(0).map((_, index) => ({

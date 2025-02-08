@@ -26,6 +26,11 @@ type BoardTileProps = {
    * Called once the user stops moving the piece occupying the tile.
    */
   onPieceMoveEnd?: () => void;
+
+  /**
+   * Called when the user releases their left-mouse button within the tile.
+   */
+  onMouseRelease?: (coordinate: BoardCoordinateDto) => void;
 };
 
 const BoardTile: React.FC<BoardTileProps> = ({
@@ -35,84 +40,84 @@ const BoardTile: React.FC<BoardTileProps> = ({
   mark = false,
   onPieceMoveStart,
   onPieceMoveEnd,
+  onMouseRelease,
 }) => {
-  const pieceRef = useRef<HTMLDivElement>(null);
-  let coordinate: BoardCoordinateDto;
-  useEffect(() => {
-    // For handling piece movement
-    let startMove: (event: MouseEvent) => void;
-    if (movablePiece && pieceRef.current) {
-      const draggingClass = "chess-board__tile-piece--moving";
-      const pieceElement = pieceRef.current;
+  const coordinate = indexToCoordinate(index);
 
-      // For tracking position of mouse during piece movement
-      let mouseClientX = 0;
-      let mouseClientY = 0;
+  // For tracking mouse position during piece movement
+  const mouseClientRef = useRef<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
 
-      startMove = (event) => {
-        if (event.button !== 0) {
-          return;
-        }
-
-        const onMouseMove = (event: MouseEvent) => {
-          const clientXDiff = event.clientX - mouseClientX;
-          const clientYDiff = event.clientY - mouseClientY;
-
-          mouseClientX = event.clientX;
-          mouseClientY = event.clientY;
-
-          const pieceBoundingRect = pieceElement.getBoundingClientRect();
-          pieceElement.style.top =
-            (pieceBoundingRect.y + clientYDiff).toString() + "px";
-          pieceElement.style.left =
-            (pieceBoundingRect.x + clientXDiff).toString() + "px";
-        };
-
-        const endMove = () => {
-          pieceElement.classList.remove(draggingClass);
-          pieceElement.style.removeProperty("top");
-          pieceElement.style.removeProperty("left");
-          pieceElement.style.removeProperty("height");
-          pieceElement.style.removeProperty("width");
-          document.removeEventListener("mousemove", onMouseMove);
-
-          if (onPieceMoveEnd) {
-            onPieceMoveEnd();
-          }
-        };
-
-        mouseClientX = event.clientX;
-        mouseClientY = event.clientY;
-
-        const boundingRect = pieceElement.getBoundingClientRect();
-        pieceElement.style.height = boundingRect.height.toString() + "px";
-        pieceElement.style.width = boundingRect.width.toString() + "px";
-
-        pieceElement.classList.add(draggingClass);
-        document.addEventListener("mouseup", endMove, { once: true });
-        document.addEventListener("mousemove", onMouseMove);
-
-        if (onPieceMoveStart) {
-          onPieceMoveStart(coordinate);
-        }
-      };
-
-      pieceElement.addEventListener("mousedown", startMove);
+  const startMove = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const pieceElement = event.currentTarget;
+    if (pieceElement === null) {
+      return;
     }
 
-    return () => {
-      if (movablePiece && pieceRef.current) {
-        pieceRef.current.removeEventListener("mousedown", startMove);
+    const draggingClass = "chess-board__tile-piece--moving";
+
+    mouseClientRef.current.x = event.clientX;
+    mouseClientRef.current.y = event.clientY;
+
+    if (event.button !== 0) {
+      return;
+    }
+
+    const onMouseMove = (event: MouseEvent) => {
+      const clientXDiff = event.clientX - mouseClientRef.current.x;
+      const clientYDiff = event.clientY - mouseClientRef.current.y;
+
+      mouseClientRef.current.x = event.clientX;
+      mouseClientRef.current.y = event.clientY;
+
+      const pieceBoundingRect = pieceElement.getBoundingClientRect();
+      pieceElement.style.top =
+        (pieceBoundingRect.y + clientYDiff).toString() + "px";
+      pieceElement.style.left =
+        (pieceBoundingRect.x + clientXDiff).toString() + "px";
+    };
+
+    const endMove = (event: MouseEvent) => {
+      if (event.button !== 0) {
+        return;
+      }
+      pieceElement.classList.remove(draggingClass);
+      pieceElement.style.removeProperty("top");
+      pieceElement.style.removeProperty("left");
+      pieceElement.style.removeProperty("height");
+      pieceElement.style.removeProperty("width");
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", endMove);
+
+      if (onPieceMoveEnd) {
+        onPieceMoveEnd();
       }
     };
-  }, [pieceRef.current]);
+
+    mouseClientRef.current.x = event.clientX;
+    mouseClientRef.current.y = event.clientY;
+
+    const boundingRect = pieceElement.getBoundingClientRect();
+    pieceElement.style.height = boundingRect.height.toString() + "px";
+    pieceElement.style.width = boundingRect.width.toString() + "px";
+
+    pieceElement.classList.add(draggingClass);
+    document.addEventListener("mouseup", endMove);
+    document.addEventListener("mousemove", onMouseMove);
+
+    if (onPieceMoveStart) {
+      onPieceMoveStart(coordinate);
+    }
+  };
 
   const tilePieceClasses = ["chess-board__tile-piece"];
 
   if (movablePiece) {
     tilePieceClasses.push("chess-board__tile-piece--movable");
   }
-  coordinate = indexToCoordinate(index);
+
   let tileModifier: string;
   if (coordinate.rank % 2 == 0) {
     tileModifier = index % 2 == 0 ? "light" : "dark";
@@ -120,9 +125,23 @@ const BoardTile: React.FC<BoardTileProps> = ({
     tileModifier = index % 2 == 0 ? "dark" : "light";
   }
 
+  const onMouseUp =
+    onMouseRelease &&
+    ((event: React.MouseEvent) => {
+      if (event.button === 0) {
+        onMouseRelease(coordinate);
+      }
+    });
+
   return (
-    <div className={`chess-board__tile chess-board__tile--${tileModifier}`}>
-      <div className={tilePieceClasses.join(" ")} ref={pieceRef}>
+    <div
+      className={`chess-board__tile chess-board__tile--${tileModifier}`}
+      onMouseUp={onMouseUp}
+    >
+      <div
+        className={tilePieceClasses.join(" ")}
+        onMouseDown={movablePiece ? startMove : undefined}
+      >
         {piece && <Piece type={piece} />}
       </div>
       {mark && (
@@ -152,26 +171,45 @@ export type BoardProps = {
    */
   movablePieces?: PieceColor;
   /**
-   *
+   * Called when player makes a legal move.
    */
+  onLegalMove?: (move: MoveDto) => void;
 };
 
 export const Board: React.FC<BoardProps> = ({
   pieces = startingBoard,
   perspective,
   legalMoves = [],
-  movablePieces = false,
+  movablePieces,
+  onLegalMove,
 }) => {
-  const [movingPiece, setMovingPiece] = useState<BoardCoordinateDto | null>(
-    null,
-  );
+  const [movingPiece, setMovingPiece] = useState<BoardCoordinateDto>();
 
   const onPieceMoveStart = (coordinate: BoardCoordinateDto) => {
     setMovingPiece(coordinate);
   };
 
+  const onTileMouseRelease =
+    movingPiece &&
+    ((coordinate: BoardCoordinateDto) => {
+      if (onLegalMove) {
+        const isLegalMove =
+          legalMoves.find(
+            (legalMove) =>
+              isCoordinateEqual(legalMove.from, movingPiece) &&
+              isCoordinateEqual(legalMove.to, coordinate),
+          ) !== undefined;
+        if (isLegalMove) {
+          onLegalMove({
+            from: movingPiece,
+            to: coordinate,
+          });
+        }
+      }
+    });
+
   const onPieceMoveEnd = () => {
-    setMovingPiece(null);
+    setMovingPiece(undefined);
   };
 
   let markedBlocks: number[] | undefined;
@@ -190,6 +228,7 @@ export const Board: React.FC<BoardProps> = ({
     const boardIndex = coordinateToIndex(piece.coordinate);
     board[boardIndex] = piece.type;
   }
+
   const boardTiles = board.map((piece, index) => (
     <BoardTile
       key={`${index}-${piece ? `${piece.color}-${piece.name}` : "null"}`}
@@ -202,11 +241,19 @@ export const Board: React.FC<BoardProps> = ({
       }
       onPieceMoveStart={onPieceMoveStart}
       onPieceMoveEnd={onPieceMoveEnd}
+      onMouseRelease={onTileMouseRelease}
     />
   ));
 
-  if (perspective === PieceColor.WHITE) {
-    boardTiles.reverse();
+  // Modify board tile order so that it has correct perspective from player.
+  const boardTilesCorrected: React.JSX.Element[] = [];
+  for (let i = 0; i < 8; i++) {
+    const rankPieces = boardTiles.slice(i * 8, (i + 1) * 8).reverse();
+    boardTilesCorrected.push(...rankPieces);
   }
-  return <div className="chess-board">{boardTiles}</div>;
+  if (perspective === PieceColor.WHITE) {
+    boardTilesCorrected.reverse();
+  }
+
+  return <div className="chess-board">{boardTilesCorrected}</div>;
 };
