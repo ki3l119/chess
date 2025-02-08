@@ -54,3 +54,15 @@ export type StartGameDto = {
   pieces: PieceDto[];
   legalMoves: MoveDto[];
 };
+
+export type MoveSuccessDto = {
+  newPosition: PieceDto[];
+  legalMoves: MoveDto[];
+};
+
+export type OpponentMoveDto = Pick<
+  MoveSuccessDto,
+  "newPosition" | "legalMoves"
+> & {
+  move: MoveDto;
+};
