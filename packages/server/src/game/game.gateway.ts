@@ -1,5 +1,5 @@
 import { ServerOptions } from "ws";
-import { UseFilters, UseGuards } from "@nestjs/common";
+import { UseFilters, UseGuards, UseInterceptors } from "@nestjs/common";
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -33,6 +33,7 @@ import { GameException } from "./game.exception";
 import { GameSocket } from "./types";
 import { GameGuard, GameGuardWithResponse } from "./game.guard";
 import { CurrentGame } from "./game.decorator";
+import { GameExceptionInterceptor } from "./game-exception.interceptor";
 
 const serverOptions: ServerOptions = {
   path: "/games",
@@ -54,6 +55,7 @@ export class GameGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage("create")
+  @UseInterceptors(GameExceptionInterceptor)
   handleCreate(
     @ConnectedSocket() socket: GameSocket,
     @MessageBody(
@@ -61,29 +63,23 @@ export class GameGateway implements OnGatewayDisconnect {
     )
     createGameDto: CreateGameDto,
   ): WsResponse<GameInfoDto> {
-    try {
-      const gameInfo = this.gameService.create(
-        {
-          id: socket.id,
-          name: socket.user?.username,
-        },
-        createGameDto,
-      );
-      this.roomService.join(gameInfo.id, socket);
-      socket.gameId = gameInfo.id;
-      return {
-        event: "create:success",
-        data: gameInfo,
-      };
-    } catch (e) {
-      if (e instanceof GameException) {
-        throw new WebSocketException("create:error", e.problemDetails);
-      }
-      throw e;
-    }
+    const gameInfo = this.gameService.create(
+      {
+        id: socket.id,
+        name: socket.user?.username,
+      },
+      createGameDto,
+    );
+    this.roomService.join(gameInfo.id, socket);
+    socket.gameId = gameInfo.id;
+    return {
+      event: "create:success",
+      data: gameInfo,
+    };
   }
 
   @SubscribeMessage("join")
+  @UseInterceptors(GameExceptionInterceptor)
   handleJoin(
     @ConnectedSocket() socket: GameSocket,
     @MessageBody(
@@ -91,34 +87,27 @@ export class GameGateway implements OnGatewayDisconnect {
     )
     joinGameDto: JoinGameDto,
   ): WsResponse<GameInfoDto> {
-    try {
-      const gameInfo = this.gameService.join(
-        { id: socket.id, name: socket.user?.username },
-        joinGameDto,
-      );
-      this.roomService.join(gameInfo.id, socket);
-      socket.gameId = gameInfo.id;
-      this.roomService.emit(
-        gameInfo.id,
-        {
-          event: "join",
-          data: gameInfo.player,
-        },
-        {
-          exclude: [socket.id],
-        },
-      );
+    const gameInfo = this.gameService.join(
+      { id: socket.id, name: socket.user?.username },
+      joinGameDto,
+    );
+    this.roomService.join(gameInfo.id, socket);
+    socket.gameId = gameInfo.id;
+    this.roomService.emit(
+      gameInfo.id,
+      {
+        event: "join",
+        data: gameInfo.player,
+      },
+      {
+        exclude: [socket.id],
+      },
+    );
 
-      return {
-        event: "join:success",
-        data: gameInfo,
-      };
-    } catch (e) {
-      if (e instanceof GameException) {
-        throw new WebSocketException("join:error", e.problemDetails);
-      }
-      throw e;
-    }
+    return {
+      event: "join:success",
+      data: gameInfo,
+    };
   }
 
   @SubscribeMessage("start")
@@ -136,41 +125,35 @@ export class GameGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage("move")
   @UseGuards(GameGuardWithResponse)
+  @UseInterceptors(GameExceptionInterceptor)
   handleMove(
     @CurrentGame() gameId: string,
     @ConnectedSocket() socket: GameSocket,
     @MessageBody(new WebSocketJoiValidationPipe(moveDtoSchema, "move:error"))
     moveDto: MoveDto,
   ): WsResponse<MoveSuccessDto> {
-    try {
-      const moveSuccessDto = this.gameService.move(gameId, moveDto, socket.id);
+    const moveSuccessDto = this.gameService.move(gameId, moveDto, socket.id);
 
-      const opponentMoveDto: OpponentMoveDto = {
-        move: moveDto,
-        newPosition: moveSuccessDto.newPosition,
-        legalMoves: moveSuccessDto.legalMoves,
-      };
+    const opponentMoveDto: OpponentMoveDto = {
+      move: moveDto,
+      newPosition: moveSuccessDto.newPosition,
+      legalMoves: moveSuccessDto.legalMoves,
+    };
 
-      this.roomService.emit(
-        gameId,
-        {
-          event: "opponent-move",
-          data: opponentMoveDto,
-        },
-        {
-          exclude: [socket.id],
-        },
-      );
+    this.roomService.emit(
+      gameId,
+      {
+        event: "opponent-move",
+        data: opponentMoveDto,
+      },
+      {
+        exclude: [socket.id],
+      },
+    );
 
-      return {
-        event: "move:success",
-        data: moveSuccessDto,
-      };
-    } catch (e) {
-      if (e instanceof GameException) {
-        throw new WebSocketException("move:error", e.problemDetails);
-      }
-      throw e;
-    }
+    return {
+      event: "move:success",
+      data: moveSuccessDto,
+    };
   }
 }
