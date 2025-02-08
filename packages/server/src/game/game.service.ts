@@ -6,7 +6,6 @@ import {
   GameInfoDto,
   JoinGameDto,
   MoveDto,
-  PieceColorChoice,
   MoveSuccessDto,
   PieceDto,
   StartGameDto,
@@ -17,6 +16,7 @@ import {
   InvalidGameJoinException,
   GameNotFoundException,
   InvalidGameMoveException,
+  InvalidStartException,
 } from "./game.exception";
 import { Game, Player } from "./game";
 import { BoardCoordinate } from "chess-game/dist/board";
@@ -160,11 +160,15 @@ export class GameService {
    * @returns The placement of each piece in the starting board.
    * @throws {InvalidStartException}
    */
-  start(gameId: string): StartGameDto {
+  start(gameId: string, playerId: string): StartGameDto {
     const game = this.games.get(gameId);
 
     if (!game) {
       throw new GameNotFoundException(gameId);
+    }
+
+    if (game.getHost().id !== playerId) {
+      throw new InvalidStartException("Only the host can start a game");
     }
 
     game.start();

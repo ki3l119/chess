@@ -123,8 +123,11 @@ export class GameGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage("start")
   @UseGuards(GameGuard)
-  handleStart(@CurrentGame() gameId: string) {
-    const startGameDto = this.gameService.start(gameId);
+  handleStart(
+    @CurrentGame() gameId: string,
+    @ConnectedSocket() socket: GameSocket,
+  ) {
+    const startGameDto = this.gameService.start(gameId, socket.id);
     this.roomService.emit(gameId, {
       event: "start",
       data: startGameDto,
