@@ -143,7 +143,7 @@ export class GameGateway implements OnGatewayDisconnect {
     moveDto: MoveDto,
   ): WsResponse<MoveSuccessDto> {
     try {
-      const moveSuccessDto = this.gameService.move(gameId, moveDto);
+      const moveSuccessDto = this.gameService.move(gameId, moveDto, socket.id);
 
       const opponentMoveDto: OpponentMoveDto = {
         move: moveDto,

@@ -95,4 +95,15 @@ export class Game {
 
     this.chess = new Chess(parseFEN(startingBoardFENString));
   }
+
+  getActivePlayer(): Player {
+    if (!this.player) {
+      throw new InvalidGameStateException("Missing player.");
+    }
+    const chess = this.getChessObject();
+
+    const activeColor = chess.getActiveColor();
+
+    return activeColor === this.player.color ? this.player : this.host;
+  }
 }

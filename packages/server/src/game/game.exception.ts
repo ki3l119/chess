@@ -52,10 +52,13 @@ export class InvalidGameStateException extends GameException {
 }
 
 export class InvalidGameMoveException extends GameException {
-  constructor(readonly moveDto: MoveDto) {
+  constructor(
+    readonly moveDto: MoveDto,
+    readonly playerId: string,
+  ) {
     super({
       title: "Invalid move.",
-      details: `Movement from (${moveDto.from.rank}, ${moveDto.from.file}) to (${moveDto.to.rank}, ${moveDto.to.file}) is illegal.`,
+      details: `Movement of player '${playerId}' from (${moveDto.from.rank}, ${moveDto.from.file}) to (${moveDto.to.rank}, ${moveDto.to.file}) is illegal for the current turn.`,
     });
   }
 }

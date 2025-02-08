@@ -181,12 +181,18 @@ export class GameService {
     };
   }
 
-  move(gameId: string, moveDto: MoveDto): MoveSuccessDto {
+  move(gameId: string, moveDto: MoveDto, playerId: string): MoveSuccessDto {
     try {
       const game = this.games.get(gameId);
 
       if (!game) {
         throw new GameNotFoundException(gameId);
+      }
+
+      const player = game.getActivePlayer();
+
+      if (player.id !== playerId) {
+        throw new InvalidGameMoveException(moveDto, playerId);
       }
 
       const chess = game.getChessObject();
@@ -204,7 +210,7 @@ export class GameService {
       };
     } catch (e) {
       if (e instanceof InvalidMoveException) {
-        throw new InvalidGameMoveException(moveDto);
+        throw new InvalidGameMoveException(moveDto, playerId);
       }
       throw e;
     }
