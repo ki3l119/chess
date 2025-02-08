@@ -7,16 +7,19 @@ import {
   JoinGameDto,
   MoveDto,
   PieceColorChoice,
+  MoveSuccessDto,
   PieceDto,
   StartGameDto,
 } from "chess-shared-types";
-import { Chess, Board, Move } from "chess-game";
+import { Chess, Board, Move, InvalidMoveException } from "chess-game";
 import {
   InvalidGameCreationException,
   InvalidGameJoinException,
   GameNotFoundException,
+  InvalidGameMoveException,
 } from "./game.exception";
 import { Game, Player } from "./game";
+import { BoardCoordinate } from "chess-game/dist/board";
 
 @Injectable()
 export class GameService {
@@ -172,5 +175,34 @@ export class GameService {
       pieces: GameService.boardToPieceCentricRepresentation(chess.getBoard()),
       legalMoves: GameService.mapToLegalMoveDtos(chess.getLegalMoves()),
     };
+  }
+
+  move(gameId: string, moveDto: MoveDto): MoveSuccessDto {
+    try {
+      const game = this.games.get(gameId);
+
+      if (!game) {
+        throw new GameNotFoundException(gameId);
+      }
+
+      const chess = game.getChessObject();
+
+      chess.move({
+        from: new BoardCoordinate(moveDto.from.rank, moveDto.from.file),
+        to: new BoardCoordinate(moveDto.to.rank, moveDto.to.file),
+      });
+
+      return {
+        newPosition: GameService.boardToPieceCentricRepresentation(
+          chess.getBoard(),
+        ),
+        legalMoves: GameService.mapToLegalMoveDtos(chess.getLegalMoves()),
+      };
+    } catch (e) {
+      if (e instanceof InvalidMoveException) {
+        throw new InvalidGameMoveException(moveDto);
+      }
+      throw e;
+    }
   }
 }

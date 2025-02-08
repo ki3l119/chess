@@ -1,4 +1,4 @@
-import { ProblemDetails } from "chess-shared-types";
+import { MoveDto, ProblemDetails } from "chess-shared-types";
 
 export class GameException extends Error {
   constructor(public readonly problemDetails: ProblemDetails) {
@@ -47,6 +47,15 @@ export class InvalidGameStateException extends GameException {
     super({
       title: "Invalid game state.",
       details,
+    });
+  }
+}
+
+export class InvalidGameMoveException extends GameException {
+  constructor(readonly moveDto: MoveDto) {
+    super({
+      title: "Invalid move.",
+      details: `Movement from (${moveDto.from.rank}, ${moveDto.from.file}) to (${moveDto.to.rank}, ${moveDto.to.file}) is illegal.`,
     });
   }
 }

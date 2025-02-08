@@ -13,17 +13,22 @@ import {
   CreateGameDto,
   GameInfoDto,
   JoinGameDto,
-  StartGameDto,
+  MoveDto,
+  MoveSuccessDto,
+  OpponentMoveDto,
 } from "chess-shared-types";
 import {
-  type WebSocketExtended,
   WebSocketException,
   RoomService,
   WebSocketJoiValidationPipe,
   WebSocketExceptionFilter,
 } from "../ws";
 import { GameService } from "./game.service";
-import { createGameDtoSchema, joinGameDtoSchema } from "./game.validator";
+import {
+  createGameDtoSchema,
+  joinGameDtoSchema,
+  moveDtoSchema,
+} from "./game.validator";
 import { GameException } from "./game.exception";
 import { GameSocket } from "./types";
 import { GameGuard } from "./game.guard";
@@ -124,5 +129,45 @@ export class GameGateway implements OnGatewayDisconnect {
       event: "start",
       data: startGameDto,
     });
+  }
+
+  @SubscribeMessage("move")
+  @UseGuards(GameGuard)
+  handleMove(
+    @CurrentGame() gameId: string,
+    @ConnectedSocket() socket: GameSocket,
+    @MessageBody(new WebSocketJoiValidationPipe(moveDtoSchema, "move:error"))
+    moveDto: MoveDto,
+  ): WsResponse<MoveSuccessDto> {
+    try {
+      const moveSuccessDto = this.gameService.move(gameId, moveDto);
+
+      const opponentMoveDto: OpponentMoveDto = {
+        move: moveDto,
+        newPosition: moveSuccessDto.newPosition,
+        legalMoves: moveSuccessDto.legalMoves,
+      };
+
+      this.roomService.emit(
+        gameId,
+        {
+          event: "opponent-move",
+          data: opponentMoveDto,
+        },
+        {
+          exclude: [socket.id],
+        },
+      );
+
+      return {
+        event: "move:success",
+        data: moveSuccessDto,
+      };
+    } catch (e) {
+      if (e instanceof GameException) {
+        throw new WebSocketException("move:error", e.problemDetails);
+      }
+      throw e;
+    }
   }
 }
