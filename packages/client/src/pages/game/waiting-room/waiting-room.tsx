@@ -102,10 +102,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game }) => {
         )}
       </div>
       {game.isHost ? (
-        <Button
-          disabled={opponent === undefined || isStarting}
-          onClick={startGame}
-        >
+        <Button disabled={opponent === null || isStarting} onClick={startGame}>
           Start Game
         </Button>
       ) : (
