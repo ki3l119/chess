@@ -9,8 +9,15 @@ import {
   MoveSuccessDto,
   PieceDto,
   StartGameDto,
+  GameStatus as GameStatusString,
 } from "chess-shared-types";
-import { Chess, Board, Move, InvalidMoveException } from "chess-game";
+import {
+  Chess,
+  Board,
+  Move,
+  InvalidMoveException,
+  GameStatus,
+} from "chess-game";
 import {
   InvalidGameCreationException,
   InvalidGameJoinException,
@@ -28,6 +35,16 @@ export class GameService {
 
   private readonly games: Map<string, Game>;
   private readonly logger: Logger;
+
+  private static readonly gameStatusMapping: {
+    [key in GameStatus]: GameStatusString;
+  } = {
+    [GameStatus.ONGOING]: "ONGOING",
+    [GameStatus.BLACK_WIN]: "BLACK_WIN",
+    [GameStatus.WHITE_WIN]: "WHITE_WIN",
+    [GameStatus.STALEMATE]: "STALEMATE",
+    [GameStatus.FIFTY_MOVE_DRAW]: "FIFTY_MOVE_DRAW",
+  };
 
   constructor() {
     this.games = new Map();
@@ -202,11 +219,14 @@ export class GameService {
         to: new BoardCoordinate(moveDto.to.rank, moveDto.to.file),
       });
 
+      const gameStatus = chess.getStatus();
+
       return {
         newPosition: GameService.boardToPieceCentricRepresentation(
           chess.getBoard(),
         ),
         legalMoves: GameService.mapToLegalMoveDtos(chess.getLegalMoves()),
+        gameStatus: GameService.gameStatusMapping[gameStatus],
       };
     } catch (e) {
       if (e instanceof InvalidMoveException) {
