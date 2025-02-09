@@ -1,4 +1,4 @@
-import type { Request } from "express";
+import type { Request, Response } from "express";
 import {
   Injectable,
   CanActivate,
@@ -20,7 +20,9 @@ export class AuthGuard implements CanActivate {
   constructor(private readonly userService: UserService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const httpContext = context.switchToHttp();
+    const request = httpContext.getRequest<RequestWithUser>();
+    const response = httpContext.getResponse<Response>();
     const sessionId = request.cookies[COOKIE_SESSION_KEY];
     const user = await this.userService.validateSession(sessionId);
     if (user) {
@@ -28,6 +30,7 @@ export class AuthGuard implements CanActivate {
       request.sessionId = sessionId;
       return true;
     }
+    response.clearCookie(COOKIE_SESSION_KEY);
     return false;
   }
 }
