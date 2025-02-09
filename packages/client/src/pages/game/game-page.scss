@@ -33,6 +33,11 @@
       font-size: map.get(var.$font-sizes, "lg");
     }
   }
+
+  &__spinner, &__error {
+    position: absolute;
+    z-index: 2;
+  }
 }
 
 

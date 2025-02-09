@@ -75,9 +75,13 @@ export const GamePage: React.FC = () => {
   return (
     <div className="game-page">
       {isConnecting ? (
-        <Spinner />
+        <div className="game-page__spinner">
+          <Spinner />
+        </div>
       ) : errorMessage ? (
-        <Alert type="error" message={errorMessage} />
+        <div className="game-page__error">
+          <Alert type="error" message={errorMessage} />
+        </div>
       ) : (
         gameManager &&
         (!game ? (
