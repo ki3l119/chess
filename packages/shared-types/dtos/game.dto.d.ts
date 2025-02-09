@@ -1,5 +1,10 @@
 export type PieceColorChoice = "WHITE" | "BLACK" | "RANDOM";
-
+export type GameStatus =
+  | "ONGOING"
+  | "BLACK_WIN"
+  | "WHITE_WIN"
+  | "STALEMATE"
+  | "FIFTY_MOVE_DRAW";
 export type CreateGameDto = {
   color: PieceColorChoice;
 };
@@ -58,6 +63,7 @@ export type StartGameDto = {
 export type MoveSuccessDto = {
   newPosition: PieceDto[];
   legalMoves: MoveDto[];
+  gameStatus: GameStatus;
 };
 
 export type OpponentMoveDto = Pick<
@@ -65,4 +71,5 @@ export type OpponentMoveDto = Pick<
   "newPosition" | "legalMoves"
 > & {
   move: MoveDto;
+  gameStatus: GameStatus;
 };
