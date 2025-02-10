@@ -1,46 +1,46 @@
 import { describe, it, expect } from "@jest/globals";
 
 import { parseFEN, startingBoardFENString } from "./utils/fen-parser";
-import { Chess, GameStatus } from "./chess";
+import { Chess, GameEndReason, GameResult } from "./chess";
 import { BoardCoordinate, Move } from "./board";
 import { InvalidMoveException } from "./exceptions";
+import { PieceColor } from "./pieces";
 
 function testChessMove(
   initialGameStateFEN: string,
   move: Move,
   expectedGameStateFEN: string,
-  expectedStatus: GameStatus,
 ) {
   const initialGameState = parseFEN(initialGameStateFEN);
   const chess = new Chess(initialGameState);
   const expectedState = parseFEN(expectedGameStateFEN);
   chess.move(move);
   expect(chess.getGameState()).toStrictEqual(expectedState);
-  expect(chess.getStatus()).toBe(expectedStatus);
+  expect(chess.isOngoing()).toBe(true);
 }
 
-function testOngoingChessMove(
+function testGameResult(
   initialGameStateFEN: string,
   move: Move,
   expectedGameStateFEN: string,
+  result: GameResult,
 ) {
-  testChessMove(
-    initialGameStateFEN,
-    move,
-    expectedGameStateFEN,
-    GameStatus.ONGOING,
-  );
+  const initialGameState = parseFEN(initialGameStateFEN);
+  const chess = new Chess(initialGameState);
+  const expectedState = parseFEN(expectedGameStateFEN);
+  chess.move(move);
+  expect(chess.getGameState()).toStrictEqual(expectedState);
+  expect(chess.getResult()).toStrictEqual(result);
 }
 
 function testInvalidChessMove(initialGameStateFEN: string, move: Move) {
   const initialGameState = parseFEN(initialGameStateFEN);
   const chess = new Chess(initialGameState);
-  const initialStatus = chess.getStatus();
   expect(() => {
     chess.move(move);
   }).toThrow(InvalidMoveException);
   expect(chess.getGameState()).toStrictEqual(initialGameState);
-  expect(chess.getStatus()).toBe(initialStatus);
+  expect(chess.isOngoing()).toBe(true);
 }
 
 describe("Chess", () => {
@@ -53,7 +53,6 @@ describe("Chess", () => {
           to: new BoardCoordinate(3, 2),
         },
         "rnb1kbnr/pppp1ppp/5q2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
-        GameStatus.ONGOING,
       );
     });
 
@@ -65,7 +64,6 @@ describe("Chess", () => {
           to: new BoardCoordinate(2, 4),
         },
         "Nnbk3r/pp3p1p/3p1nq1/4p3/2B1P3/3PbQ2/PPP2PPP/R4RK1 w - - 0 12",
-        GameStatus.ONGOING,
       );
     });
 
@@ -90,7 +88,7 @@ describe("Chess", () => {
     });
 
     it("Allows king to move out of check", () => {
-      testOngoingChessMove(
+      testChessMove(
         "4r1k1/1pp3p1/p5rp/4p3/1P1q4/P2P1P1P/3Q2P1/R3R1K1 w - - 0 23",
         {
           from: new BoardCoordinate(0, 6),
@@ -101,7 +99,7 @@ describe("Chess", () => {
     });
 
     it("Allows other piece to intercept check", () => {
-      testOngoingChessMove(
+      testChessMove(
         "5rkr/7p/2p1Q2p/8/8/2NP4/PPP2PPK/R4R2 b - - 0 18",
         {
           from: new BoardCoordinate(7, 5),
@@ -112,7 +110,7 @@ describe("Chess", () => {
     });
 
     it("Allows capture of opponent piece attacking king", () => {
-      testOngoingChessMove(
+      testChessMove(
         "rn2k2r/pp1b1ppp/2p1pN2/3q4/3Pn3/2B5/PPP2PPP/R2QKB1R b KQkq - 6 10",
         {
           from: new BoardCoordinate(6, 6),
@@ -162,7 +160,7 @@ describe("Chess", () => {
         },
         "2kr1b1r/pp1npppp/2p4q/6N1/6Q1/P1N5/1PPP1PPP/R1B2RK1 w - - 1 11",
       ],
-    ])("Allows castling moves if valid (%#)", testOngoingChessMove);
+    ])("Allows castling moves if valid (%#)", testChessMove);
 
     it.each([
       [
@@ -267,7 +265,7 @@ describe("Chess", () => {
       ],
     ])(
       "Removes correponding castling right on rook movement (%#)",
-      testOngoingChessMove,
+      testChessMove,
     );
 
     it.each([
@@ -289,7 +287,7 @@ describe("Chess", () => {
       ],
     ])(
       "Removes corresponding castling rights once king is moved (%#)",
-      testOngoingChessMove,
+      testChessMove,
     );
 
     it.each([
@@ -309,10 +307,7 @@ describe("Chess", () => {
         },
         "rnbqkbnr/pp2pppp/2p5/4P3/8/2p2N2/PP1P1PPP/RNBQKB1R w KQkq - 0 5",
       ],
-    ])(
-      "En passant target is removed from the board when taken",
-      testOngoingChessMove,
-    );
+    ])("En passant target is removed from the board when taken", testChessMove);
 
     it.each([
       [
@@ -333,7 +328,7 @@ describe("Chess", () => {
       ],
     ])(
       "En passant target updated when pawn takes 2 steps forward",
-      testOngoingChessMove,
+      testChessMove,
     );
 
     it.each([
@@ -344,7 +339,10 @@ describe("Chess", () => {
           to: new BoardCoordinate(7, 5),
         },
         "1n3Q1k/pp4p1/3P4/1N4N1/1PB4K/P7/8/R7 b - - 0 34",
-        GameStatus.WHITE_WIN,
+        {
+          winner: PieceColor.WHITE,
+          reason: GameEndReason.CHECKMATE,
+        },
       ],
       [
         "4k1r1/R4p1p/5p2/1P1q4/1b1N2P1/4P2P/2r2P2/5K2 b - - 1 25",
@@ -353,31 +351,40 @@ describe("Chess", () => {
           to: new BoardCoordinate(0, 7),
         },
         "4k1r1/R4p1p/5p2/1P6/1b1N2P1/4P2P/2r2P2/5K1q w - - 2 26",
-        GameStatus.BLACK_WIN,
+        {
+          winner: PieceColor.BLACK,
+          reason: GameEndReason.CHECKMATE,
+        },
       ],
-    ])("Sets game status to winning color on checkmate", testChessMove);
+    ])("Sets game status to winning color on checkmate", testGameResult);
 
     it("Sets game status to stalemate if reached", () => {
-      testChessMove(
+      testGameResult(
         "7k/8/4Q3/R7/4N2p/3P1P1P/1PP4K/8 w - - 7 42",
         {
           from: new BoardCoordinate(4, 0),
           to: new BoardCoordinate(6, 0),
         },
         "7k/R7/4Q3/8/4N2p/3P1P1P/1PP4K/8 b - - 8 42",
-        GameStatus.STALEMATE,
+        {
+          winner: null,
+          reason: GameEndReason.STALEMATE,
+        },
       );
     });
 
     it("Sets game status to draw if 50-move rule is reached", () => {
-      testChessMove(
+      testGameResult(
         "6R1/7k/8/8/1r3B2/5K2/8/8 w - - 99 119",
         {
           from: new BoardCoordinate(7, 6),
           to: new BoardCoordinate(4, 6),
         },
         "8/7k/8/6R1/1r3B2/5K2/8/8 b - - 100 119",
-        GameStatus.FIFTY_MOVE_DRAW,
+        {
+          winner: null,
+          reason: GameEndReason.FIFTY_MOVE_RULE,
+        },
       );
     });
 

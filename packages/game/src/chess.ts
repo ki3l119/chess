@@ -9,7 +9,6 @@ import { InvalidMoveException } from "./exceptions";
 import {
   PieceColor,
   Pawn,
-  PIECES,
   Knight,
   Queen,
   Rook,
@@ -19,21 +18,28 @@ import {
 } from "./pieces";
 import { GameState } from "./types";
 
-export enum GameStatus {
-  ONGOING,
-  BLACK_WIN,
-  WHITE_WIN,
-  STALEMATE,
-  FIFTY_MOVE_DRAW,
+export enum GameEndReason {
+  CHECKMATE = "CHECKMATE",
+  STALEMATE = "STALEMATE",
+  FIFTY_MOVE_RULE = "FIFTY_MOVE_RULE",
 }
 
+export type GameResult = {
+  /**
+   * The piece color of the winner. If draw, winner is set to null.
+   */
+  winner: PieceColor | null;
+  reason: GameEndReason;
+};
+
 export class Chess {
-  private status: GameStatus;
   private currentLegalMoves: Move[] | null;
+
+  private result: GameResult | null;
 
   constructor(private readonly gameState: GameState) {
     this.currentLegalMoves = null;
-    this.status = GameStatus.ONGOING;
+    this.result = null;
   }
 
   /**
@@ -486,20 +492,26 @@ export class Chess {
           Chess.getOpposingColor(this.gameState.activeColor),
         )
       ) {
-        this.status =
-          this.gameState.activeColor === PieceColor.WHITE
-            ? GameStatus.BLACK_WIN
-            : GameStatus.WHITE_WIN;
+        this.result = {
+          winner: Chess.getOpposingColor(this.gameState.activeColor),
+          reason: GameEndReason.CHECKMATE,
+        };
       } else {
-        this.status = GameStatus.STALEMATE;
+        this.result = {
+          winner: null,
+          reason: GameEndReason.STALEMATE,
+        };
       }
     } else if (this.gameState.halfmoveClock >= 100) {
-      this.status = GameStatus.FIFTY_MOVE_DRAW;
+      this.result = {
+        winner: null,
+        reason: GameEndReason.FIFTY_MOVE_RULE,
+      };
     }
   }
 
-  getStatus(): GameStatus {
-    return this.status;
+  isOngoing(): boolean {
+    return this.result === null;
   }
 
   getGameState(): GameState {
@@ -531,5 +543,13 @@ export class Chess {
 
   getFullmoveCount(): number {
     return this.gameState.fullmoveCount;
+  }
+
+  /**
+   * @returns The result of the game for finished games. For ongoing games,
+   *          returns null.
+   */
+  getResult(): GameResult | null {
+    return this.result;
   }
 }
