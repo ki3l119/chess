@@ -4,13 +4,14 @@ import { Injectable, Logger } from "@nestjs/common";
 import {
   CreateGameDto,
   GameInfoDto,
+  GameResultDto,
   JoinGameDto,
   MoveDto,
   MoveSuccessDto,
   PieceDto,
   StartGameDto,
 } from "chess-shared-types";
-import { Board, Move, InvalidMoveException } from "chess-game";
+import { Board, Move, InvalidMoveException, GameResult } from "chess-game";
 import {
   InvalidGameCreationException,
   InvalidGameJoinException,
@@ -18,7 +19,7 @@ import {
   InvalidGameMoveException,
   InvalidStartException,
 } from "./game.exception";
-import { Game, NewPlayer } from "./game";
+import { Game, NewPlayer, Player } from "./game";
 import { BoardCoordinate } from "chess-game/dist/board";
 
 @Injectable()
@@ -46,6 +47,14 @@ export class GameService {
     );
   }
 
+  private playerLeave(player: Player) {
+    this.playerGameMapping.delete(player.id);
+    if (player.userId) {
+      this.userGameMapping.delete(player.userId);
+    }
+    this.logger.log(`Player ${player.id} has left their game.`);
+  }
+
   /**
    * Creates a new game with the player as the host.
    *
@@ -69,7 +78,7 @@ export class GameService {
     return {
       id: game.id,
       host: game.getHost(),
-      player: game.getPlayer(),
+      player: game.getPlayer() || undefined,
       isColorRandom: game.isRandomColorChoice,
     };
   }
@@ -91,7 +100,7 @@ export class GameService {
       throw new GameNotFoundException(joinGameDto.gameId);
     }
 
-    const isGameFull = game.getPlayer() !== undefined;
+    const isGameFull = game.getPlayer() !== null;
 
     if (isGameFull) {
       throw new InvalidGameJoinException("The game is already full.");
@@ -113,6 +122,47 @@ export class GameService {
     };
   }
 
+  leave(
+    gameId: string,
+    playerId: string,
+  ): { isHost: boolean; gameResult?: GameResultDto } {
+    const game = this.games.get(gameId);
+
+    if (!game) {
+      throw new GameNotFoundException(gameId);
+    }
+
+    const host = game.getHost();
+    const player = game.getPlayer();
+
+    if (host.id !== playerId && player?.id !== playerId) {
+      throw new GameNotFoundException(gameId);
+    }
+
+    const isHost = host.id === playerId;
+    const hasGameStarted = game.hasStarted();
+    let gameResult: GameResultDto | undefined;
+
+    if (hasGameStarted || isHost) {
+      this.delete(game.id);
+      const opponent = isHost ? player : host;
+      if (hasGameStarted && opponent) {
+        gameResult = {
+          winner: opponent.color,
+          reason: "ABANDONED",
+        };
+      }
+    } else if (player) {
+      this.playerLeave(player);
+      game.setPlayer(null);
+    }
+
+    return {
+      isHost,
+      gameResult: gameResult,
+    };
+  }
+
   delete(gameId: string): boolean {
     const game = this.games.get(gameId);
     if (!game) {
@@ -121,10 +171,7 @@ export class GameService {
     const players = [game.getHost(), game.getPlayer()];
     for (const player of players) {
       if (player) {
-        this.playerGameMapping.delete(player.id);
-        if (player.userId) {
-          this.userGameMapping.delete(player.userId);
-        }
+        this.playerLeave(player);
       }
     }
     this.logger.log(`Deleted game ${gameId}.`);

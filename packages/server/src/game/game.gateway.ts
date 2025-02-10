@@ -11,6 +11,7 @@ import {
 
 import {
   CreateGameDto,
+  EndGameDto,
   GameInfoDto,
   JoinGameDto,
   MoveDto,
@@ -47,10 +48,48 @@ export class GameGateway implements OnGatewayDisconnect {
     private readonly roomService: RoomService,
   ) {}
 
+  private playerLeave(gameId: string, socket: GameSocket) {
+    const { isHost, gameResult } = this.gameService.leave(gameId, socket.id);
+    if (gameResult) {
+      const endGameDto: EndGameDto = {
+        gameResult,
+      };
+      this.roomService.emit(
+        gameId,
+        {
+          event: "end",
+          data: endGameDto,
+        },
+        {
+          exclude: [socket.id],
+        },
+      );
+    } else if (isHost) {
+      this.roomService.emit(
+        gameId,
+        {
+          event: "waiting-room-end",
+        },
+        {
+          exclude: [socket.id],
+        },
+      );
+    } else {
+      this.roomService.emit(
+        gameId,
+        {
+          event: "waiting-room-leave",
+        },
+        {
+          exclude: [socket.id],
+        },
+      );
+    }
+  }
+
   handleDisconnect(socket: GameSocket) {
     if (socket.gameId) {
-      this.gameService.delete(socket.gameId);
-      this.roomService.leave(socket.gameId, socket);
+      this.playerLeave(socket.gameId, socket);
     }
   }
 
@@ -113,6 +152,15 @@ export class GameGateway implements OnGatewayDisconnect {
       event: "join:success",
       data: gameInfo,
     };
+  }
+
+  @SubscribeMessage("leave")
+  @UseGuards(GameGuard)
+  handleLeave(
+    @CurrentGame() gameId: string,
+    @ConnectedSocket() socket: GameSocket,
+  ) {
+    this.playerLeave(gameId, socket);
   }
 
   @SubscribeMessage("start")

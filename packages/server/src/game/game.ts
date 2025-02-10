@@ -26,7 +26,7 @@ export class Game {
   // Inidates if the color has been randomly assigned to the players.
   readonly isRandomColorChoice: boolean;
   private readonly host: Player;
-  private player?: Player;
+  private player: Player | null;
 
   private chess?: Chess;
 
@@ -43,6 +43,7 @@ export class Game {
         Math.floor(Math.random() * 2)
       ];
     }
+    this.player = null;
 
     this.host = {
       id: host.id,
@@ -56,12 +57,14 @@ export class Game {
     return this.host;
   }
 
-  getPlayer(): Player | undefined {
+  getPlayer(): Player | null {
     return this.player;
   }
 
-  setPlayer(player: NewPlayer): Player {
-    this.player = {
+  setPlayer(player: NewPlayer): Player;
+  setPlayer(player: null): null;
+  setPlayer(player: NewPlayer | null): Player | null {
+    this.player = player && {
       ...player,
       color: Chess.getOpposingColor(this.host.color),
     };
@@ -105,5 +108,9 @@ export class Game {
     const activeColor = chess.getActiveColor();
 
     return activeColor === this.player.color ? this.player : this.host;
+  }
+
+  hasStarted(): boolean {
+    return this.chess !== undefined;
   }
 }

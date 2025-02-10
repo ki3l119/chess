@@ -14,5 +14,5 @@ export type WebSocketExtended = WebSocket & {
 
 export type WebSocketMessage = {
   event: string;
-  data: any;
+  data?: any;
 };
