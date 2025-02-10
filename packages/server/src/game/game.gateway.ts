@@ -66,7 +66,8 @@ export class GameGateway implements OnGatewayDisconnect {
     const gameInfo = this.gameService.create(
       {
         id: socket.id,
-        name: socket.user?.username,
+        name: socket.user?.username || "Guest",
+        userId: socket.user?.id,
       },
       createGameDto,
     );
@@ -88,7 +89,11 @@ export class GameGateway implements OnGatewayDisconnect {
     joinGameDto: JoinGameDto,
   ): WsResponse<GameInfoDto> {
     const gameInfo = this.gameService.join(
-      { id: socket.id, name: socket.user?.username },
+      {
+        id: socket.id,
+        name: socket.user?.username || "Guest",
+        userId: socket.user?.id,
+      },
       joinGameDto,
     );
     this.roomService.join(gameInfo.id, socket);

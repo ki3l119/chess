@@ -17,7 +17,10 @@ export type Player = Readonly<{
   id: string;
   name: string;
   color: PieceColor;
+  userId?: string;
 }>;
+
+export type NewPlayer = Pick<Player, "id" | "name" | "userId">;
 
 export class Game {
   // Inidates if the color has been randomly assigned to the players.
@@ -29,16 +32,13 @@ export class Game {
 
   constructor(
     public readonly id: string,
-    host: {
-      id: string;
-      color: PieceColorChoice;
-      name: string;
-    },
+    host: NewPlayer,
+    colorChoice: PieceColorChoice,
   ) {
-    this.isRandomColorChoice = host.color === "RANDOM";
+    this.isRandomColorChoice = colorChoice === "RANDOM";
 
-    let color = host.color === "WHITE" ? PieceColor.WHITE : PieceColor.BLACK;
-    if (host.color === "RANDOM") {
+    let color = colorChoice === "WHITE" ? PieceColor.WHITE : PieceColor.BLACK;
+    if (colorChoice === "RANDOM") {
       color = [PieceColor.WHITE, PieceColor.BLACK][
         Math.floor(Math.random() * 2)
       ];
@@ -48,6 +48,7 @@ export class Game {
       id: host.id,
       name: host.name,
       color,
+      userId: host.userId,
     };
   }
 
@@ -59,10 +60,9 @@ export class Game {
     return this.player;
   }
 
-  setPlayer(player: { id: string; name: string }): Player {
+  setPlayer(player: NewPlayer): Player {
     this.player = {
-      id: player.id,
-      name: player.name,
+      ...player,
       color: Chess.getOpposingColor(this.host.color),
     };
 

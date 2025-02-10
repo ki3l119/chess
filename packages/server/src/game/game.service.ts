@@ -18,7 +18,7 @@ import {
   InvalidGameMoveException,
   InvalidStartException,
 } from "./game.exception";
-import { Game } from "./game";
+import { Game, NewPlayer } from "./game";
 import { BoardCoordinate } from "chess-game/dist/board";
 
 @Injectable()
@@ -26,37 +26,45 @@ export class GameService {
   // Maps each player id to their game id
   private readonly playerGameMapping: Map<string, string>;
 
+  // For registered players. Maps each user id to their game id
+  private readonly userGameMapping: Map<string, string>;
+
   private readonly games: Map<string, Game>;
   private readonly logger: Logger;
 
   constructor() {
     this.games = new Map();
     this.playerGameMapping = new Map();
-    this.logger = new Logger();
+    this.logger = new Logger(GameService.name);
+    this.userGameMapping = new Map();
+  }
+
+  private isPlayerPlaying(player: NewPlayer) {
+    return (
+      this.playerGameMapping.get(player.id) ||
+      (player.userId && this.userGameMapping.get(player.userId))
+    );
   }
 
   /**
    * Creates a new game with the player as the host.
    *
+   * @param userId - The user id for players that are registered users.
    * @throws {InvalidGameCreationException}
    */
-  create(
-    newPlayer: { id: string; name?: string },
-    createGameDto: CreateGameDto,
-  ): GameInfoDto {
-    if (this.playerGameMapping.get(newPlayer.id)) {
+  create(newPlayer: NewPlayer, createGameDto: CreateGameDto): GameInfoDto {
+    if (this.isPlayerPlaying(newPlayer)) {
       throw new InvalidGameCreationException(
         "You are already part of an existing game.",
       );
     }
 
-    const game = new Game(randomUUID(), {
-      id: newPlayer.id,
-      name: newPlayer.name || "Guest",
-      color: createGameDto.color,
-    });
+    const game = new Game(randomUUID(), newPlayer, createGameDto.color);
     this.games.set(game.id, game);
     this.playerGameMapping.set(newPlayer.id, game.id);
+    if (newPlayer.userId) {
+      this.userGameMapping.set(newPlayer.userId, game.id);
+    }
     this.logger.log(`Created game ${game.id}`);
     return {
       id: game.id,
@@ -71,11 +79,8 @@ export class GameService {
    *
    * @throws {InvalidGameJoinException | GameNotFoundException}
    */
-  join(
-    newPlayer: { id: string; name?: string },
-    joinGameDto: JoinGameDto,
-  ): Required<GameInfoDto> {
-    if (this.playerGameMapping.get(newPlayer.id)) {
+  join(newPlayer: NewPlayer, joinGameDto: JoinGameDto): Required<GameInfoDto> {
+    if (this.isPlayerPlaying(newPlayer)) {
       throw new InvalidGameJoinException(
         "You are already part of an existing game.",
       );
@@ -92,12 +97,12 @@ export class GameService {
       throw new InvalidGameJoinException("The game is already full.");
     }
 
-    const player = game.setPlayer({
-      id: newPlayer.id,
-      name: newPlayer.name || "Guest",
-    });
+    const player = game.setPlayer(newPlayer);
 
     this.playerGameMapping.set(player.id, game.id);
+    if (newPlayer.userId) {
+      this.userGameMapping.set(newPlayer.userId, game.id);
+    }
     this.logger.log(`Player ${player.id} joined game ${game.id}`);
 
     return {
@@ -113,11 +118,16 @@ export class GameService {
     if (!game) {
       return false;
     }
-    this.playerGameMapping.delete(game.getHost().id);
-    const player = game.getPlayer();
-    if (player) {
-      this.playerGameMapping.delete(player.id);
+    const players = [game.getHost(), game.getPlayer()];
+    for (const player of players) {
+      if (player) {
+        this.playerGameMapping.delete(player.id);
+        if (player.userId) {
+          this.userGameMapping.delete(player.userId);
+        }
+      }
     }
+    this.logger.log(`Deleted game ${gameId}.`);
     return this.games.delete(gameId);
   }
 
