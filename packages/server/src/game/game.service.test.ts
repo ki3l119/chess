@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
 
 import { GameService } from "./game.service";
-import { GameInfoDto, MoveSuccessDto } from "chess-shared-types";
+import { GameInfoDto } from "chess-shared-types";
 import { randomUUID } from "crypto";
 import { PieceColor } from "./game";
 import {
@@ -11,13 +11,14 @@ import {
   InvalidGameMoveException,
   InvalidStartException,
 } from "./game.exception";
-import { GameEndReason } from "chess-game";
+import { ConsoleLogger } from "@nestjs/common";
 
 describe("GameService", () => {
   let gameService: GameService;
 
   beforeEach(() => {
-    gameService = new GameService();
+    const logger = new ConsoleLogger();
+    gameService = new GameService(logger);
   });
 
   describe("create", () => {

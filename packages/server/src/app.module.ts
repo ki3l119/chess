@@ -9,6 +9,7 @@ import { UserModule } from "./user";
 import { LoggerMiddleware } from "./logger.middleware";
 import { GameModule } from "./game";
 import { WebSocketModule } from "./ws";
+import { LoggerModule } from "./logger";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WebSocketModule } from "./ws";
     UserModule,
     WebSocketModule,
     GameModule,
+    LoggerModule,
   ],
   providers: [
     {

@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { Injectable, Logger } from "@nestjs/common";
+import { ConsoleLogger, Injectable, Logger } from "@nestjs/common";
 
 import {
   CreateGameDto,
@@ -31,13 +31,12 @@ export class GameService {
   private readonly userGameMapping: Map<string, string>;
 
   private readonly games: Map<string, Game>;
-  private readonly logger: Logger;
 
-  constructor() {
+  constructor(private readonly logger: ConsoleLogger) {
     this.games = new Map();
     this.playerGameMapping = new Map();
-    this.logger = new Logger(GameService.name);
     this.userGameMapping = new Map();
+    this.logger.setContext(GameService.name);
   }
 
   private isPlayerPlaying(player: NewPlayer) {
