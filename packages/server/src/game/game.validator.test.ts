@@ -1,6 +1,11 @@
 import { describe, it, expect } from "@jest/globals";
 
-import { createGameDtoSchema } from "./game.validator";
+import {
+  createGameDtoSchema,
+  joinGameDtoSchema,
+  moveDtoSchema,
+} from "./game.validator";
+import { randomUUID } from "crypto";
 
 describe("Game DTO validation schemas", () => {
   describe("createGameDtoSchema", () => {
@@ -38,6 +43,81 @@ describe("Game DTO validation schemas", () => {
     it("Error on undefined", () => {
       const actual = createGameDtoSchema.validate(undefined);
       expect(actual.error);
+    });
+  });
+
+  describe("joinGameDtoSchema", () => {
+    it("No errors on valid DTO", () => {
+      const input = {
+        gameId: randomUUID(),
+      };
+
+      const actual = joinGameDtoSchema.validate(input);
+
+      expect(actual.value).toEqual(input);
+    });
+
+    it("Trims game id", () => {
+      const gameId = randomUUID();
+
+      const actual = joinGameDtoSchema.validate({
+        gameId: "  " + gameId + "     ",
+      });
+
+      expect(actual.value).toEqual({
+        gameId,
+      });
+    });
+
+    it("Error on non-uuid game id", () => {
+      const input = {
+        gameId: "fdafadfadfadf",
+      };
+
+      const actual = joinGameDtoSchema.validate(input);
+
+      expect(actual.error?.details.length).toBe(1);
+      expect(actual.error?.details[0].path).toEqual(["gameId"]);
+    });
+  });
+
+  describe("moveDtoSchema", () => {
+    it("No errors on valid DTO", () => {
+      const input = {
+        from: {
+          rank: 0,
+          file: 2,
+        },
+        to: {
+          rank: 7,
+          file: 7,
+        },
+      };
+
+      const actual = moveDtoSchema.validate(input);
+
+      expect(actual.value).toEqual(input);
+    });
+
+    it("Error on when provided with coordinates outside board range", () => {
+      const input = {
+        from: {
+          rank: -1,
+          file: 2,
+        },
+        to: {
+          rank: 7,
+          file: 8,
+        },
+      };
+
+      const actual = moveDtoSchema.validate(input, { abortEarly: false });
+
+      expect(actual.error?.details.length).toBe(2);
+      expect(actual.error?.details.map((value) => value.path).sort()).toEqual([
+        ["from", "rank"],
+        ["to", "file"],
+      ]);
     });
   });
 });
