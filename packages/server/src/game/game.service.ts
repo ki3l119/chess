@@ -58,7 +58,6 @@ export class GameService {
   /**
    * Creates a new game with the player as the host.
    *
-   * @param userId - The user id for players that are registered users.
    * @throws {InvalidGameCreationException}
    */
   create(newPlayer: NewPlayer, createGameDto: CreateGameDto): GameInfoDto {
@@ -274,5 +273,9 @@ export class GameService {
       }
       throw e;
     }
+  }
+
+  findGameById(id: string) {
+    return this.games.get(id) || null;
   }
 }
