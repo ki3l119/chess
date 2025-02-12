@@ -18,6 +18,7 @@ describe("GameService", () => {
 
   beforeEach(() => {
     const logger = new ConsoleLogger();
+    logger.setLogLevels([]);
     gameService = new GameService(logger);
   });
 
