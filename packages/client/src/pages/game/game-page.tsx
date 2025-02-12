@@ -61,6 +61,14 @@ export const GamePage: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (game) {
+        game.close();
+      }
+    };
+  }, [game]);
+
   const onNewGame = (game: Game) => {
     game.addEventListener("start", () => {
       setHasGameStarted(true);

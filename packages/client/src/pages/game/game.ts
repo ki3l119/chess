@@ -56,6 +56,11 @@ export class Game extends TypedEventTarget<GameEventMap> {
 
   private legalMoves: MoveDto[];
 
+  // Socket message event listeners
+  private joinListener: (data: PlayerDto) => void;
+  private startListener: (data: StartGameDto) => void;
+  private opponentMoveListener: (data: OpponentMoveDto) => void;
+
   constructor(
     private readonly socket: EventMessageWebSocket,
     id: string,
@@ -70,20 +75,24 @@ export class Game extends TypedEventTarget<GameEventMap> {
     if (player) {
       this.player = player;
     }
-    this.socket.addMessageListener("join", (data: PlayerDto) => {
+    this.joinListener = (data) => {
       const player = Game.dtoToPlayer(data);
       this.player = player;
       this.dispatchTypedEvent("join", new JoinEvent(player));
-    });
-    this.socket.addMessageListener("start", (data: StartGameDto) => {
+    };
+    this.socket.addMessageListener("join", this.joinListener);
+
+    this.startListener = (data) => {
       this.pieces = Game.dtoToBoardPieces(data.pieces);
       this.legalMoves = data.legalMoves;
       this.dispatchTypedEvent(
         "start",
         new StartEvent(this.getPieces(), this.getLegalMoves()),
       );
-    });
-    this.socket.addMessageListener("opponent-move", (data: OpponentMoveDto) => {
+    };
+    this.socket.addMessageListener("start", this.startListener);
+
+    this.opponentMoveListener = (data) => {
       this.pieces = Game.dtoToBoardPieces(data.newPosition);
       this.legalMoves = data.legalMoves;
       this.dispatchTypedEvent(
@@ -94,7 +103,8 @@ export class Game extends TypedEventTarget<GameEventMap> {
           this.getLegalMoves(),
         ),
       );
-    });
+    };
+    this.socket.addMessageListener("opponent-move", this.opponentMoveListener);
   }
 
   private static dtoToBoardPieces(pieceDtos: PieceDto[]): BoardPiece[] {
@@ -199,5 +209,17 @@ export class Game extends TypedEventTarget<GameEventMap> {
       newPosition: this.pieces,
       legalMoves: this.legalMoves,
     };
+  }
+
+  /**
+   * Cleans up resources used by game.
+   */
+  close() {
+    this.socket.removeMessageListener("join", this.joinListener);
+    this.socket.removeMessageListener("start", this.startListener);
+    this.socket.removeMessageListener(
+      "opponent-move",
+      this.opponentMoveListener,
+    );
   }
 }
