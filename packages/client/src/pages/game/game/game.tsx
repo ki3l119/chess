@@ -38,10 +38,10 @@ export const Game: React.FC<GameProps> = ({ game }) => {
     const opponentMoveEventListener = (event: OpponentMoveEvent) => {
       switchActivePlayer(event.newPosition, event.legalMoves);
     };
-    game.addEventListener("opponentmove", opponentMoveEventListener);
+    game.addEventListener("opponent-move", opponentMoveEventListener);
 
     return () => {
-      game.removeEventListener("opponentmove", opponentMoveEventListener);
+      game.removeEventListener("opponent-move", opponentMoveEventListener);
     };
   }, [game, activePlayer]);
 

@@ -62,16 +62,16 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game, onEnd }) => {
     const player = game.getPlayer();
     if (game.isHost && !player) {
       game.addEventListener("join", joinEventCallback);
-      game.addEventListener("waitingroomleave", leaveEventCallback);
+      game.addEventListener("waiting-room-leave", leaveEventCallback);
     } else if (player) {
-      game.addEventListener("waitingroomend", endEventCallback);
+      game.addEventListener("waiting-room-end", endEventCallback);
       setOpponent(player);
     }
 
     return () => {
-      game.removeEventListener("waitingroomleave", leaveEventCallback);
+      game.removeEventListener("waiting-room-leave", leaveEventCallback);
       game.removeEventListener("join", joinEventCallback);
-      game.removeEventListener("waitingroomend", endEventCallback);
+      game.removeEventListener("waiting-room-end", endEventCallback);
     };
   }, [game]);
 

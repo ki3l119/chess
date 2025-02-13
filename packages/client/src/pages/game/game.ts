@@ -32,28 +32,28 @@ export class OpponentMoveEvent extends Event {
     readonly newPosition: BoardPiece[],
     readonly legalMoves: MoveDto[],
   ) {
-    super("opponentmove");
+    super("opponent-move");
   }
 }
 
 export class WaitingRoomLeaveEvent extends Event {
   constructor() {
-    super("waitingroomleave");
+    super("waiting-room-leave");
   }
 }
 
 export class WaitingRoomEndEvent extends Event {
   constructor() {
-    super("waitingroomend");
+    super("waiting-room-end");
   }
 }
 
 interface GameEventMap {
   join: JoinEvent;
   start: StartEvent;
-  opponentmove: OpponentMoveEvent;
-  waitingroomleave: WaitingRoomLeaveEvent;
-  waitingroomend: WaitingRoomEndEvent;
+  "opponent-move": OpponentMoveEvent;
+  "waiting-room-leave": WaitingRoomLeaveEvent;
+  "waiting-room-end": WaitingRoomEndEvent;
 }
 
 export type Player = {
@@ -112,7 +112,7 @@ export class Game extends TypedEventTarget<GameEventMap> {
       this.pieces = Game.dtoToBoardPieces(data.newPosition);
       this.legalMoves = data.legalMoves;
       this.dispatchTypedEvent(
-        "opponentmove",
+        "opponent-move",
         new OpponentMoveEvent(
           data.move,
           this.getPieces(),
@@ -123,7 +123,7 @@ export class Game extends TypedEventTarget<GameEventMap> {
     this.socket.addMessageListener("opponent-move", this.opponentMoveListener);
 
     this.waitingRoomEndListener = () => {
-      this.dispatchTypedEvent("waitingroomend", new WaitingRoomEndEvent());
+      this.dispatchTypedEvent("waiting-room-end", new WaitingRoomEndEvent());
     };
     this.socket.addMessageListener(
       "waiting-room-end",
@@ -131,7 +131,10 @@ export class Game extends TypedEventTarget<GameEventMap> {
     );
 
     this.waitingRoomLeaveListener = () => {
-      this.dispatchTypedEvent("waitingroomleave", new WaitingRoomLeaveEvent());
+      this.dispatchTypedEvent(
+        "waiting-room-leave",
+        new WaitingRoomLeaveEvent(),
+      );
     };
     this.socket.addMessageListener(
       "waiting-room-leave",
