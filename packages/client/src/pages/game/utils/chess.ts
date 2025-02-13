@@ -1,17 +1,17 @@
 import { BoardCoordinateDto } from "chess-shared-types";
 
 export enum PieceName {
-  KING = "king",
-  QUEEN = "queen",
-  BISHOP = "bishop",
-  KNIGHT = "knight",
-  ROOK = "rook",
-  PAWN = "pawn",
+  KING = "KING",
+  QUEEN = "QUEEN",
+  BISHOP = "BISHOP",
+  KNIGHT = "KNIGHT",
+  ROOK = "ROOK",
+  PAWN = "PAWN",
 }
 
 export enum PieceColor {
-  WHITE = "white",
-  BLACK = "black",
+  WHITE = "WHITE",
+  BLACK = "BLACK",
 }
 
 export type PieceType = Readonly<{

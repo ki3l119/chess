@@ -1,5 +1,6 @@
 import {
   GameInfoDto,
+  GameResultDto,
   MoveDto,
   MoveSuccessDto,
   OpponentMoveDto,
@@ -31,6 +32,7 @@ export class OpponentMoveEvent extends Event {
     readonly move: MoveDto,
     readonly newPosition: BoardPiece[],
     readonly legalMoves: MoveDto[],
+    readonly gameResult?: GameResultDto,
   ) {
     super("opponent-move");
   }
@@ -117,6 +119,7 @@ export class Game extends TypedEventTarget<GameEventMap> {
           data.move,
           this.getPieces(),
           this.getLegalMoves(),
+          data.gameResult,
         ),
       );
     };
@@ -230,7 +233,11 @@ export class Game extends TypedEventTarget<GameEventMap> {
 
   async move(
     moveDto: MoveDto,
-  ): Promise<{ newPosition: BoardPiece[]; legalMoves: MoveDto[] }> {
+  ): Promise<{
+    newPosition: BoardPiece[];
+    legalMoves: MoveDto[];
+    gameResult?: GameResultDto;
+  }> {
     const moveSuccessDto =
       await this.socket.sendMessageWithResponse<MoveSuccessDto>({
         event: "move",
@@ -243,6 +250,7 @@ export class Game extends TypedEventTarget<GameEventMap> {
     return {
       newPosition: this.pieces,
       legalMoves: this.legalMoves,
+      gameResult: moveSuccessDto.gameResult,
     };
   }
 

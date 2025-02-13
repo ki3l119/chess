@@ -11,19 +11,28 @@ import {
   PieceColor,
 } from "../utils/chess";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { MoveDto } from "chess-shared-types";
+import { GameResultDto, MoveDto } from "chess-shared-types";
+import { GameModal } from "../game-modal/game-modal";
+import { Button } from "@/components/button/button";
 
 export type GameProps = {
   game: GameModel;
+
+  /**
+   * Executes once the game has finished.
+   */
+  onEnd?: () => void;
 };
 
-export const Game: React.FC<GameProps> = ({ game }) => {
+export const Game: React.FC<GameProps> = ({ game, onEnd }) => {
   const [pieces, setPieces] = useState<BoardPiece[]>(game.getPieces());
   const [legalMoves, setLegalMoves] = useState<MoveDto[]>(game.getLegalMoves());
   const [activePlayer, setActivePlayer] = useState<PieceColor>(
     PieceColor.WHITE,
   );
   const [isWaitingMoveValidation, setIsWaitingMoveValidation] = useState(false);
+
+  const [gameResult, setGameResult] = useState<GameResultDto | null>(null);
 
   const switchActivePlayer = (
     newPosition: BoardPiece[],
@@ -37,6 +46,9 @@ export const Game: React.FC<GameProps> = ({ game }) => {
   useEffect(() => {
     const opponentMoveEventListener = (event: OpponentMoveEvent) => {
       switchActivePlayer(event.newPosition, event.legalMoves);
+      if (event.gameResult) {
+        setGameResult(event.gameResult);
+      }
     };
     game.addEventListener("opponent-move", opponentMoveEventListener);
 
@@ -72,8 +84,14 @@ export const Game: React.FC<GameProps> = ({ game }) => {
             },
           });
           setPieces(newPieces);
-          const result = await game.move(moveDto);
-          switchActivePlayer(result.newPosition, result.legalMoves);
+          const moveSuccessDto = await game.move(moveDto);
+          switchActivePlayer(
+            moveSuccessDto.newPosition,
+            moveSuccessDto.legalMoves,
+          );
+          if (moveSuccessDto.gameResult) {
+            setGameResult(moveSuccessDto.gameResult);
+          }
         } catch (e) {
           setPieces(pieces);
         } finally {
@@ -82,8 +100,27 @@ export const Game: React.FC<GameProps> = ({ game }) => {
       }
     : undefined;
 
+  const gameResultTitle = gameResult
+    ? gameResult.winner === null
+      ? "Draw"
+      : gameResult.winner === userPlayer.color
+        ? "You Won!"
+        : `${gameResult.winner === "BLACK" ? "Black" : "White"} Won`
+    : undefined;
+
+  const gameResultReasonMapping = {
+    CHECKMATE: "by checkmate",
+    STALEMATE: "by stalemate",
+    FIFTY_MOVE_RULE: "by 50-move rule",
+    ABANDONED: "Your opponent left the game",
+  };
+
   return (
     <div className="game">
+      <GameModal isOpen={gameResult != null} title={gameResultTitle}>
+        <p>{gameResult && gameResultReasonMapping[gameResult.reason]}</p>
+        <Button onClick={onEnd}>Finish</Button>
+      </GameModal>
       <div className="game__player">
         <FontAwesomeIcon icon={faUser} />
         <p className="game__player-name">
@@ -95,7 +132,7 @@ export const Game: React.FC<GameProps> = ({ game }) => {
         perspective={userPlayer.color}
         legalMoves={legalMoves}
         movablePieces={
-          isActivePlayer && !isWaitingMoveValidation
+          isActivePlayer && !isWaitingMoveValidation && !gameResult
             ? userPlayer.color
             : undefined
         }

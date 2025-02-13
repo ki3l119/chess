@@ -12,7 +12,7 @@ export const Piece: React.FC<PieceProps> = ({ type }) => {
     <img
       className="chess-piece"
       draggable={false}
-      src={`/pieces/${type.color}/${type.name}.svg`}
+      src={`/pieces/${type.color.toLowerCase()}/${type.name.toLowerCase()}.svg`}
     />
   );
 };

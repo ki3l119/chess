@@ -80,6 +80,11 @@ export const GamePage: React.FC = () => {
     setGame(null);
   };
 
+  const onGameEnd = () => {
+    setGame(null);
+    setHasGameStarted(false);
+  };
+
   const onWaitingRoomExit = () => {
     const confirmExit = confirm("Are you sure you want to exit the game.");
     if (game && confirmExit) {
@@ -162,7 +167,7 @@ export const GamePage: React.FC = () => {
         }
       >
         {game && hasGameStarted ? (
-          <GameComponent game={game} />
+          <GameComponent game={game} onEnd={onGameEnd} />
         ) : (
           <Board perspective={PieceColor.WHITE} />
         )}
