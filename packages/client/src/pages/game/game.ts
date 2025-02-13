@@ -36,10 +36,24 @@ export class OpponentMoveEvent extends Event {
   }
 }
 
+export class WaitingRoomLeaveEvent extends Event {
+  constructor() {
+    super("waitingroomleave");
+  }
+}
+
+export class WaitingRoomEndEvent extends Event {
+  constructor() {
+    super("waitingroomend");
+  }
+}
+
 interface GameEventMap {
   join: JoinEvent;
   start: StartEvent;
   opponentmove: OpponentMoveEvent;
+  waitingroomleave: WaitingRoomLeaveEvent;
+  waitingroomend: WaitingRoomEndEvent;
 }
 
 export type Player = {
@@ -60,6 +74,8 @@ export class Game extends TypedEventTarget<GameEventMap> {
   private joinListener: (data: PlayerDto) => void;
   private startListener: (data: StartGameDto) => void;
   private opponentMoveListener: (data: OpponentMoveDto) => void;
+  private waitingRoomLeaveListener: () => void;
+  private waitingRoomEndListener: () => void;
 
   constructor(
     private readonly socket: EventMessageWebSocket,
@@ -105,6 +121,22 @@ export class Game extends TypedEventTarget<GameEventMap> {
       );
     };
     this.socket.addMessageListener("opponent-move", this.opponentMoveListener);
+
+    this.waitingRoomEndListener = () => {
+      this.dispatchTypedEvent("waitingroomend", new WaitingRoomEndEvent());
+    };
+    this.socket.addMessageListener(
+      "waiting-room-end",
+      this.waitingRoomEndListener,
+    );
+
+    this.waitingRoomLeaveListener = () => {
+      this.dispatchTypedEvent("waitingroomleave", new WaitingRoomLeaveEvent());
+    };
+    this.socket.addMessageListener(
+      "waiting-room-leave",
+      this.waitingRoomLeaveListener,
+    );
   }
 
   private static dtoToBoardPieces(pieceDtos: PieceDto[]): BoardPiece[] {
@@ -211,6 +243,12 @@ export class Game extends TypedEventTarget<GameEventMap> {
     };
   }
 
+  leave() {
+    this.socket.sendMessage({
+      event: "leave",
+    });
+  }
+
   /**
    * Cleans up resources used by game.
    */
@@ -220,6 +258,14 @@ export class Game extends TypedEventTarget<GameEventMap> {
     this.socket.removeMessageListener(
       "opponent-move",
       this.opponentMoveListener,
+    );
+    this.socket.removeMessageListener(
+      "waiting-room-end",
+      this.waitingRoomEndListener,
+    );
+    this.socket.removeMessageListener(
+      "waiting-room-leave",
+      this.waitingRoomLeaveListener,
     );
   }
 }

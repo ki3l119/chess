@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 
 import "./game-page.scss";
 import { CreateGameForm } from "./create-game-form/create-game-form";
@@ -76,6 +76,18 @@ export const GamePage: React.FC = () => {
     setGame(game);
   };
 
+  const onWaitingRoomEnd = () => {
+    setGame(null);
+  };
+
+  const onWaitingRoomExit = () => {
+    const confirmExit = confirm("Are you sure you want to exit the game.");
+    if (game && confirmExit) {
+      game.leave();
+      setGame(null);
+    }
+  };
+
   const closeInitModal = () => {
     setGameInitModal(GameInitModal.NONE);
   };
@@ -129,8 +141,16 @@ export const GamePage: React.FC = () => {
           </>
         ) : (
           !hasGameStarted && (
-            <GameModal isOpen={true} title="Waiting Room">
-              <WaitingRoom game={game} />
+            <GameModal
+              isOpen={true}
+              title="Waiting Room"
+              icon={{
+                iconDefinition: faCircleXmark,
+                position: "right",
+                onClick: onWaitingRoomExit,
+              }}
+            >
+              <WaitingRoom game={game} onEnd={onWaitingRoomEnd} />
             </GameModal>
           )
         ))

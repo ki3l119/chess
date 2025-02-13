@@ -35,9 +35,14 @@ const WaitingRoomPlayer: React.FC<WaitingRoomPlayerProps> = ({
 
 type WaitingRoomProps = {
   game: Game;
+
+  /**
+   * Called when the waiting room has ended.
+   */
+  onEnd?: () => void;
 };
 
-export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game }) => {
+export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game, onEnd }) => {
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
   const [opponent, setOpponent] = useState<Player | null>(null);
   const [isStarting, setIsStarting] = useState(false);
@@ -46,15 +51,27 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game }) => {
     const joinEventCallback = (event: JoinEvent) => {
       setOpponent(event.player);
     };
+    const leaveEventCallback = () => {
+      setOpponent(null);
+    };
+    const endEventCallback = () => {
+      if (onEnd) {
+        onEnd();
+      }
+    };
     const player = game.getPlayer();
     if (game.isHost && !player) {
       game.addEventListener("join", joinEventCallback);
+      game.addEventListener("waitingroomleave", leaveEventCallback);
     } else if (player) {
+      game.addEventListener("waitingroomend", endEventCallback);
       setOpponent(player);
     }
 
     return () => {
+      game.removeEventListener("waitingroomleave", leaveEventCallback);
       game.removeEventListener("join", joinEventCallback);
+      game.removeEventListener("waitingroomend", endEventCallback);
     };
   }, [game]);
 
