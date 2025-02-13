@@ -54,6 +54,28 @@ export class GameGateway implements OnGatewayDisconnect {
     private readonly logger: ConsoleLogger,
   ) {}
 
+  /**
+   * Removes game-related info from the sockets.
+   */
+  private cleanUpSocket(socket: GameSocket) {
+    if (socket.gameId) {
+      this.roomService.leave(socket.gameId, socket);
+      socket.gameId = undefined;
+    }
+  }
+
+  /**
+   * Cleans up all sockets belonging to the specified game.
+   */
+  private cleanUpGameSockets(gameId: string) {
+    const roomSockets = this.roomService.getSockets(gameId);
+    if (roomSockets) {
+      for (const roomSocket of roomSockets) {
+        this.cleanUpSocket(roomSocket);
+      }
+    }
+  }
+
   private playerLeave(gameId: string, socket: GameSocket) {
     const { isHost, gameResult } = this.gameService.leave(gameId, socket.id);
     if (gameResult) {
@@ -93,16 +115,9 @@ export class GameGateway implements OnGatewayDisconnect {
     }
 
     if (gameResult || isHost) {
-      const roomSockets = this.roomService.getSockets(gameId);
-      if (roomSockets) {
-        for (const roomSocket of roomSockets) {
-          roomSocket.gameId = undefined;
-          this.roomService.leave(gameId, roomSocket);
-        }
-      }
+      this.cleanUpGameSockets(gameId);
     } else {
-      socket.gameId = undefined;
-      this.roomService.leave(gameId, socket);
+      this.cleanUpSocket(socket);
     }
   }
 
@@ -227,6 +242,11 @@ export class GameGateway implements OnGatewayDisconnect {
         exclude: [socket.id],
       },
     );
+
+    if (moveSuccessDto.gameResult) {
+      this.gameService.delete(gameId);
+      this.cleanUpGameSockets(gameId);
+    }
 
     return {
       event: "move:success",
