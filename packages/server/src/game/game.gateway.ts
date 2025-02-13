@@ -1,5 +1,10 @@
 import { ServerOptions } from "ws";
-import { UseFilters, UseGuards, UseInterceptors } from "@nestjs/common";
+import {
+  ConsoleLogger,
+  UseFilters,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -46,6 +51,7 @@ export class GameGateway implements OnGatewayDisconnect {
   constructor(
     private readonly gameService: GameService,
     private readonly roomService: RoomService,
+    private readonly logger: ConsoleLogger,
   ) {}
 
   private playerLeave(gameId: string, socket: GameSocket) {
@@ -88,8 +94,12 @@ export class GameGateway implements OnGatewayDisconnect {
   }
 
   handleDisconnect(socket: GameSocket) {
-    if (socket.gameId) {
-      this.playerLeave(socket.gameId, socket);
+    try {
+      if (socket.gameId) {
+        this.playerLeave(socket.gameId, socket);
+      }
+    } catch (e) {
+      this.logger.error(e);
     }
   }
 
