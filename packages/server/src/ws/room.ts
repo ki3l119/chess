@@ -12,14 +12,14 @@ export type RoomEmitOptions = {
  * Contains a collection of sockets that would send messages
  * emitted to the room.
  */
-export class Room {
-  private readonly sockets: Map<string, WebSocketExtended>;
+export class Room<T extends WebSocketExtended = WebSocketExtended> {
+  private readonly sockets: Map<string, T>;
 
   constructor(public readonly id: string) {
     this.sockets = new Map();
   }
 
-  addSocket(socket: WebSocketExtended) {
+  addSocket(socket: T) {
     this.sockets.set(socket.id, socket);
   }
 
@@ -27,7 +27,7 @@ export class Room {
     return this.sockets.size;
   }
 
-  removeSocket(socket: WebSocketExtended) {
+  removeSocket(socket: T) {
     this.sockets.delete(socket.id);
   }
 

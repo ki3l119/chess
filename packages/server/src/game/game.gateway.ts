@@ -50,7 +50,7 @@ const serverOptions: ServerOptions = {
 export class GameGateway implements OnGatewayDisconnect {
   constructor(
     private readonly gameService: GameService,
-    private readonly roomService: RoomService,
+    private readonly roomService: RoomService<GameSocket>,
     private readonly logger: ConsoleLogger,
   ) {}
 
@@ -90,6 +90,19 @@ export class GameGateway implements OnGatewayDisconnect {
           exclude: [socket.id],
         },
       );
+    }
+
+    if (gameResult || isHost) {
+      const roomSockets = this.roomService.getSockets(gameId);
+      if (roomSockets) {
+        for (const roomSocket of roomSockets) {
+          roomSocket.gameId = undefined;
+          this.roomService.leave(gameId, roomSocket);
+        }
+      }
+    } else {
+      socket.gameId = undefined;
+      this.roomService.leave(gameId, socket);
     }
   }
 

@@ -4,8 +4,8 @@ import type { WebSocketExtended, WebSocketMessage } from "./types";
 import { Room, RoomEmitOptions } from "./room";
 
 @Injectable()
-export class RoomService {
-  private readonly rooms: Map<string, Room>;
+export class RoomService<T extends WebSocketExtended = WebSocketExtended> {
+  private readonly rooms: Map<string, Room<T>>;
 
   constructor() {
     this.rooms = new Map();
@@ -28,7 +28,7 @@ export class RoomService {
   /**
    * Adds the socket to the room.
    */
-  join(roomId: string, socket: WebSocketExtended) {
+  join(roomId: string, socket: T) {
     let room = this.rooms.get(roomId);
     if (!room) {
       room = new Room(roomId);
@@ -40,7 +40,7 @@ export class RoomService {
   /**
    * Removes the socket from the room.
    */
-  leave(roomId: string, socket: WebSocketExtended) {
+  leave(roomId: string, socket: T) {
     const room = this.rooms.get(roomId);
     if (!room) {
       return;
@@ -60,7 +60,7 @@ export class RoomService {
     return room ? room.getSocketCount() : null;
   }
 
-  getSockets(roomId: string): WebSocketExtended[] | null {
+  getSockets(roomId: string): T[] | null {
     const room = this.rooms.get(roomId);
     return room ? room.getSockets() : null;
   }
