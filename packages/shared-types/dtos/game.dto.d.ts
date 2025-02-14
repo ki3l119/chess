@@ -75,6 +75,6 @@ export type OpponentMoveDto = Pick<
   gameResult?: GameResultDto;
 };
 
-export type EndGameDto = {
+export type LeaveGameDto = {
   gameResult: GameResultDto;
 };
