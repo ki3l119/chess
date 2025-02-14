@@ -16,7 +16,7 @@ import {
 
 import {
   CreateGameDto,
-  EndGameDto,
+  LeaveGameDto,
   GameInfoDto,
   JoinGameDto,
   MoveDto,
@@ -79,14 +79,14 @@ export class GameGateway implements OnGatewayDisconnect {
   private playerLeave(gameId: string, socket: GameSocket) {
     const { isHost, gameResult } = this.gameService.leave(gameId, socket.id);
     if (gameResult) {
-      const endGameDto: EndGameDto = {
+      const leaveGameDto: LeaveGameDto = {
         gameResult,
       };
       this.roomService.emit(
         gameId,
         {
-          event: "end",
-          data: endGameDto,
+          event: "leave",
+          data: leaveGameDto,
         },
         {
           exclude: [socket.id],
