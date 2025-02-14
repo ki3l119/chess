@@ -30,7 +30,7 @@ describe("Game", () => {
     expect(actual).toStrictEqual(expected);
   });
 
-  it("Creates chess object after start", () => {
+  it("hasStarted returns true after start", () => {
     const game = new Game(
       randomUUID(),
       {
@@ -46,7 +46,6 @@ describe("Game", () => {
     expect(game.hasStarted()).toBe(false);
     game.start();
 
-    expect(game.getChessObject()).toBeDefined();
     expect(game.hasStarted()).toBe(true);
   });
 
@@ -122,25 +121,6 @@ describe("Game", () => {
 
     expect(() => {
       game.getActivePlayer();
-    }).toThrow(InvalidGameStateException);
-  });
-
-  it("Throws exception on getting chess object on game that has not started", () => {
-    const game = new Game(
-      randomUUID(),
-      {
-        id: randomUUID(),
-        name: "Host",
-      },
-      "WHITE",
-    );
-    game.setPlayer({
-      id: randomUUID(),
-      name: "Opponent",
-    });
-
-    expect(() => {
-      game.getChessObject();
     }).toThrow(InvalidGameStateException);
   });
 });

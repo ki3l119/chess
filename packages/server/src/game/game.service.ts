@@ -228,11 +228,12 @@ export class GameService {
 
     game.start();
 
-    const chess = game.getChessObject();
+    const board = game.getBoard();
+    const legalMoves = game.getLegalMoves();
 
     return {
-      pieces: GameService.boardToPieceCentricRepresentation(chess.getBoard()),
-      legalMoves: GameService.mapToLegalMoveDtos(chess.getLegalMoves()),
+      pieces: GameService.boardToPieceCentricRepresentation(board),
+      legalMoves: GameService.mapToLegalMoveDtos(legalMoves),
     };
   }
 
@@ -250,21 +251,17 @@ export class GameService {
         throw new InvalidGameMoveException(moveDto, playerId);
       }
 
-      const chess = game.getChessObject();
-
-      chess.move({
+      game.move({
         from: new BoardCoordinate(moveDto.from.rank, moveDto.from.file),
         to: new BoardCoordinate(moveDto.to.rank, moveDto.to.file),
       });
 
-      const result = chess.getResult();
-
       return {
         newPosition: GameService.boardToPieceCentricRepresentation(
-          chess.getBoard(),
+          game.getBoard(),
         ),
-        legalMoves: GameService.mapToLegalMoveDtos(chess.getLegalMoves()),
-        gameResult: result || undefined,
+        legalMoves: GameService.mapToLegalMoveDtos(game.getLegalMoves()),
+        gameResult: game.getResult() || undefined,
       };
     } catch (e) {
       if (e instanceof InvalidMoveException) {

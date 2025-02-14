@@ -3,6 +3,10 @@ import {
   parseFEN,
   PieceColor,
   startingBoardFENString,
+  Move,
+  Board,
+  GameResult,
+  InvalidMoveException,
 } from "chess-game";
 import { PieceColorChoice } from "chess-shared-types";
 
@@ -75,7 +79,7 @@ export class Game {
   /**
    * @returns The chess object that manages the state of the chess game.
    */
-  getChessObject(): Chess {
+  private getChessObject(): Chess {
     if (!this.chess) {
       throw new InvalidGameStateException("Game has not yet started.");
     }
@@ -99,6 +103,10 @@ export class Game {
     this.chess = new Chess(parseFEN(startingBoardFENString));
   }
 
+  /**
+   * @returns The player who's current turn it is.
+   * @throws {InvalidGameStateException} When game has not yet started.
+   */
   getActivePlayer(): Player {
     if (!this.player) {
       throw new InvalidGameStateException("Missing player.");
@@ -112,5 +120,42 @@ export class Game {
 
   hasStarted(): boolean {
     return this.chess !== undefined;
+  }
+
+  /**
+   * @returns The list of legal moves for current position.
+   * @throws {InvalidGameStateException} When game has not yet started.
+   */
+  getLegalMoves(): Move[] {
+    const chess = this.getChessObject();
+    return chess.getLegalMoves();
+  }
+
+  /**
+   * @returns The current position of the game.
+   * @throws {InvalidGameStateException} When game has not yet started.
+   */
+  getBoard(): Board {
+    const chess = this.getChessObject();
+    return chess.getBoard();
+  }
+
+  /**
+   * @returns Applies the following move to the game.
+   * @throws {InvalidGameStateException} When game has not yet started.
+   * @throws {InvalidMoveException} When provided with an illegal move.
+   */
+  move(move: Move): Board {
+    const chess = this.getChessObject();
+    chess.move(move);
+    return chess.getBoard();
+  }
+
+  /**
+   * @returns The result of the game. If game is not finished, returns null.
+   */
+  getResult(): GameResult | null {
+    const chess = this.getChessObject();
+    return chess.getResult();
   }
 }
