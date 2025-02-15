@@ -9,6 +9,7 @@ import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
 import { Alert } from "@/components/alert/alert";
 import { GameManager } from "../game-manager";
 import { Game } from "../game";
+import { Input } from "@/components/input/input";
 
 export type CreateGameFormProps = {
   onCreate?: (game: Game) => void;
@@ -27,7 +28,10 @@ export const CreateGameForm: React.FC<CreateGameFormProps> = ({
   } = useForm<CreateGameDto>();
   const { submitHandler } = useFormSubmitHandler<CreateGameDto>({
     onSubmit: async (data) => {
-      const result = await gameManager.createGame(data);
+      const result = await gameManager.createGame({
+        color: data.color,
+        playerTimerDuration: data.playerTimerDuration * 60,
+      });
       if (onCreate) {
         onCreate(result);
       }
@@ -49,6 +53,23 @@ export const CreateGameForm: React.FC<CreateGameFormProps> = ({
           { value: "BLACK", display: "Black" },
         ]}
         {...register("color")}
+        disabled={isSubmitting}
+      />
+      <Input
+        error={errors.playerTimerDuration?.message}
+        label="Player Timer Duration (minutes)"
+        type="number"
+        {...register("playerTimerDuration", {
+          required: "Please enter a number.",
+          max: {
+            value: 60,
+            message: "Game cannot exceed 60 minutes.",
+          },
+          min: {
+            value: 1,
+            message: "Game must be at least 1 minute.",
+          },
+        })}
         disabled={isSubmitting}
       />
       <Button type="submit" disabled={isSubmitting}>
