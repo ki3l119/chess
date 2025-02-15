@@ -16,7 +16,7 @@ import {
 
 import {
   CreateGameDto,
-  LeaveGameDto,
+  EndGameDto,
   GameInfoDto,
   JoinGameDto,
   MoveDto,
@@ -24,7 +24,6 @@ import {
   OpponentMoveDto,
 } from "chess-shared-types";
 import {
-  WebSocketException,
   RoomService,
   WebSocketJoiValidationPipe,
   WebSocketExceptionFilter,
@@ -35,7 +34,6 @@ import {
   joinGameDtoSchema,
   moveDtoSchema,
 } from "./game.validator";
-import { GameException } from "./game.exception";
 import { GameSocket } from "./types";
 import { GameGuard, GameGuardWithResponse } from "./game.guard";
 import { CurrentGame } from "./game.decorator";
@@ -79,14 +77,14 @@ export class GameGateway implements OnGatewayDisconnect {
   private playerLeave(gameId: string, socket: GameSocket) {
     const { isHost, gameResult } = this.gameService.leave(gameId, socket.id);
     if (gameResult) {
-      const leaveGameDto: LeaveGameDto = {
+      const endGameDto: EndGameDto = {
         gameResult,
       };
       this.roomService.emit(
         gameId,
         {
-          event: "leave",
-          data: leaveGameDto,
+          event: "end",
+          data: endGameDto,
         },
         {
           exclude: [socket.id],
