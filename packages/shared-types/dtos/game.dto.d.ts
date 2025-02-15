@@ -3,6 +3,7 @@ export type PieceColorChoice = PieceColor | "RANDOM";
 
 export type CreateGameDto = {
   color: PieceColorChoice;
+  playerTimerDuration: number;
 };
 
 export type JoinGameDto = {
