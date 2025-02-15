@@ -27,11 +27,14 @@ export class GameExceptionInterceptor implements NestInterceptor {
         const eventError = `${event}:error`;
         if (e instanceof GameException) {
           throw new WebSocketException(eventError, e.problemDetails);
+        } else if (e instanceof WebSocketException) {
+          throw e;
+        } else {
+          throw new WebSocketException(eventError, {
+            title: "Internal server error.",
+            details: "Unexpected server error has occured.",
+          });
         }
-        throw new WebSocketException(eventError, {
-          title: "Internal server error.",
-          details: "Unexpected server error has occured.",
-        });
       }),
     );
   }
