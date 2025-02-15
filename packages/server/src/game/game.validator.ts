@@ -9,6 +9,7 @@ import {
 
 export const createGameDtoSchema = Joi.object<CreateGameDto>({
   color: Joi.string().required().uppercase().valid("BLACK", "WHITE", "RANDOM"),
+  playerTimerDuration: Joi.number().integer().min(5).max(3600).default(600),
 }).required();
 
 export const joinGameDtoSchema = Joi.object<JoinGameDto>({

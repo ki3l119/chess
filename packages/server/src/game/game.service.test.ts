@@ -638,7 +638,7 @@ describe("GameService", () => {
           id: randomUUID(),
           name: "Player 1",
         },
-        { color: "WHITE" },
+        { color: "WHITE", playerTimerDuration: 20 },
       );
 
       const { player } = gameService.join(
@@ -654,7 +654,7 @@ describe("GameService", () => {
       const timeoutCallback = jest.fn();
       gameService.on("timeout", timeoutCallback);
       expect(timeoutCallback).not.toBeCalled();
-      jest.advanceTimersByTime(600_000);
+      jest.advanceTimersByTime(20_000);
 
       expect(timeoutCallback).toBeCalledTimes(1);
       expect(timeoutCallback).toBeCalledWith(
@@ -669,7 +669,7 @@ describe("GameService", () => {
           player: {
             id: player.id,
             name: player.name,
-            remainingTime: 600,
+            remainingTime: 20,
             color: player.color,
           },
           isColorRandom: false,
@@ -681,13 +681,13 @@ describe("GameService", () => {
       );
     });
 
-    it("Emits timeout event on BLACK timeout", () => {
+    it("Emits timeout event on black timeout", () => {
       const gameInfo = gameService.create(
         {
           id: randomUUID(),
           name: "Player 1",
         },
-        { color: "WHITE" },
+        { color: "WHITE", playerTimerDuration: 300 },
       );
 
       const { player } = gameService.join(
@@ -704,6 +704,7 @@ describe("GameService", () => {
       gameService.on("timeout", timeoutCallback);
       expect(timeoutCallback).not.toBeCalled();
 
+      jest.advanceTimersByTime(10_000);
       gameService.move(
         gameInfo.id,
         {
@@ -718,7 +719,8 @@ describe("GameService", () => {
         },
         gameInfo.host.id,
       );
-      jest.advanceTimersByTime(600_000);
+
+      jest.advanceTimersByTime(300_000);
 
       expect(timeoutCallback).toBeCalledTimes(1);
       expect(timeoutCallback).toBeCalledWith(
@@ -727,7 +729,7 @@ describe("GameService", () => {
           host: {
             id: gameInfo.host.id,
             name: gameInfo.host.name,
-            remainingTime: 600,
+            remainingTime: 290,
             color: gameInfo.host.color,
           },
           player: {

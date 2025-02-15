@@ -15,7 +15,10 @@ describe("Game DTO validation schemas", () => {
       };
       const actual = createGameDtoSchema.validate(input);
       expect(actual.error).toBeUndefined();
-      expect(actual.value).toEqual(input);
+      expect(actual.value).toEqual({
+        color: "WHITE",
+        playerTimerDuration: 600,
+      });
     });
 
     it("Capitalizes color input", () => {
@@ -26,6 +29,7 @@ describe("Game DTO validation schemas", () => {
       expect(actual.error).toBeUndefined();
       expect(actual.value).toEqual({
         color: "BLACK",
+        playerTimerDuration: 600,
       });
     });
 
@@ -44,6 +48,30 @@ describe("Game DTO validation schemas", () => {
       const actual = createGameDtoSchema.validate(undefined);
       expect(actual.error);
     });
+
+    it("Accepts valid player timer duration", () => {
+      const input = {
+        color: "WHITE",
+        playerTimerDuration: 200,
+      };
+      const actual = createGameDtoSchema.validate(input);
+      expect(actual.error).toBeUndefined();
+      expect(actual.value).toEqual(input);
+    });
+
+    it.each([-2, 3, 3601, 2.76])(
+      "Error on invalid player timer duration (%#)",
+      (timerDurationInput) => {
+        const input = {
+          color: "WHITE",
+          playerTimerDuration: timerDurationInput,
+        };
+        const actual = createGameDtoSchema.validate(input);
+        expect(actual.error).toBeDefined();
+        expect(actual.error!.details.length).toBe(1);
+        expect(actual.error!.details[0].path).toEqual(["playerTimerDuration"]);
+      },
+    );
   });
 
   describe("joinGameDtoSchema", () => {

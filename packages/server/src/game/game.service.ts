@@ -90,14 +90,24 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
    *
    * @throws {InvalidGameCreationException}
    */
-  create(newPlayer: NewPlayer, createGameDto: CreateGameDto): GameInfoDto {
+  create(
+    newPlayer: NewPlayer,
+    createGameDto: Omit<CreateGameDto, "playerTimerDuration"> & {
+      playerTimerDuration?: number;
+    },
+  ): GameInfoDto {
     if (this.isPlayerPlaying(newPlayer)) {
       throw new InvalidGameCreationException(
         "You are already part of an existing game.",
       );
     }
 
-    const game = new Game(randomUUID(), newPlayer, createGameDto.color, 600);
+    const game = new Game(
+      randomUUID(),
+      newPlayer,
+      createGameDto.color,
+      createGameDto.playerTimerDuration,
+    );
     game.once("timeout", this.gameTimeoutListener);
     this.games.set(game.id, game);
     this.playerGameMapping.set(newPlayer.id, game.id);
