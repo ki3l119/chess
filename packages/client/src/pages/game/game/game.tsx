@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 import "./game.scss";
-import { Game as GameModel, LeaveEvent, OpponentMoveEvent } from "../game";
+import { Game as GameModel, EndEvent, OpponentMoveEvent } from "../game";
 import { Board } from "../board/board";
 import {
   BoardPiece,
@@ -52,15 +52,15 @@ export const Game: React.FC<GameProps> = ({ game, onEnd }) => {
     };
     game.addEventListener("opponent-move", opponentMoveEventListener);
 
-    const leaveEventListener = (event: LeaveEvent) => {
+    const endEventListener = (event: EndEvent) => {
       setGameResult(event.gameResult);
     };
 
-    game.addEventListener("leave", leaveEventListener);
+    game.addEventListener("end", endEventListener);
 
     return () => {
       game.removeEventListener("opponent-move", opponentMoveEventListener);
-      game.removeEventListener("leave", leaveEventListener);
+      game.removeEventListener("end", endEventListener);
     };
   }, [game, activePlayer]);
 

@@ -1,7 +1,7 @@
 import {
   GameInfoDto,
   GameResultDto,
-  LeaveGameDto,
+  EndGameDto,
   MoveDto,
   MoveSuccessDto,
   OpponentMoveDto,
@@ -51,9 +51,9 @@ export class WaitingRoomEndEvent extends Event {
   }
 }
 
-export class LeaveEvent extends Event {
+export class EndEvent extends Event {
   constructor(readonly gameResult: GameResultDto) {
-    super("leave");
+    super("end");
   }
 }
 interface GameEventMap {
@@ -62,7 +62,7 @@ interface GameEventMap {
   "opponent-move": OpponentMoveEvent;
   "waiting-room-leave": WaitingRoomLeaveEvent;
   "waiting-room-end": WaitingRoomEndEvent;
-  leave: LeaveEvent;
+  end: EndEvent;
 }
 
 export type Player = {
@@ -85,7 +85,7 @@ export class Game extends TypedEventTarget<GameEventMap> {
   private opponentMoveListener: (data: OpponentMoveDto) => void;
   private waitingRoomLeaveListener: () => void;
   private waitingRoomEndListener: () => void;
-  private leaveListener: (data: LeaveGameDto) => void;
+  private endListener: (data: EndGameDto) => void;
 
   constructor(
     private readonly socket: EventMessageWebSocket,
@@ -152,10 +152,10 @@ export class Game extends TypedEventTarget<GameEventMap> {
       this.waitingRoomLeaveListener,
     );
 
-    this.leaveListener = (data) => {
-      this.dispatchTypedEvent("leave", new LeaveEvent(data.gameResult));
+    this.endListener = (data) => {
+      this.dispatchTypedEvent("end", new EndEvent(data.gameResult));
     };
-    this.socket.addMessageListener("leave", this.leaveListener);
+    this.socket.addMessageListener("end", this.endListener);
   }
 
   private static dtoToBoardPieces(pieceDtos: PieceDto[]): BoardPiece[] {
@@ -289,6 +289,6 @@ export class Game extends TypedEventTarget<GameEventMap> {
       "waiting-room-leave",
       this.waitingRoomLeaveListener,
     );
-    this.socket.removeMessageListener("leave", this.leaveListener);
+    this.socket.removeMessageListener("end", this.endListener);
   }
 }
