@@ -120,6 +120,7 @@ export const Game: React.FC<GameProps> = ({ game, onEnd }) => {
     STALEMATE: "by stalemate",
     FIFTY_MOVE_RULE: "by 50-move rule",
     ABANDONED: "Your opponent left the game",
+    TIMEOUT: "by timeout",
   };
 
   return (
