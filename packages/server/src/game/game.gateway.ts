@@ -50,7 +50,15 @@ export class GameGateway implements OnGatewayDisconnect {
     private readonly gameService: GameService,
     private readonly roomService: RoomService<GameSocket>,
     private readonly logger: ConsoleLogger,
-  ) {}
+  ) {
+    this.gameService.on("timeout", (gameInfo, gameResult) => {
+      this.roomService.emit(gameInfo.id, {
+        event: "end",
+        data: { gameResult },
+      });
+      this.cleanUpGameSockets(gameInfo.id);
+    });
+  }
 
   /**
    * Removes game-related info from the sockets.

@@ -11,7 +11,13 @@ import {
   PieceDto,
   StartGameDto,
 } from "chess-shared-types";
-import { Board, Move, InvalidMoveException, GameResult } from "chess-game";
+import {
+  Board,
+  Move,
+  InvalidMoveException,
+  GameResult,
+  PieceColor,
+} from "chess-game";
 import {
   InvalidGameCreationException,
   InvalidGameJoinException,
@@ -21,22 +27,38 @@ import {
 } from "./game.exception";
 import { Game, NewPlayer, Player } from "./game";
 import { BoardCoordinate } from "chess-game/dist/board";
+import { EventEmitter } from "stream";
+
+type GameServiceEventMap = {
+  timeout: [gameInfo: GameInfoDto, gameResult: GameResultDto];
+};
 
 @Injectable()
-export class GameService {
+export class GameService extends EventEmitter<GameServiceEventMap> {
   // Maps each player id to their game id
   private readonly playerGameMapping: Map<string, string>;
 
   // For registered players. Maps each user id to their game id
   private readonly userGameMapping: Map<string, string>;
 
+  private gameTimeoutListener: (game: Game, player: Player) => void;
+
   private readonly games: Map<string, Game>;
 
   constructor(private readonly logger: ConsoleLogger) {
+    super();
     this.games = new Map();
     this.playerGameMapping = new Map();
     this.userGameMapping = new Map();
     this.logger.setContext(GameService.name);
+    this.gameTimeoutListener = (game, player) => {
+      const gameResult: GameResultDto = {
+        winner: player.color === PieceColor.BLACK ? "WHITE" : "BLACK",
+        reason: "TIMEOUT",
+      };
+      this.delete(game.id);
+      this.emit("timeout", GameService.toGameInfoDto(game), gameResult);
+    };
   }
 
   private isPlayerPlaying(player: NewPlayer) {
@@ -54,6 +76,15 @@ export class GameService {
     this.logger.log(`Player ${player.id} has left their game.`);
   }
 
+  private static toGameInfoDto(game: Game): GameInfoDto {
+    return {
+      id: game.id,
+      host: game.getHost(),
+      player: game.getPlayer() || undefined,
+      isColorRandom: game.isRandomColorChoice,
+    };
+  }
+
   /**
    * Creates a new game with the player as the host.
    *
@@ -66,19 +97,15 @@ export class GameService {
       );
     }
 
-    const game = new Game(randomUUID(), newPlayer, createGameDto.color);
+    const game = new Game(randomUUID(), newPlayer, createGameDto.color, 600);
+    game.once("timeout", this.gameTimeoutListener);
     this.games.set(game.id, game);
     this.playerGameMapping.set(newPlayer.id, game.id);
     if (newPlayer.userId) {
       this.userGameMapping.set(newPlayer.userId, game.id);
     }
     this.logger.log(`Created game ${game.id}`);
-    return {
-      id: game.id,
-      host: game.getHost(),
-      player: game.getPlayer() || undefined,
-      isColorRandom: game.isRandomColorChoice,
-    };
+    return GameService.toGameInfoDto(game);
   }
 
   /**
@@ -112,12 +139,7 @@ export class GameService {
     }
     this.logger.log(`Player ${player.id} joined game ${game.id}`);
 
-    return {
-      id: game.id,
-      host: game.getHost(),
-      player: player,
-      isColorRandom: game.isRandomColorChoice,
-    };
+    return GameService.toGameInfoDto(game) as Required<GameInfoDto>;
   }
 
   leave(
@@ -172,6 +194,8 @@ export class GameService {
         this.playerLeave(player);
       }
     }
+    game.removeListener("timeout", this.gameTimeoutListener);
+    game.stop();
     this.logger.log(`Deleted game ${gameId}.`);
     return this.games.delete(gameId);
   }
@@ -271,7 +295,8 @@ export class GameService {
     }
   }
 
-  findGameById(id: string) {
-    return this.games.get(id) || null;
+  findById(id: string) {
+    const game = this.games.get(id);
+    return game ? GameService.toGameInfoDto(game) : null;
   }
 }

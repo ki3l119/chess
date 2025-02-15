@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "@jest/globals";
+import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 
 import { GameService } from "./game.service";
 import { GameInfoDto } from "chess-shared-types";
@@ -12,6 +12,8 @@ import {
   InvalidStartException,
 } from "./game.exception";
 import { ConsoleLogger } from "@nestjs/common";
+
+jest.useFakeTimers();
 
 describe("GameService", () => {
   let gameService: GameService;
@@ -33,6 +35,7 @@ describe("GameService", () => {
           id: newPlayer.id,
           name: newPlayer.name,
           color: PieceColor.WHITE,
+          remainingTime: 600,
         },
         isColorRandom: false,
       };
@@ -114,6 +117,7 @@ describe("GameService", () => {
       const expectedPlayer = {
         ...joiningPlayer,
         color: PieceColor.WHITE,
+        remainingTime: 600,
       };
       const { player: actualPlayer, ...actualGameInfo } = gameService.join(
         joiningPlayer,
@@ -501,7 +505,7 @@ describe("GameService", () => {
       expect(actual).toEqual({
         isHost: true,
       });
-      expect(gameService.findGameById(gameInfo.id)).toBeNull();
+      expect(gameService.findById(gameInfo.id)).toBeNull();
     });
 
     it("Game that has not started is not destroyed upon non-host leaving", () => {
@@ -526,7 +530,7 @@ describe("GameService", () => {
       expect(actual).toEqual({
         isHost: false,
       });
-      expect(gameService.findGameById(id)).not.toBeNull();
+      expect(gameService.findById(id)).not.toBeNull();
     });
 
     it("Game is destroyed and result is returned when game is already ongoing", () => {
@@ -557,7 +561,7 @@ describe("GameService", () => {
           reason: "ABANDONED",
         },
       });
-      expect(gameService.findGameById(id)).toBeNull();
+      expect(gameService.findById(id)).toBeNull();
     });
 
     it("Player can create another game upon leaving", () => {
@@ -624,6 +628,121 @@ describe("GameService", () => {
       gameService.leave(gameId, player1.id);
 
       gameService.create(player2, { color: "BLACK" });
+    });
+  });
+
+  describe("timeout events", () => {
+    it("Emits timeout event on white timeout", () => {
+      const gameInfo = gameService.create(
+        {
+          id: randomUUID(),
+          name: "Player 1",
+        },
+        { color: "WHITE" },
+      );
+
+      const { player } = gameService.join(
+        {
+          id: randomUUID(),
+          name: "Player 2",
+        },
+        { gameId: gameInfo.id },
+      );
+
+      gameService.start(gameInfo.id, gameInfo.host.id);
+
+      const timeoutCallback = jest.fn();
+      gameService.on("timeout", timeoutCallback);
+      expect(timeoutCallback).not.toBeCalled();
+      jest.advanceTimersByTime(600_000);
+
+      expect(timeoutCallback).toBeCalledTimes(1);
+      expect(timeoutCallback).toBeCalledWith(
+        {
+          id: gameInfo.id,
+          host: {
+            id: gameInfo.host.id,
+            name: gameInfo.host.name,
+            remainingTime: 0,
+            color: gameInfo.host.color,
+          },
+          player: {
+            id: player.id,
+            name: player.name,
+            remainingTime: 600,
+            color: player.color,
+          },
+          isColorRandom: false,
+        },
+        {
+          winner: "BLACK",
+          reason: "TIMEOUT",
+        },
+      );
+    });
+
+    it("Emits timeout event on BLACK timeout", () => {
+      const gameInfo = gameService.create(
+        {
+          id: randomUUID(),
+          name: "Player 1",
+        },
+        { color: "WHITE" },
+      );
+
+      const { player } = gameService.join(
+        {
+          id: randomUUID(),
+          name: "Player 2",
+        },
+        { gameId: gameInfo.id },
+      );
+
+      gameService.start(gameInfo.id, gameInfo.host.id);
+
+      const timeoutCallback = jest.fn();
+      gameService.on("timeout", timeoutCallback);
+      expect(timeoutCallback).not.toBeCalled();
+
+      gameService.move(
+        gameInfo.id,
+        {
+          from: {
+            rank: 1,
+            file: 4,
+          },
+          to: {
+            rank: 3,
+            file: 4,
+          },
+        },
+        gameInfo.host.id,
+      );
+      jest.advanceTimersByTime(600_000);
+
+      expect(timeoutCallback).toBeCalledTimes(1);
+      expect(timeoutCallback).toBeCalledWith(
+        {
+          id: gameInfo.id,
+          host: {
+            id: gameInfo.host.id,
+            name: gameInfo.host.name,
+            remainingTime: 600,
+            color: gameInfo.host.color,
+          },
+          player: {
+            id: player.id,
+            name: player.name,
+            remainingTime: 0,
+            color: player.color,
+          },
+          isColorRandom: false,
+        },
+        {
+          winner: "WHITE",
+          reason: "TIMEOUT",
+        },
+      );
     });
   });
 });

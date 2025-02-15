@@ -1,3 +1,5 @@
+import { EventEmitter } from "events";
+
 import {
   Chess,
   parseFEN,
@@ -17,28 +19,49 @@ import {
 
 export { PieceColor };
 
-export type Player = Readonly<{
+export type Player = {
   id: string;
   name: string;
   color: PieceColor;
   userId?: string;
-}>;
+  /**
+   * Time left for the player in seconds
+   */
+  remainingTime: number;
+};
 
 export type NewPlayer = Pick<Player, "id" | "name" | "userId">;
 
-export class Game {
+type ActiveGame = {
+  chess: Chess;
+  currentMoveStartTime: Date;
+  playerTimerTimeout: NodeJS.Timeout | null;
+};
+
+type EventMap = {
+  timeout: [game: Game, player: Player];
+};
+
+export class Game extends EventEmitter<EventMap> {
   // Inidates if the color has been randomly assigned to the players.
   readonly isRandomColorChoice: boolean;
   private readonly host: Player;
   private player: Player | null;
 
-  private chess?: Chess;
+  private activeGame?: ActiveGame;
 
+  /**
+   *
+   * @param colorChoice - The color choice of the host.
+   * @param gameDuration - The timer duration for each player in seconds.
+   */
   constructor(
     public readonly id: string,
     host: NewPlayer,
     colorChoice: PieceColorChoice,
+    private readonly gameDuration: number = 600,
   ) {
+    super();
     this.isRandomColorChoice = colorChoice === "RANDOM";
 
     let color = colorChoice === "WHITE" ? PieceColor.WHITE : PieceColor.BLACK;
@@ -54,15 +77,26 @@ export class Game {
       name: host.name,
       color,
       userId: host.userId,
+      remainingTime: this.gameDuration,
+    };
+  }
+
+  private static deepCopyPlayer(player: Player): Player {
+    return {
+      id: player.id,
+      name: player.name,
+      color: player.color,
+      userId: player.userId,
+      remainingTime: player.remainingTime,
     };
   }
 
   getHost(): Player {
-    return this.host;
+    return Game.deepCopyPlayer(this.host);
   }
 
   getPlayer(): Player | null {
-    return this.player;
+    return this.player ? Game.deepCopyPlayer(this.player) : null;
   }
 
   setPlayer(player: NewPlayer): Player;
@@ -71,19 +105,45 @@ export class Game {
     this.player = player && {
       ...player,
       color: Chess.getOpposingColor(this.host.color),
+      remainingTime: this.gameDuration,
     };
 
     return this.player;
   }
 
   /**
-   * @returns The chess object that manages the state of the chess game.
+   * @returns Info regarding the active chess game.
+   * @throws {InvalidGameStateException} For games that have not yet started
    */
-  private getChessObject(): Chess {
-    if (!this.chess) {
+  private getActiveGame(): ActiveGame {
+    if (!this.activeGame) {
       throw new InvalidGameStateException("Game has not yet started.");
     }
-    return this.chess;
+    return this.activeGame;
+  }
+
+  private startPlayerTimer(player: Player) {
+    const activeGame = this.getActiveGame();
+    activeGame.playerTimerTimeout = setTimeout(() => {
+      player.remainingTime = 0;
+      this.emit("timeout", this, Game.deepCopyPlayer(player));
+    }, player.remainingTime * 1000);
+  }
+
+  /**
+   *
+   * @returns How many seconds elapsed since the timer has started.
+   * @throws {InvalidGameStateException} - If game has not started or timer not
+   * set.
+   */
+  private stopPlayerTimer(): number {
+    const activeGame = this.getActiveGame();
+    if (!activeGame.playerTimerTimeout) {
+      throw new InvalidGameStateException("Timer not set.");
+    }
+    clearTimeout(activeGame.playerTimerTimeout);
+    const date = new Date();
+    return (date.getTime() - activeGame.currentMoveStartTime.getTime()) / 1000;
   }
 
   /**
@@ -92,7 +152,7 @@ export class Game {
    * @throws {InvalidStartException}
    */
   start() {
-    if (this.chess) {
+    if (this.activeGame) {
       throw new InvalidStartException("The game has already started.");
     }
 
@@ -100,26 +160,42 @@ export class Game {
       throw new InvalidStartException("Missing a second player.");
     }
 
-    this.chess = new Chess(parseFEN(startingBoardFENString));
+    this.activeGame = {
+      chess: new Chess(parseFEN(startingBoardFENString)),
+      currentMoveStartTime: new Date(),
+      playerTimerTimeout: null,
+    };
+
+    const player = this.activePlayer();
+    this.startPlayerTimer(player);
   }
 
   /**
    * @returns The player who's current turn it is.
    * @throws {InvalidGameStateException} When game has not yet started.
    */
-  getActivePlayer(): Player {
+  private activePlayer() {
     if (!this.player) {
       throw new InvalidGameStateException("Missing player.");
     }
-    const chess = this.getChessObject();
+    const { chess } = this.getActiveGame();
 
     const activeColor = chess.getActiveColor();
 
     return activeColor === this.player.color ? this.player : this.host;
   }
 
+  /**
+   * @returns The player who's current turn it is.
+   * @throws {InvalidGameStateException} When game has not yet started.
+   */
+  // For public use only since it returns a deep copy, use activePlayer() internally.
+  getActivePlayer(): Player {
+    return Game.deepCopyPlayer(this.activePlayer());
+  }
+
   hasStarted(): boolean {
-    return this.chess !== undefined;
+    return this.activeGame !== undefined;
   }
 
   /**
@@ -127,7 +203,7 @@ export class Game {
    * @throws {InvalidGameStateException} When game has not yet started.
    */
   getLegalMoves(): Move[] {
-    const chess = this.getChessObject();
+    const { chess } = this.getActiveGame();
     return chess.getLegalMoves();
   }
 
@@ -136,7 +212,7 @@ export class Game {
    * @throws {InvalidGameStateException} When game has not yet started.
    */
   getBoard(): Board {
-    const chess = this.getChessObject();
+    const { chess } = this.getActiveGame();
     return chess.getBoard();
   }
 
@@ -146,16 +222,35 @@ export class Game {
    * @throws {InvalidMoveException} When provided with an illegal move.
    */
   move(move: Move): Board {
-    const chess = this.getChessObject();
-    chess.move(move);
-    return chess.getBoard();
+    // Perform move
+    const player = this.activePlayer();
+    const activeGame = this.getActiveGame();
+    activeGame.chess.move(move);
+
+    // Update player timers
+    const elapsed = this.stopPlayerTimer();
+    player.remainingTime = player.remainingTime - elapsed;
+    if (activeGame.chess.isOngoing()) {
+      activeGame.currentMoveStartTime = new Date();
+      this.startPlayerTimer(this.activePlayer());
+    }
+    return activeGame.chess.getBoard();
   }
 
   /**
    * @returns The result of the game. If game is not finished, returns null.
    */
   getResult(): GameResult | null {
-    const chess = this.getChessObject();
+    const { chess } = this.getActiveGame();
     return chess.getResult();
+  }
+
+  /**
+   * Cleans up timers used by games that have started.
+   */
+  stop() {
+    if (this.hasStarted()) {
+      this.stopPlayerTimer();
+    }
   }
 }
