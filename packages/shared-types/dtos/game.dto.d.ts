@@ -58,7 +58,12 @@ export type StartGameDto = {
 
 type GameResultDto = {
   winner: PieceColor | null;
-  reason: "CHECKMATE" | "STALEMATE" | "FIFTY_MOVE_RULE" | "ABANDONED";
+  reason:
+    | "CHECKMATE"
+    | "STALEMATE"
+    | "FIFTY_MOVE_RULE"
+    | "ABANDONED"
+    | "TIMEOUT";
 };
 
 export type MoveSuccessDto = {
