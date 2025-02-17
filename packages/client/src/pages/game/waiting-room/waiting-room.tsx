@@ -5,7 +5,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./waiting-room.scss";
 import { Button } from "@/components/button/button";
 
-import { Game, JoinEvent, Player } from "../game";
+import { GameInfo, Player } from "../utils/chess";
+import { GameSocket, JoinEvent } from "../game-socket";
 
 type WaitingRoomPlayerProps = {
   displayName?: string;
@@ -34,7 +35,13 @@ const WaitingRoomPlayer: React.FC<WaitingRoomPlayerProps> = ({
 };
 
 type WaitingRoomProps = {
-  game: Game;
+  gameSocket: GameSocket;
+
+  gameInfo: GameInfo;
+
+  onJoin?: (player: Player) => void;
+
+  onLeave?: () => void;
 
   /**
    * Called when the waiting room has ended.
@@ -42,41 +49,15 @@ type WaitingRoomProps = {
   onEnd?: () => void;
 };
 
-export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game, onEnd }) => {
+export const WaitingRoom: React.FC<WaitingRoomProps> = ({
+  gameSocket,
+  gameInfo,
+}) => {
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
-  const [opponent, setOpponent] = useState<Player | null>(null);
   const [isStarting, setIsStarting] = useState(false);
 
-  useEffect(() => {
-    const joinEventCallback = (event: JoinEvent) => {
-      setOpponent(event.player);
-    };
-    const leaveEventCallback = () => {
-      setOpponent(null);
-    };
-    const endEventCallback = () => {
-      if (onEnd) {
-        onEnd();
-      }
-    };
-    const player = game.getPlayer();
-    if (game.isHost && !player) {
-      game.addEventListener("join", joinEventCallback);
-      game.addEventListener("waiting-room-leave", leaveEventCallback);
-    } else if (player) {
-      game.addEventListener("waiting-room-end", endEventCallback);
-      setOpponent(player);
-    }
-
-    return () => {
-      game.removeEventListener("waiting-room-leave", leaveEventCallback);
-      game.removeEventListener("join", joinEventCallback);
-      game.removeEventListener("waiting-room-end", endEventCallback);
-    };
-  }, [game]);
-
   const onCopyClick = () => {
-    navigator.clipboard.writeText(game.getId());
+    navigator.clipboard.writeText(gameInfo.id);
 
     setShowCopiedMessage(true);
 
@@ -86,7 +67,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game, onEnd }) => {
   };
 
   const startGame = () => {
-    game.start();
+    gameSocket.startGame();
     setIsStarting(true);
   };
 
@@ -94,7 +75,7 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game, onEnd }) => {
     <div className="waiting-room">
       <p className="waiting-room__section-title">Game ID</p>
       <div className="waiting-room__game-id-section">
-        <p>{game.getId()}</p>
+        <p>{gameInfo.id}</p>
         {showCopiedMessage ? (
           <p>Copied</p>
         ) : (
@@ -108,18 +89,21 @@ export const WaitingRoom: React.FC<WaitingRoomProps> = ({ game, onEnd }) => {
       <p className="waiting-room__section-title">Players</p>
       <div className="waiting-room__players">
         <WaitingRoomPlayer
-          displayName={game.getHost().name}
-          isUser={game.isHost}
+          displayName={gameInfo.host.name}
+          isUser={gameInfo.isHost}
         />
-        {opponent && (
+        {gameInfo.player && (
           <WaitingRoomPlayer
-            displayName={opponent.name}
-            isUser={!game.isHost}
+            displayName={gameInfo.player.name}
+            isUser={!gameInfo.isHost}
           />
         )}
       </div>
-      {game.isHost ? (
-        <Button disabled={opponent === null || isStarting} onClick={startGame}>
+      {gameInfo.isHost ? (
+        <Button
+          disabled={gameInfo.player == undefined || isStarting}
+          onClick={startGame}
+        >
           Start Game
         </Button>
       ) : (

@@ -2,41 +2,52 @@ import React, { useState, useEffect } from "react";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 import "./game.scss";
-import { Game as GameModel, EndEvent, OpponentMoveEvent } from "../game";
+import { GameSocket, EndEvent, OpponentMoveEvent } from "../game-socket";
 import { Board } from "../board/board";
 import {
   BoardPiece,
   getOppositeColor,
   isCoordinateEqual,
   PieceColor,
+  Move,
+  GameResult,
+  GameInfo,
+  Player,
 } from "../utils/chess";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { GameResultDto, MoveDto } from "chess-shared-types";
 import { GameModal } from "../game-modal/game-modal";
 import { Button } from "@/components/button/button";
 
 export type GameProps = {
-  game: GameModel;
-
+  gameSocket: GameSocket;
+  startingBoard: BoardPiece[];
+  initialLegalMoves: Move[];
+  gameInfo: Required<GameInfo>;
   /**
    * Executes once the game has finished.
    */
   onEnd?: () => void;
 };
 
-export const Game: React.FC<GameProps> = ({ game, onEnd }) => {
-  const [pieces, setPieces] = useState<BoardPiece[]>(game.getPieces());
-  const [legalMoves, setLegalMoves] = useState<MoveDto[]>(game.getLegalMoves());
+export const Game: React.FC<GameProps> = ({
+  startingBoard,
+  initialLegalMoves,
+  gameSocket,
+  onEnd,
+  gameInfo,
+}) => {
+  const [pieces, setPieces] = useState<BoardPiece[]>(startingBoard);
+  const [legalMoves, setLegalMoves] = useState<Move[]>(initialLegalMoves);
   const [activePlayer, setActivePlayer] = useState<PieceColor>(
     PieceColor.WHITE,
   );
   const [isWaitingMoveValidation, setIsWaitingMoveValidation] = useState(false);
 
-  const [gameResult, setGameResult] = useState<GameResultDto | null>(null);
+  const [gameResult, setGameResult] = useState<GameResult | null>(null);
 
   const switchActivePlayer = (
     newPosition: BoardPiece[],
-    legalMoves: MoveDto[],
+    legalMoves: Move[],
   ) => {
     setPieces(newPosition);
     setLegalMoves(legalMoves);
@@ -50,54 +61,63 @@ export const Game: React.FC<GameProps> = ({ game, onEnd }) => {
         setGameResult(event.gameResult);
       }
     };
-    game.addEventListener("opponent-move", opponentMoveEventListener);
+    gameSocket.addEventListener("opponent-move", opponentMoveEventListener);
 
     const endEventListener = (event: EndEvent) => {
       setGameResult(event.gameResult);
     };
 
-    game.addEventListener("end", endEventListener);
+    gameSocket.addEventListener("end", endEventListener);
 
     return () => {
-      game.removeEventListener("opponent-move", opponentMoveEventListener);
-      game.removeEventListener("end", endEventListener);
+      gameSocket.removeEventListener(
+        "opponent-move",
+        opponentMoveEventListener,
+      );
+      gameSocket.removeEventListener("end", endEventListener);
     };
-  }, [game, activePlayer]);
+  }, [gameSocket, activePlayer]);
 
-  const userPlayer = game.getUserPlayer();
+  let userPlayer: Player;
+  let opponent: Player;
+
+  if (gameInfo.isHost) {
+    userPlayer = gameInfo.host;
+    opponent = gameInfo.player;
+  } else {
+    userPlayer = gameInfo.player;
+    opponent = gameInfo.host;
+  }
+
   const isActivePlayer = activePlayer === userPlayer.color;
-  const opponent = game.getOpponent();
 
   const onLegalMove = isActivePlayer
-    ? async (moveDto: MoveDto) => {
+    ? async (move: Move) => {
         try {
           setIsWaitingMoveValidation(true);
           const newPieces = [...pieces];
           const destinationPieceIndex = newPieces.findIndex((piece) =>
-            isCoordinateEqual(piece.coordinate, moveDto.to),
+            isCoordinateEqual(piece.coordinate, move.to),
           );
           if (destinationPieceIndex > -1) {
             newPieces.splice(destinationPieceIndex, 1);
           }
           const originPieceIndex = newPieces.findIndex((piece) =>
-            isCoordinateEqual(piece.coordinate, moveDto.from),
+            isCoordinateEqual(piece.coordinate, move.from),
           );
           const movingPiece = newPieces[originPieceIndex];
           newPieces.splice(originPieceIndex, 1, {
             type: movingPiece.type,
             coordinate: {
-              rank: moveDto.to.rank,
-              file: moveDto.to.file,
+              rank: move.to.rank,
+              file: move.to.file,
             },
           });
           setPieces(newPieces);
-          const moveSuccessDto = await game.move(moveDto);
-          switchActivePlayer(
-            moveSuccessDto.newPosition,
-            moveSuccessDto.legalMoves,
-          );
-          if (moveSuccessDto.gameResult) {
-            setGameResult(moveSuccessDto.gameResult);
+          const moveResult = await gameSocket.move(move);
+          switchActivePlayer(moveResult.newPosition, moveResult.legalMoves);
+          if (moveResult.gameResult) {
+            setGameResult(moveResult.gameResult);
           }
         } catch (e) {
           setPieces(pieces);

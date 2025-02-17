@@ -1,5 +1,3 @@
-import { BoardCoordinateDto } from "chess-shared-types";
-
 export enum PieceName {
   KING = "KING",
   QUEEN = "QUEEN",
@@ -19,9 +17,41 @@ export type PieceType = Readonly<{
   name: PieceName;
 }>;
 
+export type BoardCoordinate = {
+  rank: number;
+  file: number;
+};
+
 export type BoardPiece = {
   type: PieceType;
-  coordinate: BoardCoordinateDto;
+  coordinate: BoardCoordinate;
+};
+
+export type Player = {
+  name: string;
+  color: PieceColor;
+};
+
+export type GameInfo = {
+  id: string;
+  host: Player;
+  player?: Player;
+  isHost: boolean;
+};
+
+export type Move = {
+  from: BoardCoordinate;
+  to: BoardCoordinate;
+};
+
+export type GameResult = {
+  winner: PieceColor | null;
+  reason:
+    | "CHECKMATE"
+    | "STALEMATE"
+    | "FIFTY_MOVE_RULE"
+    | "ABANDONED"
+    | "TIMEOUT";
 };
 
 export const PIECES: { [key: string]: PieceType } = {
@@ -97,11 +127,11 @@ function getBackRow(color: PieceColor): BoardPiece[] {
  *
  * The 0-based goes from a1, a2, ..., h8.
  */
-export function coordinateToIndex(coordinate: BoardCoordinateDto): number {
+export function coordinateToIndex(coordinate: BoardCoordinate): number {
   return coordinate.rank * 8 + coordinate.file;
 }
 
-export function indexToCoordinate(index: number): BoardCoordinateDto {
+export function indexToCoordinate(index: number): BoardCoordinate {
   const rank = Math.floor(index / 8);
   const file = index % 8;
   return {
@@ -111,8 +141,8 @@ export function indexToCoordinate(index: number): BoardCoordinateDto {
 }
 
 export function isCoordinateEqual(
-  coordinate1: BoardCoordinateDto,
-  coordinate2: BoardCoordinateDto,
+  coordinate1: BoardCoordinate,
+  coordinate2: BoardCoordinate,
 ): boolean {
   return (
     coordinate1.file === coordinate2.file &&

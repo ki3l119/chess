@@ -7,17 +7,17 @@ import { Input } from "@/components/input/input";
 import { Button } from "@/components/button/button";
 import { Alert } from "@/components/alert/alert";
 import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
-import { Game } from "../game";
-import { GameManager } from "../game-manager";
+import { GameSocket } from "../game-socket";
+import { GameInfo } from "../utils/chess";
 
 export type JoinGameFormProps = {
-  onJoin?: (game: Game) => void;
-  gameManager: GameManager;
+  onJoin?: (info: GameInfo) => void;
+  gameSocket: GameSocket;
 };
 
 export const JoinGameForm: React.FC<JoinGameFormProps> = ({
   onJoin,
-  gameManager,
+  gameSocket,
 }) => {
   const {
     handleSubmit,
@@ -27,9 +27,9 @@ export const JoinGameForm: React.FC<JoinGameFormProps> = ({
   } = useForm<JoinGameDto>();
   const { submitHandler } = useFormSubmitHandler({
     onSubmit: async (data) => {
-      const result = await gameManager.joinGame(data);
+      const gameInfo = await gameSocket.joinGame(data);
       if (onJoin) {
-        onJoin(result);
+        onJoin(gameInfo);
       }
     },
     setError,

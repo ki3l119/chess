@@ -10,12 +10,11 @@ import { Alert } from "@/components/alert/alert";
 import { config } from "@/config";
 import { JoinGameForm } from "./join-game-form/join-game-form";
 import { WaitingRoom } from "./waiting-room/waiting-room";
-import { GameManager } from "./game-manager";
-import { Game as GameComponent } from "./game/game";
-import { Game } from "./game";
+import { Game } from "./game/game";
+import { GameSocket, JoinEvent, StartEvent } from "./game-socket";
 import { GameModal } from "./game-modal/game-modal";
 import { Board } from "./board/board";
-import { PieceColor } from "./utils/chess";
+import { BoardPiece, GameInfo, Move, PieceColor, Player } from "./utils/chess";
 
 enum GameInitModal {
   NONE,
@@ -25,22 +24,25 @@ enum GameInitModal {
 }
 
 export const GamePage: React.FC = () => {
-  const [gameManager, setGameManager] = useState<GameManager | null>(null);
+  const [gameSocket, setGameSocket] = useState<GameSocket | null>(null);
   const [isConnecting, setIsConnecting] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [game, setGame] = useState<Game | null>(null);
+  const [gameInfo, setGameInfo] = useState<GameInfo | null>(null);
   const [gameInitModal, setGameInitModal] = useState<GameInitModal>(
     GameInitModal.NONE,
   );
   const [hasGameStarted, setHasGameStarted] = useState(false);
+  const [initialGameState, setInitialGameState] = useState<{
+    board: BoardPiece[];
+    legalMoves: Move[];
+  } | null>(null);
 
   useEffect(() => {
-    const initGameManager = async () => {
+    const initGameSocket = async () => {
       try {
         const webSocketUrl = new URL("/games", config.serverBaseUrl);
-        const manager = await GameManager.fromWebSocketUrl(webSocketUrl.href);
-        setGameManager(manager);
-        return manager;
+        const gameSocket = await GameSocket.fromWebSocketUrl(webSocketUrl.href);
+        setGameSocket(gameSocket);
       } catch (e) {
         if (e instanceof ServiceException) {
           setErrorMessage(e.details.details);
@@ -52,44 +54,80 @@ export const GamePage: React.FC = () => {
       }
     };
 
-    const gameManagerPromise = initGameManager();
-
-    return () => {
-      gameManagerPromise.then((gameManager) => {
-        gameManager?.close();
-      });
-    };
+    initGameSocket();
   }, []);
 
   useEffect(() => {
     return () => {
-      if (game) {
-        game.close();
+      gameSocket?.close();
+    };
+  }, [gameSocket]);
+
+  useEffect(() => {
+    const onJoin = (event: JoinEvent) => {
+      if (gameInfo) {
+        setGameInfo({
+          ...gameInfo,
+          player: event.player,
+        });
       }
     };
-  }, [game]);
 
-  const onNewGame = (game: Game) => {
-    game.addEventListener("start", () => {
+    const onStart = (event: StartEvent) => {
       setHasGameStarted(true);
-    });
-    setGame(game);
-  };
+      setInitialGameState({
+        board: event.startingPieces,
+        legalMoves: event.legalMoves,
+      });
+    };
 
-  const onWaitingRoomEnd = () => {
-    setGame(null);
+    const onWaitingRoomEnd = () => {
+      setGameInfo(null);
+    };
+
+    const onWaitingRoomLeave = () => {
+      if (gameInfo) {
+        setGameInfo({
+          ...gameInfo,
+          player: undefined,
+        });
+      }
+    };
+
+    if (gameSocket) {
+      gameSocket.addEventListener("join", onJoin);
+      gameSocket.addEventListener("start", onStart);
+      gameSocket.addEventListener("waiting-room-end", onWaitingRoomEnd);
+      gameSocket.addEventListener("waiting-room-leave", onWaitingRoomLeave);
+    }
+
+    return () => {
+      if (gameSocket) {
+        gameSocket.removeEventListener("join", onJoin);
+        gameSocket.removeEventListener("start", onStart);
+        gameSocket.removeEventListener("waiting-room-end", onWaitingRoomEnd);
+        gameSocket.removeEventListener(
+          "waiting-room-leave",
+          onWaitingRoomLeave,
+        );
+      }
+    };
+  }, [gameSocket, gameInfo]);
+
+  const onNewGame = (gameInfo: GameInfo) => {
+    setGameInfo(gameInfo);
   };
 
   const onGameEnd = () => {
-    setGame(null);
+    setGameInfo(null);
     setHasGameStarted(false);
   };
 
   const onWaitingRoomExit = () => {
-    const confirmExit = confirm("Are you sure you want to exit the game.");
-    if (game && confirmExit) {
-      game.leave();
-      setGame(null);
+    const confirmExit = confirm("Are you sure you want to exit the game?");
+    if (gameSocket && confirmExit) {
+      gameSocket.leaveGame();
+      setGameInfo(null);
     }
   };
 
@@ -108,8 +146,8 @@ export const GamePage: React.FC = () => {
           <Alert type="error" message={errorMessage} />
         </div>
       ) : (
-        gameManager &&
-        (!game ? (
+        gameSocket &&
+        (!gameInfo ? (
           <>
             <GameModal
               isOpen={gameInitModal === GameInitModal.CREATE}
@@ -120,7 +158,7 @@ export const GamePage: React.FC = () => {
                 onClick: closeInitModal,
               }}
             >
-              <CreateGameForm onCreate={onNewGame} gameManager={gameManager} />
+              <CreateGameForm onCreate={onNewGame} gameSocket={gameSocket} />
             </GameModal>
             <GameModal
               isOpen={gameInitModal === GameInitModal.JOIN}
@@ -131,7 +169,7 @@ export const GamePage: React.FC = () => {
                 onClick: closeInitModal,
               }}
             >
-              <JoinGameForm onJoin={onNewGame} gameManager={gameManager} />
+              <JoinGameForm onJoin={onNewGame} gameSocket={gameSocket} />
             </GameModal>
             {gameInitModal === GameInitModal.NONE && (
               <div className="game-page__init-options">
@@ -155,7 +193,7 @@ export const GamePage: React.FC = () => {
                 onClick: onWaitingRoomExit,
               }}
             >
-              <WaitingRoom game={game} onEnd={onWaitingRoomEnd} />
+              <WaitingRoom gameInfo={gameInfo} gameSocket={gameSocket} />
             </GameModal>
           )
         ))
@@ -163,11 +201,21 @@ export const GamePage: React.FC = () => {
       <div
         className={
           "game-page__game" +
-          (!game || !hasGameStarted ? " game-page__game--blur" : "")
+          (!gameSocket || !hasGameStarted ? " game-page__game--blur" : "")
         }
       >
-        {game && hasGameStarted ? (
-          <GameComponent game={game} onEnd={onGameEnd} />
+        {gameSocket &&
+        gameInfo &&
+        gameInfo.player &&
+        hasGameStarted &&
+        initialGameState ? (
+          <Game
+            gameSocket={gameSocket}
+            gameInfo={gameInfo as Required<GameInfo>}
+            onEnd={onGameEnd}
+            startingBoard={initialGameState.board}
+            initialLegalMoves={initialGameState.legalMoves}
+          />
         ) : (
           <Board perspective={PieceColor.WHITE} />
         )}

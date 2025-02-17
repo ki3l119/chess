@@ -7,18 +7,18 @@ import { Select } from "@/components/select/select";
 import { Button } from "@/components/button/button";
 import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
 import { Alert } from "@/components/alert/alert";
-import { GameManager } from "../game-manager";
-import { Game } from "../game";
+import { GameSocket } from "../game-socket";
 import { Input } from "@/components/input/input";
+import { GameInfo } from "../utils/chess";
 
 export type CreateGameFormProps = {
-  onCreate?: (game: Game) => void;
-  gameManager: GameManager;
+  onCreate?: (info: GameInfo) => void;
+  gameSocket: GameSocket;
 };
 
 export const CreateGameForm: React.FC<CreateGameFormProps> = ({
   onCreate,
-  gameManager,
+  gameSocket: gameSocket,
 }) => {
   const {
     register,
@@ -28,12 +28,12 @@ export const CreateGameForm: React.FC<CreateGameFormProps> = ({
   } = useForm<CreateGameDto>();
   const { submitHandler } = useFormSubmitHandler<CreateGameDto>({
     onSubmit: async (data) => {
-      const result = await gameManager.createGame({
+      const gameInfo = await gameSocket.createGame({
         color: data.color,
         playerTimerDuration: data.playerTimerDuration * 60,
       });
       if (onCreate) {
-        onCreate(result);
+        onCreate(gameInfo);
       }
     },
     setError,
