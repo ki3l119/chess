@@ -38,11 +38,30 @@ export class StartEvent extends Event {
   }
 }
 
+export class SuccessfulMoveEvent extends Event {
+  constructor(
+    readonly move: Move,
+    readonly newPosition: BoardPiece[],
+    readonly legalMoves: Move[],
+    /**
+     * The number of seconds left in the users's clock
+     */
+    readonly remainingTime: number,
+    readonly gameResult?: GameResult,
+  ) {
+    super("successful-move");
+  }
+}
+
 export class OpponentMoveEvent extends Event {
   constructor(
     readonly move: Move,
     readonly newPosition: BoardPiece[],
     readonly legalMoves: Move[],
+    /**
+     * The number of seconds left in the opponent's clock
+     */
+    readonly remainingTime: number,
     readonly gameResult?: GameResult,
   ) {
     super("opponent-move");
@@ -73,6 +92,7 @@ interface GameEventMap {
   "waiting-room-leave": WaitingRoomLeaveEvent;
   "waiting-room-end": WaitingRoomEndEvent;
   end: EndEvent;
+  "successful-move": SuccessfulMoveEvent;
 }
 
 export class GameSocket extends TypedEventTarget<GameEventMap> {
@@ -110,6 +130,7 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
           data.move,
           GameSocket.dtoToBoardPieces(data.newPosition),
           data.legalMoves,
+          data.remainingTime,
           data.gameResult && GameSocket.dtoToGameResult(data.gameResult),
         ),
       );
@@ -266,6 +287,7 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
     newPosition: BoardPiece[];
     legalMoves: Move[];
     gameResult?: GameResult;
+    remainingTime: number;
   }> {
     const moveSuccessDto =
       await this.socket.sendMessageWithResponse<MoveSuccessDto>({
@@ -273,12 +295,27 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
         data: move,
       });
 
+    const newPosition = GameSocket.dtoToBoardPieces(moveSuccessDto.newPosition);
+    const gameResult =
+      moveSuccessDto.gameResult &&
+      GameSocket.dtoToGameResult(moveSuccessDto.gameResult);
+
+    this.dispatchTypedEvent(
+      "successful-move",
+      new SuccessfulMoveEvent(
+        move,
+        newPosition,
+        moveSuccessDto.legalMoves,
+        moveSuccessDto.remainingTime,
+        gameResult,
+      ),
+    );
+
     return {
-      newPosition: GameSocket.dtoToBoardPieces(moveSuccessDto.newPosition),
+      newPosition: newPosition,
       legalMoves: moveSuccessDto.legalMoves,
-      gameResult:
-        moveSuccessDto.gameResult &&
-        GameSocket.dtoToGameResult(moveSuccessDto.gameResult),
+      gameResult: gameResult,
+      remainingTime: moveSuccessDto.remainingTime,
     };
   }
 

@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 import "./game.scss";
-import { GameSocket, EndEvent, OpponentMoveEvent } from "../game-socket";
+import {
+  GameSocket,
+  EndEvent,
+  OpponentMoveEvent,
+  SuccessfulMoveEvent,
+} from "../game-socket";
 import { Board } from "../board/board";
 import {
   BoardPiece,
@@ -38,40 +43,66 @@ type PlayerSectionProps = {
   player: Player;
   isActive: boolean;
   timerDuration: number;
+  gameSocket: GameSocket;
+  isCurrentUser: boolean;
+  isTimedOut?: boolean;
 };
 
 export const PlayerSection: React.FC<PlayerSectionProps> = ({
   player,
   isActive,
   timerDuration,
+  gameSocket,
+  isCurrentUser,
+  isTimedOut = false,
 }) => {
   const [remainingTime, setRemainingTime] = useState(timerDuration);
   const intervalIdRef = useRef<number | null>(null);
 
+  const startTimer = () => {
+    intervalIdRef.current = setInterval(() => {
+      setRemainingTime((remainingTime) => remainingTime - 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    if (intervalIdRef.current !== null) {
+      clearInterval(intervalIdRef.current);
+      intervalIdRef.current = null;
+    }
+  };
+
   useEffect(() => {
-    const startTimer = () => {
-      intervalIdRef.current = setInterval(() => {
-        setRemainingTime((remainingTime) => remainingTime - 1);
-      }, 1000);
-    };
-
-    const pauseTimer = () => {
-      if (intervalIdRef.current !== null) {
-        clearInterval(intervalIdRef.current);
-        intervalIdRef.current = null;
-      }
-    };
-
     if (isActive) {
       if (intervalIdRef.current === null) {
         startTimer();
       } else if (remainingTime <= 0) {
-        pauseTimer();
+        stopTimer();
       }
     } else if (intervalIdRef.current) {
-      pauseTimer();
+      stopTimer();
     }
   }, [isActive, remainingTime]);
+
+  useEffect(() => {
+    return () => {
+      stopTimer();
+    };
+  }, []);
+
+  useEffect(() => {
+    const moveListener = (event: SuccessfulMoveEvent | OpponentMoveEvent) => {
+      setRemainingTime(event.remainingTime);
+    };
+
+    const moveEventName = isCurrentUser ? "successful-move" : "opponent-move";
+
+    gameSocket.addEventListener(moveEventName, moveListener);
+
+    return () => {
+      gameSocket.removeEventListener(moveEventName, moveListener);
+    };
+  }, [gameSocket, isCurrentUser]);
 
   return (
     <div className="game__player">
@@ -84,7 +115,7 @@ export const PlayerSection: React.FC<PlayerSectionProps> = ({
           "game__player-timer" + (isActive ? " game__player-timer--active" : "")
         }
       >
-        {formatTime(remainingTime)}
+        {isTimedOut ? formatTime(0) : formatTime(remainingTime)}
       </div>
     </div>
   );
@@ -223,8 +254,15 @@ export const Game: React.FC<GameProps> = ({
       </GameModal>
       <PlayerSection
         player={opponent}
-        isActive={!isActivePlayer}
+        isActive={!gameResult && !isActivePlayer}
         timerDuration={gameInfo.playerTimerDuration}
+        gameSocket={gameSocket}
+        isCurrentUser={false}
+        isTimedOut={
+          gameResult != null &&
+          gameResult.reason === "TIMEOUT" &&
+          gameResult.winner !== opponent.color
+        }
       />
 
       <div className="game__board">
@@ -242,8 +280,15 @@ export const Game: React.FC<GameProps> = ({
       </div>
       <PlayerSection
         player={userPlayer}
-        isActive={isActivePlayer}
+        isActive={!gameResult && isActivePlayer}
         timerDuration={gameInfo.playerTimerDuration}
+        gameSocket={gameSocket}
+        isCurrentUser={true}
+        isTimedOut={
+          gameResult != null &&
+          gameResult.reason === "TIMEOUT" &&
+          gameResult.winner !== userPlayer.color
+        }
       />
     </div>
   );
