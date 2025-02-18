@@ -21,6 +21,7 @@ export type GameInfoDto = {
   host: PlayerDto;
   player?: PlayerDto;
   isColorRandom: boolean;
+  playerTimerDuration: number;
 };
 
 export type BoardCoordinateDto = {
