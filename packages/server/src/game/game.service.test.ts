@@ -35,9 +35,9 @@ describe("GameService", () => {
           id: newPlayer.id,
           name: newPlayer.name,
           color: PieceColor.WHITE,
-          remainingTime: 600,
         },
         isColorRandom: false,
+        playerTimerDuration: 600,
       };
       const { id, ...actual } = gameService.create(newPlayer, {
         color: "WHITE",
@@ -115,9 +115,9 @@ describe("GameService", () => {
       };
 
       const expectedPlayer = {
-        ...joiningPlayer,
+        id: joiningPlayer.id,
+        name: joiningPlayer.name,
         color: PieceColor.WHITE,
-        remainingTime: 600,
       };
       const { player: actualPlayer, ...actualGameInfo } = gameService.join(
         joiningPlayer,
@@ -663,16 +663,15 @@ describe("GameService", () => {
           host: {
             id: gameInfo.host.id,
             name: gameInfo.host.name,
-            remainingTime: 0,
             color: gameInfo.host.color,
           },
           player: {
             id: player.id,
             name: player.name,
-            remainingTime: 20,
             color: player.color,
           },
           isColorRandom: false,
+          playerTimerDuration: 20,
         },
         {
           winner: "BLACK",
@@ -729,16 +728,15 @@ describe("GameService", () => {
           host: {
             id: gameInfo.host.id,
             name: gameInfo.host.name,
-            remainingTime: 290,
             color: gameInfo.host.color,
           },
           player: {
             id: player.id,
             name: player.name,
-            remainingTime: 0,
             color: player.color,
           },
           isColorRandom: false,
+          playerTimerDuration: 300,
         },
         {
           winner: "WHITE",
