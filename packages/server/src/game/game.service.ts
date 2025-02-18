@@ -12,13 +12,7 @@ import {
   PlayerDto,
   StartGameDto,
 } from "chess-shared-types";
-import {
-  Board,
-  Move,
-  InvalidMoveException,
-  GameResult,
-  PieceColor,
-} from "chess-game";
+import { Board, Move, InvalidMoveException, PieceColor } from "chess-game";
 import {
   InvalidGameCreationException,
   InvalidGameJoinException,
@@ -290,23 +284,24 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
         throw new GameNotFoundException(gameId);
       }
 
-      const player = game.getActivePlayer();
+      let player = game.getActivePlayer();
 
       if (player.id !== playerId) {
         throw new InvalidGameMoveException(moveDto, playerId);
       }
 
-      game.move({
+      const moveResult = game.move({
         from: new BoardCoordinate(moveDto.from.rank, moveDto.from.file),
         to: new BoardCoordinate(moveDto.to.rank, moveDto.to.file),
       });
 
       return {
         newPosition: GameService.boardToPieceCentricRepresentation(
-          game.getBoard(),
+          moveResult.board,
         ),
         legalMoves: GameService.mapToLegalMoveDtos(game.getLegalMoves()),
         gameResult: game.getResult() || undefined,
+        remainingTime: moveResult.player.remainingTime,
       };
     } catch (e) {
       if (e instanceof InvalidMoveException) {

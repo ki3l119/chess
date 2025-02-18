@@ -236,6 +236,7 @@ export class GameGateway implements OnGatewayDisconnect {
       newPosition: moveSuccessDto.newPosition,
       legalMoves: moveSuccessDto.legalMoves,
       gameResult: moveSuccessDto.gameResult,
+      remainingTime: moveSuccessDto.remainingTime,
     };
 
     this.roomService.emit(

@@ -32,6 +32,18 @@ export type Player = {
 
 export type NewPlayer = Pick<Player, "id" | "name" | "userId">;
 
+type MoveResult = {
+  /**
+   * The position of two pieces after the move.
+   */
+  board: Board;
+
+  /**
+   * The state of the player after the move.
+   */
+  player: Player;
+};
+
 type ActiveGame = {
   chess: Chess;
   currentMoveStartTime: Date;
@@ -223,7 +235,10 @@ export class Game extends EventEmitter<EventMap> {
    * @throws {InvalidGameStateException} When game has not yet started.
    * @throws {InvalidMoveException} When provided with an illegal move.
    */
-  move(move: Move): Board {
+  move(move: Move): {
+    board: Board;
+    player: Player;
+  } {
     // Perform move
     const player = this.activePlayer();
     const activeGame = this.getActiveGame();
@@ -236,7 +251,10 @@ export class Game extends EventEmitter<EventMap> {
       activeGame.currentMoveStartTime = new Date();
       this.startPlayerTimer(this.activePlayer());
     }
-    return activeGame.chess.getBoard();
+    return {
+      board: activeGame.chess.getBoard(),
+      player,
+    };
   }
 
   /**
