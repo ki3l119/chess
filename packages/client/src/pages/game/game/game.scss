@@ -2,24 +2,42 @@
 @use "@/styles/_variables" as var;
 
 .game {
- 
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  row-gap: 20px;
-
+  row-gap: 10px;
+  
   @media (orientation: landscape) {
-    width: fit-content;
     height: 100%;
   }
 
   @media (orientation: portrait) {
     width: 100%;
-    height: fit-content;
+  }
+
+  &__board {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
   }
 
   &__player {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    @media (orientation: landscape) {
+      padding: 0 65px;
+    }
+  }
+
+  &__player-info {
     display: flex;
     column-gap: 10px;
   }
@@ -27,6 +45,21 @@
   &__player-name {
     font-size: map.get(var.$font-sizes, "base");
     font-weight: bold;
+  }
+
+  &__player-timer {
+    padding: 10px;
+    font-size: map.get(var.$font-sizes, "lg");
+    background-color: map.get(var.$surface-color, "light");
+    border: 1px solid map.get(var.$surface-color, "light");
+    color: map.get(var.$surface-color, "contrast");
+    border-radius: 7px;
+
+    &--active {
+      border-color: map.get(var.$primary-color, "light");
+      background-color: map.get(var.$primary-color, "light");
+      color: map.get(var.$primary-color, "contrast");
+    }
   }
 
 

@@ -227,6 +227,7 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
       host: GameSocket.dtoToPlayer(gameInfoDto.host),
       player: gameInfoDto.player && GameSocket.dtoToPlayer(gameInfoDto.player),
       isHost,
+      playerTimerDuration: gameInfoDto.playerTimerDuration,
     };
   }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 import "./game.scss";
@@ -17,6 +17,78 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameModal } from "../game-modal/game-modal";
 import { Button } from "@/components/button/button";
+
+/**
+ * Formats time to "MM:SS"
+ */
+function formatTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds - minutes * 60;
+
+  const minuteStr =
+    minutes < 10 ? `0${minutes.toString()}` : minutes.toString();
+  const secondStr =
+    remainingSeconds < 10
+      ? `0${remainingSeconds.toString()}`
+      : remainingSeconds.toString();
+  return `${minuteStr}:${secondStr}`;
+}
+
+type PlayerSectionProps = {
+  player: Player;
+  isActive: boolean;
+  timerDuration: number;
+};
+
+export const PlayerSection: React.FC<PlayerSectionProps> = ({
+  player,
+  isActive,
+  timerDuration,
+}) => {
+  const [remainingTime, setRemainingTime] = useState(timerDuration);
+  const intervalIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const startTimer = () => {
+      intervalIdRef.current = setInterval(() => {
+        setRemainingTime((remainingTime) => remainingTime - 1);
+      }, 1000);
+    };
+
+    const pauseTimer = () => {
+      if (intervalIdRef.current !== null) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
+      }
+    };
+
+    if (isActive) {
+      if (intervalIdRef.current === null) {
+        startTimer();
+      } else if (remainingTime <= 0) {
+        pauseTimer();
+      }
+    } else if (intervalIdRef.current) {
+      pauseTimer();
+    }
+  }, [isActive, remainingTime]);
+
+  return (
+    <div className="game__player">
+      <div className="game__player-info">
+        <FontAwesomeIcon icon={faUser} />
+        <p className="game__player-name">{player.name}</p>
+      </div>
+      <div
+        className={
+          "game__player-timer" + (isActive ? " game__player-timer--active" : "")
+        }
+      >
+        {formatTime(remainingTime)}
+      </div>
+    </div>
+  );
+};
 
 export type GameProps = {
   gameSocket: GameSocket;
@@ -149,29 +221,30 @@ export const Game: React.FC<GameProps> = ({
         <p>{gameResult && gameResultReasonMapping[gameResult.reason]}</p>
         <Button onClick={onEnd}>Finish</Button>
       </GameModal>
-      <div className="game__player">
-        <FontAwesomeIcon icon={faUser} />
-        <p className="game__player-name">
-          {opponent.name} {!isActivePlayer && "(Active)"}
-        </p>
-      </div>
-      <Board
-        pieces={pieces}
-        perspective={userPlayer.color}
-        legalMoves={legalMoves}
-        movablePieces={
-          isActivePlayer && !isWaitingMoveValidation && !gameResult
-            ? userPlayer.color
-            : undefined
-        }
-        onLegalMove={onLegalMove}
+      <PlayerSection
+        player={opponent}
+        isActive={!isActivePlayer}
+        timerDuration={gameInfo.playerTimerDuration}
       />
-      <div className="game__player">
-        <FontAwesomeIcon icon={faUser} />
-        <p className="game__player-name">
-          {userPlayer.name} {isActivePlayer && "(Active)"}
-        </p>
+
+      <div className="game__board">
+        <Board
+          pieces={pieces}
+          perspective={userPlayer.color}
+          legalMoves={legalMoves}
+          movablePieces={
+            isActivePlayer && !isWaitingMoveValidation && !gameResult
+              ? userPlayer.color
+              : undefined
+          }
+          onLegalMove={onLegalMove}
+        />
       </div>
+      <PlayerSection
+        player={userPlayer}
+        isActive={isActivePlayer}
+        timerDuration={gameInfo.playerTimerDuration}
+      />
     </div>
   );
 };

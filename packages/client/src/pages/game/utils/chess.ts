@@ -37,6 +37,7 @@ export type GameInfo = {
   host: Player;
   player?: Player;
   isHost: boolean;
+  playerTimerDuration: number;
 };
 
 export type Move = {
