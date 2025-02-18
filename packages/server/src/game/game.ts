@@ -143,7 +143,9 @@ export class Game extends EventEmitter<EventMap> {
     }
     clearTimeout(activeGame.playerTimerTimeout);
     const date = new Date();
-    return (date.getTime() - activeGame.currentMoveStartTime.getTime()) / 1000;
+    return Math.round(
+      (date.getTime() - activeGame.currentMoveStartTime.getTime()) / 1000,
+    );
   }
 
   /**
