@@ -72,6 +72,7 @@ export type MoveSuccessDto = {
   newPosition: PieceDto[];
   legalMoves: MoveDto[];
   gameResult?: GameResultDto;
+  remainingTime: number;
 };
 
 export type OpponentMoveDto = Pick<
@@ -80,6 +81,7 @@ export type OpponentMoveDto = Pick<
 > & {
   move: MoveDto;
   gameResult?: GameResultDto;
+  remainingTime: number;
 };
 
 export type EndGameDto = {
