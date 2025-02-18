@@ -53,13 +53,13 @@ export class Game extends EventEmitter<EventMap> {
   /**
    *
    * @param colorChoice - The color choice of the host.
-   * @param gameDuration - The timer duration for each player in seconds.
+   * @param playerTimerDuration - The timer duration for each player in seconds.
    */
   constructor(
     public readonly id: string,
     host: NewPlayer,
     colorChoice: PieceColorChoice,
-    private readonly gameDuration: number = 600,
+    readonly playerTimerDuration: number = 600,
   ) {
     super();
     this.isRandomColorChoice = colorChoice === "RANDOM";
@@ -77,7 +77,7 @@ export class Game extends EventEmitter<EventMap> {
       name: host.name,
       color,
       userId: host.userId,
-      remainingTime: this.gameDuration,
+      remainingTime: this.playerTimerDuration,
     };
   }
 
@@ -105,7 +105,7 @@ export class Game extends EventEmitter<EventMap> {
     this.player = player && {
       ...player,
       color: Chess.getOpposingColor(this.host.color),
-      remainingTime: this.gameDuration,
+      remainingTime: this.playerTimerDuration,
     };
 
     return this.player;

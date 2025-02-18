@@ -9,6 +9,7 @@ import {
   MoveDto,
   MoveSuccessDto,
   PieceDto,
+  PlayerDto,
   StartGameDto,
 } from "chess-shared-types";
 import {
@@ -77,11 +78,21 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
   }
 
   private static toGameInfoDto(game: Game): GameInfoDto {
+    const player = game.getPlayer();
     return {
       id: game.id,
-      host: game.getHost(),
-      player: game.getPlayer() || undefined,
+      host: GameService.toPlayerDto(game.getHost()),
+      player: player ? GameService.toPlayerDto(player) : undefined,
       isColorRandom: game.isRandomColorChoice,
+      playerTimerDuration: game.playerTimerDuration,
+    };
+  }
+
+  private static toPlayerDto(player: Player): PlayerDto {
+    return {
+      id: player.id,
+      name: player.name,
+      color: player.color,
     };
   }
 
