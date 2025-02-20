@@ -17,6 +17,12 @@ export type PieceType = Readonly<{
   name: PieceName;
 }>;
 
+export type PromotionPieceName =
+  | PieceName.BISHOP
+  | PieceName.QUEEN
+  | PieceName.KNIGHT
+  | PieceName.ROOK;
+
 export type BoardCoordinate = {
   rank: number;
   file: number;

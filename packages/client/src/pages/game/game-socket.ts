@@ -2,13 +2,14 @@ import {
   GameInfoDto,
   GameResultDto,
   EndGameDto,
-  MoveSuccessDto,
+  NewMoveSuccessDto,
   OpponentMoveDto,
   PieceDto,
   PlayerDto,
   StartGameDto,
   CreateGameDto,
   JoinGameDto,
+  NewMoveDto,
 } from "chess-shared-types";
 import { EventMessageWebSocket } from "@/ws";
 import { TypedEventTarget } from "typescript-event-target";
@@ -20,8 +21,14 @@ import {
   Player,
   GameResult,
   Move,
+  PromotionPieceName,
+  PieceName,
 } from "./utils/chess";
 import { ServiceException } from "@/services";
+
+type MoveOptions = {
+  pawnPromotionPiece?: PromotionPieceName;
+};
 
 export class JoinEvent extends Event {
   constructor(public readonly player: Player) {
@@ -283,16 +290,35 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
     });
   }
 
-  async move(move: Move): Promise<{
+  async move(
+    move: Move,
+    options: MoveOptions = {},
+  ): Promise<{
     newPosition: BoardPiece[];
     legalMoves: Move[];
     gameResult?: GameResult;
     remainingTime: number;
   }> {
+    const promotionPieceMapping = {
+      [PieceName.QUEEN]: "Q",
+      [PieceName.ROOK]: "R",
+      [PieceName.KNIGHT]: "N",
+      [PieceName.BISHOP]: "B",
+    };
+
+    const pawnPromotionPiece =
+      options.pawnPromotionPiece &&
+      (promotionPieceMapping[
+        options.pawnPromotionPiece
+      ] as NewMoveDto["pawnPromotionPiece"]);
+    const data: NewMoveDto = {
+      move,
+      pawnPromotionPiece: pawnPromotionPiece,
+    };
     const moveSuccessDto =
-      await this.socket.sendMessageWithResponse<MoveSuccessDto>({
+      await this.socket.sendMessageWithResponse<NewMoveSuccessDto>({
         event: "move",
-        data: move,
+        data,
       });
 
     const newPosition = GameSocket.dtoToBoardPieces(moveSuccessDto.newPosition);

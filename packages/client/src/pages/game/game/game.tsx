@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
+import { faCircleXmark, faUser } from "@fortawesome/free-solid-svg-icons";
 
 import "./game.scss";
 import {
@@ -18,10 +18,14 @@ import {
   GameResult,
   GameInfo,
   Player,
+  PieceName,
+  PromotionPieceName,
 } from "../utils/chess";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameModal } from "../game-modal/game-modal";
 import { Button } from "@/components/button/button";
+import { EventMessageWebSocketException } from "@/ws";
+import { PromotionPieceSelector } from "../promotion-piece-selector/promotion-piece-selector";
 
 /**
  * Formats time to "MM:SS"
@@ -147,6 +151,10 @@ export const Game: React.FC<GameProps> = ({
   const [isWaitingMoveValidation, setIsWaitingMoveValidation] = useState(false);
 
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
+  const [pawnPromotionInput, setPawnPromotionInput] = useState<{
+    previousPosition: BoardPiece[];
+    move: Move;
+  } | null>(null);
 
   const switchActivePlayer = (
     newPosition: BoardPiece[],
@@ -194,41 +202,81 @@ export const Game: React.FC<GameProps> = ({
 
   const isActivePlayer = activePlayer === userPlayer.color;
 
-  const onLegalMove = isActivePlayer
-    ? async (move: Move) => {
-        try {
-          setIsWaitingMoveValidation(true);
-          const newPieces = [...pieces];
-          const destinationPieceIndex = newPieces.findIndex((piece) =>
-            isCoordinateEqual(piece.coordinate, move.to),
-          );
-          if (destinationPieceIndex > -1) {
-            newPieces.splice(destinationPieceIndex, 1);
-          }
-          const originPieceIndex = newPieces.findIndex((piece) =>
-            isCoordinateEqual(piece.coordinate, move.from),
-          );
-          const movingPiece = newPieces[originPieceIndex];
-          newPieces.splice(originPieceIndex, 1, {
-            type: movingPiece.type,
-            coordinate: {
-              rank: move.to.rank,
-              file: move.to.file,
-            },
-          });
-          setPieces(newPieces);
-          const moveResult = await gameSocket.move(move);
-          switchActivePlayer(moveResult.newPosition, moveResult.legalMoves);
-          if (moveResult.gameResult) {
-            setGameResult(moveResult.gameResult);
-          }
-        } catch (e) {
-          setPieces(pieces);
-        } finally {
-          setIsWaitingMoveValidation(false);
-        }
+  const onPawnPromotionPick = async (pieceChoice: PromotionPieceName) => {
+    if (!pawnPromotionInput) {
+      return;
+    }
+    try {
+      setIsWaitingMoveValidation(true);
+      setPawnPromotionInput(null);
+      const moveResult = await gameSocket.move(pawnPromotionInput.move, {
+        pawnPromotionPiece: pieceChoice,
+      });
+      switchActivePlayer(moveResult.newPosition, moveResult.legalMoves);
+      if (moveResult.gameResult) {
+        setGameResult(moveResult.gameResult);
       }
-    : undefined;
+    } catch (e) {
+      setPieces(pawnPromotionInput.previousPosition);
+    } finally {
+      setIsWaitingMoveValidation(false);
+    }
+  };
+
+  const onPawnPromotionClose = () => {
+    if (pawnPromotionInput) {
+      setPawnPromotionInput(null);
+      setPieces(pawnPromotionInput.previousPosition);
+    }
+  };
+
+  const onLegalMove = async (move: Move) => {
+    try {
+      setIsWaitingMoveValidation(true);
+      const newPieces = [...pieces];
+      const destinationPieceIndex = newPieces.findIndex((piece) =>
+        isCoordinateEqual(piece.coordinate, move.to),
+      );
+      if (destinationPieceIndex > -1) {
+        newPieces.splice(destinationPieceIndex, 1);
+      }
+      const originPieceIndex = newPieces.findIndex((piece) =>
+        isCoordinateEqual(piece.coordinate, move.from),
+      );
+      const movingPiece = newPieces[originPieceIndex];
+      newPieces.splice(originPieceIndex, 1, {
+        type: movingPiece.type,
+        coordinate: {
+          rank: move.to.rank,
+          file: move.to.file,
+        },
+      });
+      setPieces(newPieces);
+
+      // For pawn promotion
+      const opponentBackrank = userPlayer.color === PieceColor.WHITE ? 7 : 0;
+      if (
+        movingPiece.type.name === PieceName.PAWN &&
+        move.to.rank === opponentBackrank
+      ) {
+        setPawnPromotionInput({
+          previousPosition: pieces,
+          move,
+        });
+        return;
+      }
+
+      const moveResult = await gameSocket.move(move);
+      switchActivePlayer(moveResult.newPosition, moveResult.legalMoves);
+      if (moveResult.gameResult) {
+        setGameResult(moveResult.gameResult);
+      }
+    } catch (e) {
+      setPieces(pieces);
+    } finally {
+      setIsWaitingMoveValidation(false);
+    }
+  };
 
   const gameResultTitle = gameResult
     ? gameResult.winner === null
@@ -251,6 +299,20 @@ export const Game: React.FC<GameProps> = ({
       <GameModal isOpen={gameResult != null} title={gameResultTitle}>
         <p>{gameResult && gameResultReasonMapping[gameResult.reason]}</p>
         <Button onClick={onEnd}>Finish</Button>
+      </GameModal>
+      <GameModal
+        isOpen={pawnPromotionInput != null}
+        title="Pawn Promotion"
+        icon={{
+          iconDefinition: faCircleXmark,
+          position: "right",
+          onClick: onPawnPromotionClose,
+        }}
+      >
+        <PromotionPieceSelector
+          pieceColor={userPlayer.color}
+          onSelect={onPawnPromotionPick}
+        />
       </GameModal>
       <PlayerSection
         player={opponent}
