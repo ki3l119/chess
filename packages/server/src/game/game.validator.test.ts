@@ -3,7 +3,7 @@ import { describe, it, expect } from "@jest/globals";
 import {
   createGameDtoSchema,
   joinGameDtoSchema,
-  moveDtoSchema,
+  newMoveDtoSchema,
 } from "./game.validator";
 import { randomUUID } from "crypto";
 
@@ -109,43 +109,90 @@ describe("Game DTO validation schemas", () => {
     });
   });
 
-  describe("moveDtoSchema", () => {
+  describe("newMoveDtoSchema", () => {
     it("No errors on valid DTO", () => {
       const input = {
-        from: {
-          rank: 0,
-          file: 2,
-        },
-        to: {
-          rank: 7,
-          file: 7,
+        move: {
+          from: {
+            rank: 0,
+            file: 2,
+          },
+          to: {
+            rank: 7,
+            file: 7,
+          },
         },
       };
 
-      const actual = moveDtoSchema.validate(input);
-
+      const actual = newMoveDtoSchema.validate(input);
+      expect(actual.error).toBeUndefined();
       expect(actual.value).toEqual(input);
     });
 
     it("Error on when provided with coordinates outside board range", () => {
       const input = {
-        from: {
-          rank: -1,
-          file: 2,
-        },
-        to: {
-          rank: 7,
-          file: 8,
+        move: {
+          from: {
+            rank: -1,
+            file: 2,
+          },
+          to: {
+            rank: 7,
+            file: 8,
+          },
         },
       };
 
-      const actual = moveDtoSchema.validate(input, { abortEarly: false });
+      const actual = newMoveDtoSchema.validate(input, { abortEarly: false });
 
       expect(actual.error?.details.length).toBe(2);
       expect(actual.error?.details.map((value) => value.path).sort()).toEqual([
-        ["from", "rank"],
-        ["to", "file"],
+        ["move", "from", "rank"],
+        ["move", "to", "file"],
       ]);
+    });
+
+    it.each(["Q", "N", "B", "R"])(
+      'No errors on valid pawn promotion piece ("%s")',
+      (pieceInput) => {
+        const input = {
+          move: {
+            from: {
+              rank: 0,
+              file: 2,
+            },
+            to: {
+              rank: 7,
+              file: 7,
+            },
+          },
+          pawnPromotionPiece: pieceInput,
+        };
+
+        const actual = newMoveDtoSchema.validate(input);
+        expect(actual.error).toBeUndefined();
+        expect(actual.value).toEqual(input);
+      },
+    );
+
+    it("Error on invalid pawn promotion piece", () => {
+      const input = {
+        move: {
+          from: {
+            rank: 0,
+            file: 2,
+          },
+          to: {
+            rank: 7,
+            file: 7,
+          },
+        },
+        pawnPromotionPiece: "K",
+      };
+
+      const actual = newMoveDtoSchema.validate(input);
+      expect(actual.error?.details.length).toBe(1);
+      expect(actual.error?.details[0].path).toEqual(["pawnPromotionPiece"]);
     });
   });
 });
