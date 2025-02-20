@@ -53,6 +53,11 @@ export type MoveDto = {
   to: BoardCoordinateDto;
 };
 
+export type NewMoveDto = {
+  move: MoveDto;
+  pawnPromotionPiece?: "R" | "N" | "B" | "Q";
+};
+
 export type StartGameDto = {
   pieces: PieceDto[];
   legalMoves: MoveDto[];
@@ -68,7 +73,7 @@ type GameResultDto = {
     | "TIMEOUT";
 };
 
-export type MoveSuccessDto = {
+export type NewMoveSuccessDto = {
   newPosition: PieceDto[];
   legalMoves: MoveDto[];
   gameResult?: GameResultDto;
@@ -76,7 +81,7 @@ export type MoveSuccessDto = {
 };
 
 export type OpponentMoveDto = Pick<
-  MoveSuccessDto,
+  NewMoveSuccessDto,
   "newPosition" | "legalMoves"
 > & {
   move: MoveDto;
