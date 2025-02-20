@@ -15,8 +15,16 @@ import {
   Bishop,
   King,
   Piece,
+  PIECES,
+  FENPieceName,
 } from "./pieces";
 import { GameState } from "./types";
+
+export type PawnPromotionPieceName = "N" | "Q" | "R" | "B";
+
+export type MoveOptions = {
+  pawnPromotionPiece?: PawnPromotionPieceName;
+};
 
 export enum GameEndReason {
   CHECKMATE = "CHECKMATE",
@@ -270,7 +278,11 @@ export class Chess {
    *
    * @throws {InvalidMoveException}
    */
-  private static performMove(gameState: GameState, move: Move) {
+  private static performMove(
+    gameState: GameState,
+    move: Move,
+    options: MoveOptions = {},
+  ) {
     const piece = gameState.board.getPiece(move.from);
     if (!piece) {
       throw new InvalidMoveException(
@@ -282,6 +294,7 @@ export class Chess {
     const targetPiece = gameState.board.getPiece(move.to);
     const opposingColor = Chess.getOpposingColor(gameState.activeColor);
     const colorBackRank = gameState.activeColor === PieceColor.WHITE ? 0 : 7;
+    const opponentBackRank = gameState.activeColor === PieceColor.WHITE ? 7 : 0;
 
     gameState.board.movePiece(move);
 
@@ -322,8 +335,8 @@ export class Chess {
       }
     }
 
-    // Handle en passant move
     if (piece instanceof Pawn) {
+      // Handle en passant move
       if (
         gameState.enPassantTarget &&
         move.to.isEqual(gameState.enPassantTarget)
@@ -343,6 +356,17 @@ export class Chess {
         });
       } else {
         gameState.enPassantTarget = null;
+      }
+
+      // Handle pawn promotion
+      if (move.to.rank === opponentBackRank && options.pawnPromotionPiece) {
+        const pieceLetter = (
+          gameState.activeColor === PieceColor.WHITE
+            ? options.pawnPromotionPiece
+            : options.pawnPromotionPiece.toLowerCase()
+        ) as FENPieceName;
+
+        gameState.board.set(move.to, PIECES[pieceLetter]);
       }
     } else {
       gameState.enPassantTarget = null;
@@ -453,7 +477,7 @@ export class Chess {
    *
    * @throws {InvalidMoveException}
    */
-  move(move: Move) {
+  move(move: Move, options: MoveOptions = {}) {
     if (
       !this.gameState.board.isWithinBoard(move.from) ||
       !this.gameState.board.isWithinBoard(move.to)
@@ -475,7 +499,8 @@ export class Chess {
     if (!isLegalMove) {
       throw new InvalidMoveException(move);
     }
-    Chess.performMove(this.gameState, move);
+
+    Chess.performMove(this.gameState, move, options);
 
     // Check for winning condition
     this.currentLegalMoves = this.calculateLegalMoves();

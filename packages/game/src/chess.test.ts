@@ -1,20 +1,27 @@
 import { describe, it, expect } from "@jest/globals";
 
 import { parseFEN, startingBoardFENString } from "./utils/fen-parser";
-import { Chess, GameEndReason, GameResult } from "./chess";
+import {
+  Chess,
+  GameEndReason,
+  GameResult,
+  MoveOptions,
+  PawnPromotionPieceName,
+} from "./chess";
 import { BoardCoordinate, Move } from "./board";
 import { InvalidMoveException } from "./exceptions";
-import { PieceColor } from "./pieces";
+import { FENPieceName, PieceColor } from "./pieces";
 
 function testChessMove(
   initialGameStateFEN: string,
   move: Move,
   expectedGameStateFEN: string,
+  options: MoveOptions = {},
 ) {
   const initialGameState = parseFEN(initialGameStateFEN);
   const chess = new Chess(initialGameState);
   const expectedState = parseFEN(expectedGameStateFEN);
-  chess.move(move);
+  chess.move(move, options);
   expect(chess.getGameState()).toStrictEqual(expectedState);
   expect(chess.isOngoing()).toBe(true);
 }
@@ -401,6 +408,50 @@ describe("Chess", () => {
       "Throws exception if the provided coordinates is out of bounds.",
       (move) => {
         testInvalidChessMove(startingBoardFENString, move);
+      },
+    );
+
+    it.each([
+      ["R", "R7/8/3N4/6k1/4Q2p/3P1P1P/1PP4K/8 b - - 0 38"],
+      ["Q", "Q7/8/3N4/6k1/4Q2p/3P1P1P/1PP4K/8 b - - 0 38"],
+      ["B", "B7/8/3N4/6k1/4Q2p/3P1P1P/1PP4K/8 b - - 0 38"],
+      ["N", "N7/8/3N4/6k1/4Q2p/3P1P1P/1PP4K/8 b - - 0 38"],
+    ])(
+      "Promotes white pawn to specified piece (%#)",
+      (targetPiece: string, expectedGameStateFEN: string) => {
+        testChessMove(
+          "8/P7/3N4/6k1/4Q2p/3P1P1P/1PP4K/8 w - - 1 38",
+          {
+            from: new BoardCoordinate(6, 0),
+            to: new BoardCoordinate(7, 0),
+          },
+          expectedGameStateFEN,
+          {
+            pawnPromotionPiece: targetPiece as PawnPromotionPieceName,
+          },
+        );
+      },
+    );
+
+    it.each([
+      ["R", "5r2/5rkp/4Q3/6Np/3P4/5P2/P1PR2PK/1rR5 w - - 0 27"],
+      ["B", "5r2/5rkp/4Q3/6Np/3P4/5P2/P1PR2PK/1bR5 w - - 0 27"],
+      ["N", "5r2/5rkp/4Q3/6Np/3P4/5P2/P1PR2PK/1nR5 w - - 0 27"],
+      ["Q", "5r2/5rkp/4Q3/6Np/3P4/5P2/P1PR2PK/1qR5 w - - 0 27"],
+    ])(
+      "Promotes black pawn to specified piece (%#)",
+      (targetPiece: string, expectedGameStateFEN: string) => {
+        testChessMove(
+          "5r2/5rkp/4Q3/6Np/3P4/5P2/PpPR2PK/2R5 b - - 1 26",
+          {
+            from: new BoardCoordinate(1, 1),
+            to: new BoardCoordinate(0, 1),
+          },
+          expectedGameStateFEN,
+          {
+            pawnPromotionPiece: targetPiece as PawnPromotionPieceName,
+          },
+        );
       },
     );
   });
