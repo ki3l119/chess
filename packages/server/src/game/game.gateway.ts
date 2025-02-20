@@ -32,7 +32,6 @@ import { GameService } from "./game.service";
 import {
   createGameDtoSchema,
   joinGameDtoSchema,
-  moveDtoSchema,
   newMoveDtoSchema,
 } from "./game.validator";
 import { GameSocket } from "./types";
@@ -143,7 +142,10 @@ export class GameGateway implements OnGatewayDisconnect {
   handleCreate(
     @ConnectedSocket() socket: GameSocket,
     @MessageBody(
-      new WebSocketJoiValidationPipe(createGameDtoSchema, "create:error"),
+      new WebSocketJoiValidationPipe(
+        createGameDtoSchema.required(),
+        "create:error",
+      ),
     )
     createGameDto: CreateGameDto,
   ): WsResponse<GameInfoDto> {
@@ -168,7 +170,10 @@ export class GameGateway implements OnGatewayDisconnect {
   handleJoin(
     @ConnectedSocket() socket: GameSocket,
     @MessageBody(
-      new WebSocketJoiValidationPipe(joinGameDtoSchema, "join:error"),
+      new WebSocketJoiValidationPipe(
+        joinGameDtoSchema.required(),
+        "join:error",
+      ),
     )
     joinGameDto: JoinGameDto,
   ): WsResponse<GameInfoDto> {
@@ -227,7 +232,9 @@ export class GameGateway implements OnGatewayDisconnect {
   handleMove(
     @CurrentGame() gameId: string,
     @ConnectedSocket() socket: GameSocket,
-    @MessageBody(new WebSocketJoiValidationPipe(newMoveDtoSchema, "move:error"))
+    @MessageBody(
+      new WebSocketJoiValidationPipe(newMoveDtoSchema.required(), "move:error"),
+    )
     newMoveDto: NewMoveDto,
   ): WsResponse<NewMoveSuccessDto> {
     const moveSuccessDto = this.gameService.move(
