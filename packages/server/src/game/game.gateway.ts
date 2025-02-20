@@ -19,8 +19,8 @@ import {
   EndGameDto,
   GameInfoDto,
   JoinGameDto,
-  MoveDto,
-  MoveSuccessDto,
+  NewMoveSuccessDto,
+  NewMoveDto,
   OpponentMoveDto,
 } from "chess-shared-types";
 import {
@@ -33,6 +33,7 @@ import {
   createGameDtoSchema,
   joinGameDtoSchema,
   moveDtoSchema,
+  newMoveDtoSchema,
 } from "./game.validator";
 import { GameSocket } from "./types";
 import { GameGuard, GameGuardWithResponse } from "./game.guard";
@@ -226,13 +227,20 @@ export class GameGateway implements OnGatewayDisconnect {
   handleMove(
     @CurrentGame() gameId: string,
     @ConnectedSocket() socket: GameSocket,
-    @MessageBody(new WebSocketJoiValidationPipe(moveDtoSchema, "move:error"))
-    moveDto: MoveDto,
-  ): WsResponse<MoveSuccessDto> {
-    const moveSuccessDto = this.gameService.move(gameId, moveDto, socket.id);
+    @MessageBody(new WebSocketJoiValidationPipe(newMoveDtoSchema, "move:error"))
+    newMoveDto: NewMoveDto,
+  ): WsResponse<NewMoveSuccessDto> {
+    const moveSuccessDto = this.gameService.move(
+      gameId,
+      newMoveDto.move,
+      socket.id,
+      {
+        pawnPromotionPiece: newMoveDto.pawnPromotionPiece,
+      },
+    );
 
     const opponentMoveDto: OpponentMoveDto = {
-      move: moveDto,
+      move: newMoveDto.move,
       newPosition: moveSuccessDto.newPosition,
       legalMoves: moveSuccessDto.legalMoves,
       gameResult: moveSuccessDto.gameResult,

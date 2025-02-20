@@ -5,6 +5,7 @@ import {
   CreateGameDto,
   JoinGameDto,
   MoveDto,
+  NewMoveDto,
 } from "chess-shared-types";
 
 export const createGameDtoSchema = Joi.object<CreateGameDto>({
@@ -24,4 +25,9 @@ const boardCoordinateSchema = Joi.object<BoardCoordinateDto>({
 export const moveDtoSchema = Joi.object<MoveDto>({
   from: boardCoordinateSchema.required(),
   to: boardCoordinateSchema.required(),
+});
+
+export const newMoveDtoSchema = Joi.object<NewMoveDto>({
+  move: moveDtoSchema.required(),
+  pawnPromotionPiece: Joi.string().valid("R", "N", "B", "Q"),
 }).required();

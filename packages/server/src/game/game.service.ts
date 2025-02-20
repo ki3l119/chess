@@ -7,12 +7,18 @@ import {
   GameResultDto,
   JoinGameDto,
   MoveDto,
-  MoveSuccessDto,
+  NewMoveSuccessDto,
   PieceDto,
   PlayerDto,
   StartGameDto,
 } from "chess-shared-types";
-import { Board, Move, InvalidMoveException, PieceColor } from "chess-game";
+import {
+  Board,
+  Move,
+  InvalidMoveException,
+  PieceColor,
+  MoveOptions,
+} from "chess-game";
 import {
   InvalidGameCreationException,
   InvalidGameJoinException,
@@ -276,7 +282,12 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
     };
   }
 
-  move(gameId: string, moveDto: MoveDto, playerId: string): MoveSuccessDto {
+  move(
+    gameId: string,
+    moveDto: MoveDto,
+    playerId: string,
+    options: MoveOptions = {},
+  ): NewMoveSuccessDto {
     try {
       const game = this.games.get(gameId);
 
@@ -290,10 +301,13 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
         throw new InvalidGameMoveException(moveDto, playerId);
       }
 
-      const moveResult = game.move({
-        from: new BoardCoordinate(moveDto.from.rank, moveDto.from.file),
-        to: new BoardCoordinate(moveDto.to.rank, moveDto.to.file),
-      });
+      const moveResult = game.move(
+        {
+          from: new BoardCoordinate(moveDto.from.rank, moveDto.from.file),
+          to: new BoardCoordinate(moveDto.to.rank, moveDto.to.file),
+        },
+        options,
+      );
 
       return {
         newPosition: GameService.boardToPieceCentricRepresentation(

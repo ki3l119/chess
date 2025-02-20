@@ -9,6 +9,7 @@ import {
   Board,
   GameResult,
   InvalidMoveException,
+  MoveOptions,
 } from "chess-game";
 import { PieceColorChoice } from "chess-shared-types";
 
@@ -235,14 +236,17 @@ export class Game extends EventEmitter<EventMap> {
    * @throws {InvalidGameStateException} When game has not yet started.
    * @throws {InvalidMoveException} When provided with an illegal move.
    */
-  move(move: Move): {
+  move(
+    move: Move,
+    options: MoveOptions = {},
+  ): {
     board: Board;
     player: Player;
   } {
     // Perform move
     const player = this.activePlayer();
     const activeGame = this.getActiveGame();
-    activeGame.chess.move(move);
+    activeGame.chess.move(move, options);
 
     // Update player timers
     const elapsed = this.stopPlayerTimer();
