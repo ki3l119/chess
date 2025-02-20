@@ -29,7 +29,7 @@ $dark-tile-color: #777277;
     justify-content: center;
     position: relative;
 
-    
+    user-select: none;
   
     &--light {
       background-color: $light-tile-color;

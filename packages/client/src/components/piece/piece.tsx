@@ -9,10 +9,11 @@ export type PieceProps = {
 
 export const Piece: React.FC<PieceProps> = ({ type }) => {
   return (
-    <img
-      className="chess-piece"
-      draggable={false}
-      src={`/pieces/${type.color.toLowerCase()}/${type.name.toLowerCase()}.svg`}
+    <div
+      className={
+        "chess-piece " +
+        `chess-piece--${type.color.toLowerCase()}-${type.name.toLowerCase()}`
+      }
     />
   );
 };
