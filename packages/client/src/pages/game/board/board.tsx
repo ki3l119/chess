@@ -31,6 +31,10 @@ type BoardTileProps = {
    * Called when the user releases their primary pointer button within the tile.
    */
   onPointerRelease?: (coordinate: BoardCoordinateDto) => void;
+
+  rankLabel?: string;
+
+  fileLabel?: string;
 };
 
 const BoardTile: React.FC<BoardTileProps> = ({
@@ -41,6 +45,8 @@ const BoardTile: React.FC<BoardTileProps> = ({
   onPieceMoveStart,
   onPieceMoveEnd,
   onPointerRelease,
+  rankLabel,
+  fileLabel,
 }) => {
   const coordinate = indexToCoordinate(index);
 
@@ -139,6 +145,16 @@ const BoardTile: React.FC<BoardTileProps> = ({
       className={`chess-board__tile chess-board__tile--${tileModifier}`}
       onPointerUp={onPointerUp}
     >
+      {rankLabel && (
+        <p className={"chess-board__tile-label chess-board__tile-label--rank"}>
+          {rankLabel}
+        </p>
+      )}
+      {fileLabel && (
+        <p className={"chess-board__tile-label chess-board__tile-label--file"}>
+          {fileLabel}
+        </p>
+      )}
       <div
         className={tilePieceClasses.join(" ")}
         onPointerDown={movablePiece ? startMove : undefined}
@@ -230,21 +246,40 @@ export const Board: React.FC<BoardProps> = ({
     board[boardIndex] = piece.type;
   }
 
-  const boardTiles = board.map((piece, index) => (
-    <BoardTile
-      key={`${index}-${piece ? `${piece.color}-${piece.name}` : "null"}`}
-      index={index}
-      piece={piece}
-      movablePiece={piece !== null && piece.color === movablePieces}
-      mark={
-        markedBlocks &&
-        markedBlocks.find((markedIndex) => index === markedIndex) !== undefined
-      }
-      onPieceMoveStart={onPieceMoveStart}
-      onPieceMoveEnd={onPieceMoveEnd}
-      onPointerRelease={onTilePointerRelease}
-    />
-  ));
+  const labelledRank = perspective === PieceColor.WHITE ? 0 : 7;
+  const labelledFile = labelledRank;
+  const boardTiles = board.map((piece, index) => {
+    const coordinate = indexToCoordinate(index);
+
+    let fileLabel: string | undefined;
+    let rankLabel: string | undefined;
+    if (coordinate.rank === labelledRank) {
+      fileLabel = String.fromCharCode(97 + coordinate.file);
+    }
+
+    if (coordinate.file === labelledFile) {
+      rankLabel = String(coordinate.rank + 1);
+    }
+
+    return (
+      <BoardTile
+        key={`${index}-${piece ? `${piece.color}-${piece.name}` : "null"}`}
+        index={index}
+        piece={piece}
+        movablePiece={piece !== null && piece.color === movablePieces}
+        mark={
+          markedBlocks &&
+          markedBlocks.find((markedIndex) => index === markedIndex) !==
+            undefined
+        }
+        onPieceMoveStart={onPieceMoveStart}
+        onPieceMoveEnd={onPieceMoveEnd}
+        onPointerRelease={onTilePointerRelease}
+        fileLabel={fileLabel}
+        rankLabel={rankLabel}
+      />
+    );
+  });
 
   // Modify board tile order so that it has correct perspective from player.
   const boardTilesCorrected: React.JSX.Element[] = [];

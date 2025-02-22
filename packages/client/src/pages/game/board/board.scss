@@ -1,3 +1,6 @@
+@use "sass:map";
+@use "@/styles/_variables" as var;
+
 $light-tile-color: #918d90;
 $dark-tile-color: #777277;
 
@@ -41,6 +44,23 @@ $dark-tile-color: #777277;
     }
   }
 
+  &__tile-label {
+    position: absolute;
+    font-size: map.get(var.$font-sizes, "sm");
+    color: map.get(var.$surface-color, "contrast");
+    font-weight: bold;
+    opacity: 0.25;
+    $label-spacing: 10%;
+    &--file {
+      bottom: $label-spacing;
+      right: $label-spacing;
+    }
+
+    &--rank {
+      top: $label-spacing;
+      left: $label-spacing;
+    }
+  }
   &__tile-piece {
     width: 80%;
     height: 80%;
