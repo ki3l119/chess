@@ -28,9 +28,9 @@ type BoardTileProps = {
   onPieceMoveEnd?: () => void;
 
   /**
-   * Called when the user releases their left-mouse button within the tile.
+   * Called when the user releases their primary pointer button within the tile.
    */
-  onMouseRelease?: (coordinate: BoardCoordinateDto) => void;
+  onPointerRelease?: (coordinate: BoardCoordinateDto) => void;
 };
 
 const BoardTile: React.FC<BoardTileProps> = ({
@@ -40,7 +40,7 @@ const BoardTile: React.FC<BoardTileProps> = ({
   mark = false,
   onPieceMoveStart,
   onPieceMoveEnd,
-  onMouseRelease,
+  onPointerRelease,
 }) => {
   const coordinate = indexToCoordinate(index);
 
@@ -50,22 +50,24 @@ const BoardTile: React.FC<BoardTileProps> = ({
     y: 0,
   });
 
-  const startMove = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const startMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.target instanceof Element) {
+      event.target.releasePointerCapture(event.pointerId);
+    }
+
     const pieceElement = event.currentTarget;
     if (pieceElement === null) {
       return;
     }
 
     const draggingClass = "chess-board__tile-piece--moving";
-
     mouseClientRef.current.x = event.clientX;
     mouseClientRef.current.y = event.clientY;
 
     if (event.button !== 0) {
       return;
     }
-
-    const onMouseMove = (event: MouseEvent) => {
+    const onPointerMove = (event: PointerEvent) => {
       const clientXDiff = event.clientX - mouseClientRef.current.x;
       const clientYDiff = event.clientY - mouseClientRef.current.y;
 
@@ -79,7 +81,7 @@ const BoardTile: React.FC<BoardTileProps> = ({
         (pieceBoundingRect.x + clientXDiff).toString() + "px";
     };
 
-    const endMove = (event: MouseEvent) => {
+    const endMove = (event: PointerEvent) => {
       if (event.button !== 0) {
         return;
       }
@@ -88,9 +90,8 @@ const BoardTile: React.FC<BoardTileProps> = ({
       pieceElement.style.removeProperty("left");
       pieceElement.style.removeProperty("height");
       pieceElement.style.removeProperty("width");
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", endMove);
-
+      document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerup", endMove);
       if (onPieceMoveEnd) {
         onPieceMoveEnd();
       }
@@ -104,8 +105,8 @@ const BoardTile: React.FC<BoardTileProps> = ({
     pieceElement.style.width = boundingRect.width.toString() + "px";
 
     pieceElement.classList.add(draggingClass);
-    document.addEventListener("mouseup", endMove);
-    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("pointerup", endMove);
+    document.addEventListener("pointermove", onPointerMove);
 
     if (onPieceMoveStart) {
       onPieceMoveStart(coordinate);
@@ -125,22 +126,22 @@ const BoardTile: React.FC<BoardTileProps> = ({
     tileModifier = index % 2 == 0 ? "dark" : "light";
   }
 
-  const onMouseUp =
-    onMouseRelease &&
-    ((event: React.MouseEvent) => {
+  const onPointerUp =
+    onPointerRelease &&
+    ((event: React.PointerEvent<HTMLDivElement>) => {
       if (event.button === 0) {
-        onMouseRelease(coordinate);
+        onPointerRelease(coordinate);
       }
     });
 
   return (
     <div
       className={`chess-board__tile chess-board__tile--${tileModifier}`}
-      onMouseUp={onMouseUp}
+      onPointerUp={onPointerUp}
     >
       <div
         className={tilePieceClasses.join(" ")}
-        onMouseDown={movablePiece ? startMove : undefined}
+        onPointerDown={movablePiece ? startMove : undefined}
       >
         {piece && <Piece type={piece} />}
       </div>
@@ -189,7 +190,7 @@ export const Board: React.FC<BoardProps> = ({
     setMovingPiece(coordinate);
   };
 
-  const onTileMouseRelease =
+  const onTilePointerRelease =
     movingPiece &&
     ((coordinate: BoardCoordinateDto) => {
       if (onLegalMove) {
@@ -241,7 +242,7 @@ export const Board: React.FC<BoardProps> = ({
       }
       onPieceMoveStart={onPieceMoveStart}
       onPieceMoveEnd={onPieceMoveEnd}
-      onMouseRelease={onTileMouseRelease}
+      onPointerRelease={onTilePointerRelease}
     />
   ));
 

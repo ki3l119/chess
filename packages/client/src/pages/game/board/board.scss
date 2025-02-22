@@ -3,6 +3,7 @@ $dark-tile-color: #777277;
 
 .chess-board {
   display: grid;
+  touch-action: none;
   grid-template-columns: repeat(8, 12.5%);
   grid-template-rows: repeat(8, 12.5%);
 
