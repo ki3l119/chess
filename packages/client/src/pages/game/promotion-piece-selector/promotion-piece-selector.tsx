@@ -29,27 +29,30 @@ export const PromotionPieceSelector: React.FC<PromotionPieceSelector> = ({
   };
   return (
     <div className="promotion-piece-selector">
-      {promotionPieces.map((name, index) => (
-        <div
-          className={
-            "promotion-piece-selector__option" +
-            (choice === index
-              ? " promotion-piece-selector__option--selected"
-              : "")
-          }
-          onClick={() => {
-            setChoice(index);
-          }}
-          key={name}
-        >
-          <Piece
-            type={{
-              color: pieceColor,
-              name,
+      <div className="promotion-piece-selector__option_section">
+        {promotionPieces.map((name, index) => (
+          <div
+            className={
+              "promotion-piece-selector__option" +
+              (choice === index
+                ? " promotion-piece-selector__option--selected"
+                : "")
+            }
+            onClick={() => {
+              setChoice(index);
             }}
-          />
-        </div>
-      ))}
+            key={name}
+          >
+            <Piece
+              type={{
+                color: pieceColor,
+                name,
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
       <div className="promotion-piece-selector__submit">
         <Button onClick={selectPiece}>Choose</Button>
       </div>
