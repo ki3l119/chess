@@ -9,6 +9,7 @@ import {
   BoardPiece,
   isCoordinateEqual,
   indexToCoordinate,
+  BoardCoordinate,
 } from "../utils/chess";
 import { Piece } from "@/components/piece/piece";
 import { BoardCoordinateDto, MoveDto } from "chess-shared-types";
@@ -35,6 +36,8 @@ type BoardTileProps = {
   rankLabel?: string;
 
   fileLabel?: string;
+
+  highlight?: boolean;
 };
 
 const BoardTile: React.FC<BoardTileProps> = ({
@@ -47,6 +50,7 @@ const BoardTile: React.FC<BoardTileProps> = ({
   onPointerRelease,
   rankLabel,
   fileLabel,
+  highlight = false,
 }) => {
   const coordinate = indexToCoordinate(index);
 
@@ -140,11 +144,17 @@ const BoardTile: React.FC<BoardTileProps> = ({
       }
     });
 
+  const chessBoardTileClasses = [
+    "chess-board__tile",
+    `chess-board__tile--${tileModifier}`,
+  ];
+
+  if (highlight) {
+    chessBoardTileClasses.push("chess-board__tile--highlighted");
+  }
+
   return (
-    <div
-      className={`chess-board__tile chess-board__tile--${tileModifier}`}
-      onPointerUp={onPointerUp}
-    >
+    <div className={chessBoardTileClasses.join(" ")} onPointerUp={onPointerUp}>
       {rankLabel && (
         <p className={"chess-board__tile-label chess-board__tile-label--rank"}>
           {rankLabel}
@@ -191,6 +201,8 @@ export type BoardProps = {
    * Called when player makes a legal move.
    */
   onLegalMove?: (move: MoveDto) => void;
+
+  highlightedTiles?: BoardCoordinate[];
 };
 
 export const Board: React.FC<BoardProps> = ({
@@ -199,9 +211,9 @@ export const Board: React.FC<BoardProps> = ({
   legalMoves = [],
   movablePieces,
   onLegalMove,
+  highlightedTiles,
 }) => {
   const [movingPiece, setMovingPiece] = useState<BoardCoordinateDto>();
-
   const onPieceMoveStart = (coordinate: BoardCoordinateDto) => {
     setMovingPiece(coordinate);
   };
@@ -251,6 +263,12 @@ export const Board: React.FC<BoardProps> = ({
   const boardTiles = board.map((piece, index) => {
     const coordinate = indexToCoordinate(index);
 
+    const isHighlighted = highlightedTiles
+      ? highlightedTiles.find((highlightedCoordinate) =>
+          isCoordinateEqual(coordinate, highlightedCoordinate),
+        ) !== undefined
+      : false;
+
     let fileLabel: string | undefined;
     let rankLabel: string | undefined;
     if (coordinate.rank === labelledRank) {
@@ -277,6 +295,7 @@ export const Board: React.FC<BoardProps> = ({
         onPointerRelease={onTilePointerRelease}
         fileLabel={fileLabel}
         rankLabel={rankLabel}
+        highlight={isHighlighted}
       />
     );
   });

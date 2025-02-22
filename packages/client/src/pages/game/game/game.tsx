@@ -144,6 +144,7 @@ export const Game: React.FC<GameProps> = ({
   gameInfo,
 }) => {
   const [pieces, setPieces] = useState<BoardPiece[]>(startingBoard);
+  const [lastMove, setLastMove] = useState<Move | null>(null);
   const [legalMoves, setLegalMoves] = useState<Move[]>(initialLegalMoves);
   const [activePlayer, setActivePlayer] = useState<PieceColor>(
     PieceColor.WHITE,
@@ -157,9 +158,11 @@ export const Game: React.FC<GameProps> = ({
   } | null>(null);
 
   const switchActivePlayer = (
+    newMove: Move,
     newPosition: BoardPiece[],
     legalMoves: Move[],
   ) => {
+    setLastMove(newMove);
     setPieces(newPosition);
     setLegalMoves(legalMoves);
     setActivePlayer(getOppositeColor(activePlayer));
@@ -167,7 +170,7 @@ export const Game: React.FC<GameProps> = ({
 
   useEffect(() => {
     const opponentMoveEventListener = (event: OpponentMoveEvent) => {
-      switchActivePlayer(event.newPosition, event.legalMoves);
+      switchActivePlayer(event.move, event.newPosition, event.legalMoves);
       if (event.gameResult) {
         setGameResult(event.gameResult);
       }
@@ -212,7 +215,11 @@ export const Game: React.FC<GameProps> = ({
       const moveResult = await gameSocket.move(pawnPromotionInput.move, {
         pawnPromotionPiece: pieceChoice,
       });
-      switchActivePlayer(moveResult.newPosition, moveResult.legalMoves);
+      switchActivePlayer(
+        pawnPromotionInput.move,
+        moveResult.newPosition,
+        moveResult.legalMoves,
+      );
       if (moveResult.gameResult) {
         setGameResult(moveResult.gameResult);
       }
@@ -267,7 +274,7 @@ export const Game: React.FC<GameProps> = ({
       }
 
       const moveResult = await gameSocket.move(move);
-      switchActivePlayer(moveResult.newPosition, moveResult.legalMoves);
+      switchActivePlayer(move, moveResult.newPosition, moveResult.legalMoves);
       if (moveResult.gameResult) {
         setGameResult(moveResult.gameResult);
       }
@@ -338,6 +345,7 @@ export const Game: React.FC<GameProps> = ({
               : undefined
           }
           onLegalMove={onLegalMove}
+          highlightedTiles={lastMove ? [lastMove.from, lastMove.to] : undefined}
         />
       </div>
       <PlayerSection
