@@ -11,7 +11,12 @@ import { config } from "@/config";
 import { JoinGameForm } from "./join-game-form/join-game-form";
 import { WaitingRoom } from "./waiting-room/waiting-room";
 import { Game } from "./game/game";
-import { GameSocket, JoinEvent, StartEvent } from "./game-socket";
+import {
+  DisconnectEvent,
+  GameSocket,
+  JoinEvent,
+  StartEvent,
+} from "./game-socket";
 import { GameModal } from "./game-modal/game-modal";
 import { Board } from "./board/board";
 import { BoardPiece, GameInfo, Move, PieceColor, Player } from "./utils/chess";
@@ -58,8 +63,29 @@ export const GamePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const onDisconnect = (event: DisconnectEvent) => {
+      if (
+        event.cause === DisconnectEvent.SERVER_CLOSE ||
+        event.cause === DisconnectEvent.HEARTBEAT_TIMEOUT
+      ) {
+        const message =
+          event.cause === DisconnectEvent.HEARTBEAT_TIMEOUT
+            ? "Cannot reach the server at the moment. Please try again later."
+            : "An unexpected server error has occured. Please try again later.";
+        alert(message);
+        setErrorMessage(message);
+      }
+      setGameSocket(null);
+    };
+    if (gameSocket) {
+      gameSocket.addEventListener("disconnect", onDisconnect);
+    }
+
     return () => {
-      gameSocket?.close();
+      if (gameSocket) {
+        gameSocket.removeEventListener("disconnect", onDisconnect);
+        gameSocket.close();
+      }
     };
   }, [gameSocket]);
 

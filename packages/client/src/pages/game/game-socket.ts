@@ -92,6 +92,16 @@ export class EndEvent extends Event {
     super("end");
   }
 }
+
+export class DisconnectEvent extends Event {
+  static readonly SERVER_CLOSE = 0;
+  static readonly CLIENT_CLOSE = 1;
+  static readonly HEARTBEAT_TIMEOUT = 3;
+  constructor(readonly cause: number) {
+    super("disconnect");
+  }
+}
+
 interface GameEventMap {
   join: JoinEvent;
   start: StartEvent;
@@ -100,7 +110,23 @@ interface GameEventMap {
   "waiting-room-end": WaitingRoomEndEvent;
   end: EndEvent;
   "successful-move": SuccessfulMoveEvent;
+  disconnect: DisconnectEvent;
 }
+
+export type GameSocketOptions = {
+  heartbeat: {
+    /**
+     * How long (in seconds) before the next heartbeat is sent after the latest
+     * heartbeat response from server.
+     */
+    interval: number;
+    /**
+     * How long (in seconds) before the connection is considered disconnected
+     * after a heartbeat message has been sent.
+     */
+    timeout: number;
+  };
+};
 
 export class GameSocket extends TypedEventTarget<GameEventMap> {
   // Socket message event listeners
@@ -110,9 +136,25 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
   private waitingRoomLeaveListener: () => void;
   private waitingRoomEndListener: () => void;
   private endListener: (data: EndGameDto) => void;
+  private heartbeatResponseListener: () => void;
 
-  constructor(private readonly socket: EventMessageWebSocket) {
+  private onSocketClose: () => void;
+
+  private heartbeat: GameSocketOptions["heartbeat"];
+  private heartbeatDisconnectTimeoutId?: number;
+  private nextHeartbeatTimeoutId?: number;
+
+  constructor(
+    private readonly socket: EventMessageWebSocket,
+    options: GameSocketOptions = {
+      heartbeat: {
+        timeout: 30,
+        interval: 10,
+      },
+    },
+  ) {
     super();
+    this.heartbeat = options.heartbeat;
     this.joinListener = (data) => {
       const player = GameSocket.dtoToPlayer(data);
       this.dispatchTypedEvent("join", new JoinEvent(player));
@@ -170,6 +212,44 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
       );
     };
     this.socket.addMessageListener("end", this.endListener);
+
+    this.heartbeatResponseListener = () => {
+      if (this.heartbeatDisconnectTimeoutId !== undefined) {
+        clearTimeout(this.heartbeatDisconnectTimeoutId);
+        this.heartbeatDisconnectTimeoutId = undefined;
+      }
+      this.nextHeartbeatTimeoutId = setTimeout(() => {
+        this.nextHeartbeatTimeoutId = undefined;
+        this.sendHeartbeat();
+      }, this.heartbeat.interval * 1000);
+    };
+    this.socket.addMessageListener(
+      "heartbeat:success",
+      this.heartbeatResponseListener,
+    );
+
+    this.onSocketClose = () => {
+      this.cleanup();
+      this.dispatchTypedEvent(
+        "disconnect",
+        new DisconnectEvent(DisconnectEvent.SERVER_CLOSE),
+      );
+    };
+    this.socket.addEventListener("close", this.onSocketClose, { once: true });
+
+    this.sendHeartbeat();
+  }
+
+  sendHeartbeat() {
+    this.socket.sendMessage({ event: "heartbeat" });
+    this.heartbeatDisconnectTimeoutId = setTimeout(() => {
+      this.cleanup();
+      this.socket.close();
+      this.dispatchTypedEvent(
+        "disconnect",
+        new DisconnectEvent(DisconnectEvent.HEARTBEAT_TIMEOUT),
+      );
+    }, this.heartbeat.timeout * 1000);
   }
 
   /**
@@ -224,10 +304,7 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
     return GameSocket.dtoToGameInfo(gameInfoDto, false);
   }
 
-  /**
-   * Closes the socket associated with the game socket
-   */
-  close() {
+  private cleanup() {
     this.socket.removeMessageListener("join", this.joinListener);
     this.socket.removeMessageListener("start", this.startListener);
     this.socket.removeMessageListener(
@@ -243,7 +320,33 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
       this.waitingRoomLeaveListener,
     );
     this.socket.removeMessageListener("end", this.endListener);
-    this.socket.close();
+    this.socket.removeMessageListener(
+      "heartbeat:success",
+      this.heartbeatResponseListener,
+    );
+    if (this.heartbeatDisconnectTimeoutId !== undefined) {
+      clearTimeout(this.heartbeatDisconnectTimeoutId);
+      this.heartbeatDisconnectTimeoutId = undefined;
+    }
+    if (this.nextHeartbeatTimeoutId !== undefined) {
+      clearTimeout(this.nextHeartbeatTimeoutId);
+      this.nextHeartbeatTimeoutId = undefined;
+    }
+    this.socket.removeEventListener("close", this.onSocketClose);
+  }
+
+  /**
+   * Closes the socket associated with the game socket
+   */
+  close() {
+    this.cleanup();
+    if (this.socket.readyState === WebSocket.OPEN) {
+      this.socket.close();
+      this.dispatchTypedEvent(
+        "disconnect",
+        new DisconnectEvent(DisconnectEvent.CLIENT_CLOSE),
+      );
+    }
   }
 
   private static dtoToGameInfo(
