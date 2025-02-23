@@ -275,4 +275,11 @@ export class GameGateway implements OnGatewayDisconnect {
       data: moveSuccessDto,
     };
   }
+
+  @SubscribeMessage("heartbeat")
+  handleHeartbeat() {
+    return {
+      event: "heartbeat:success",
+    };
+  }
 }
