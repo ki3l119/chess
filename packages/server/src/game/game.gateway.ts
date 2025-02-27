@@ -1,4 +1,4 @@
-import { ServerOptions } from "ws";
+import { ServerOptions, WebSocketServer } from "ws";
 import {
   ConsoleLogger,
   UseFilters,
@@ -12,6 +12,8 @@ import {
   OnGatewayDisconnect,
   MessageBody,
   WsResponse,
+  OnGatewayConnection,
+  OnGatewayInit,
 } from "@nestjs/websockets";
 
 import {
@@ -45,7 +47,11 @@ const serverOptions: ServerOptions = {
 
 @UseFilters(WebSocketExceptionFilter)
 @WebSocketGateway(serverOptions)
-export class GameGateway implements OnGatewayDisconnect {
+export class GameGateway
+  implements OnGatewayDisconnect, OnGatewayConnection, OnGatewayInit
+{
+  private heartbeatInterval?: NodeJS.Timeout;
+
   constructor(
     private readonly gameService: GameService,
     private readonly roomService: RoomService<GameSocket>,
@@ -125,6 +131,34 @@ export class GameGateway implements OnGatewayDisconnect {
     } else {
       this.cleanUpSocket(socket);
     }
+  }
+
+  @SubscribeMessage("heartbeat")
+  handleHeartbeat(@ConnectedSocket() socket: GameSocket) {
+    socket.isAlive = true;
+    return {
+      event: "heartbeat:success",
+    };
+  }
+
+  afterInit(server: WebSocketServer) {
+    this.heartbeatInterval = setInterval(() => {
+      for (const socket of server.clients) {
+        const gameSocket = socket as unknown as GameSocket;
+        if (!gameSocket.isAlive) {
+          this.logger.log(
+            `Client ${gameSocket.id} inactive. Terminating connection.`,
+          );
+          gameSocket.terminate();
+        }
+
+        gameSocket.isAlive = false;
+      }
+    }, 15_000);
+  }
+
+  handleConnection(socket: GameSocket) {
+    socket.isAlive = true;
   }
 
   handleDisconnect(socket: GameSocket) {
@@ -273,13 +307,6 @@ export class GameGateway implements OnGatewayDisconnect {
     return {
       event: "move:success",
       data: moveSuccessDto,
-    };
-  }
-
-  @SubscribeMessage("heartbeat")
-  handleHeartbeat() {
-    return {
-      event: "heartbeat:success",
     };
   }
 }
