@@ -1,7 +1,7 @@
 import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 
 import { GameService } from "./game.service";
-import { GameInfoDto } from "chess-shared-types";
+import { GameInfoDto, PieceColorChoice } from "chess-shared-types";
 import { randomUUID } from "crypto";
 import { PieceColor } from "./game";
 import {
@@ -9,6 +9,7 @@ import {
   InvalidGameCreationException,
   InvalidGameJoinException,
   InvalidGameMoveException,
+  InvalidGameStateException,
   InvalidStartException,
 } from "./game.exception";
 import { ConsoleLogger } from "@nestjs/common";
@@ -743,6 +744,101 @@ describe("GameService", () => {
           reason: "TIMEOUT",
         },
       );
+    });
+  });
+
+  describe("resign", () => {
+    it.each([
+      ["WHITE", "BLACK"],
+      ["BLACK", "WHITE"],
+    ])("Returns the winning color (%#)", (losingColor, winningColor) => {
+      const hostId = randomUUID();
+      const gameInfo = gameService.create(
+        {
+          id: hostId,
+          name: "Host",
+        },
+        {
+          color: losingColor as PieceColorChoice,
+        },
+      );
+
+      gameService.join(
+        {
+          id: randomUUID(),
+          name: "Player",
+        },
+        {
+          gameId: gameInfo.id,
+        },
+      );
+
+      gameService.start(gameInfo.id, hostId);
+
+      const gameResult = gameService.resign(gameInfo.id, hostId);
+      expect(gameResult).toEqual({
+        winner: winningColor,
+        reason: "RESIGNED",
+      });
+      expect(gameService.findById(gameInfo.id)).toBeNull();
+    });
+
+    it("Throws exception on non-existent game", () => {
+      const hostId = randomUUID();
+      const gameInfo = gameService.create(
+        {
+          id: hostId,
+          name: "Host",
+        },
+        {
+          color: "WHITE",
+        },
+      );
+
+      gameService.join(
+        {
+          id: randomUUID(),
+          name: "Player",
+        },
+        {
+          gameId: gameInfo.id,
+        },
+      );
+
+      gameService.start(gameInfo.id, hostId);
+
+      expect(() => {
+        gameService.resign(randomUUID(), hostId);
+      }).toThrow(GameNotFoundException);
+      expect(gameService.findById(gameInfo.id)).not.toBeNull();
+    });
+
+    it("Throws exception when game has not yet started", () => {
+      const hostId = randomUUID();
+      const gameInfo = gameService.create(
+        {
+          id: hostId,
+          name: "Host",
+        },
+        {
+          color: "WHITE",
+        },
+      );
+
+      gameService.join(
+        {
+          id: randomUUID(),
+          name: "Player",
+        },
+        {
+          gameId: gameInfo.id,
+        },
+      );
+
+      expect(() => {
+        gameService.resign(gameInfo.id, hostId);
+      }).toThrow(InvalidGameStateException);
+      expect(gameService.findById(gameInfo.id)).not.toBeNull();
     });
   });
 });

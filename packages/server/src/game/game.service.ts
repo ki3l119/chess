@@ -18,6 +18,7 @@ import {
   InvalidMoveException,
   PieceColor,
   MoveOptions,
+  Chess,
 } from "chess-game";
 import {
   InvalidGameCreationException,
@@ -25,6 +26,7 @@ import {
   GameNotFoundException,
   InvalidGameMoveException,
   InvalidStartException,
+  InvalidGameStateException,
 } from "./game.exception";
 import { Game, NewPlayer, Player } from "./game";
 import { BoardCoordinate } from "chess-game/dist/board";
@@ -221,10 +223,6 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
     return this.games.delete(gameId);
   }
 
-  findPlayerGame(playerId: string): string | null {
-    return this.playerGameMapping.get(playerId) || null;
-  }
-
   private static boardToPieceCentricRepresentation(board: Board) {
     const pieces: PieceDto[] = [];
 
@@ -328,5 +326,35 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
   findById(id: string) {
     const game = this.games.get(id);
     return game ? GameService.toGameInfoDto(game) : null;
+  }
+
+  /**
+   * Haves the player resign from their game.
+   *
+   * @throws {GameNotFoundException} If the player does not belong to the game.
+   */
+  resign(gameId: string, playerId: string): GameResultDto {
+    const game = this.games.get(gameId);
+
+    if (!game || this.playerGameMapping.get(playerId) !== game.id) {
+      throw new GameNotFoundException(gameId);
+    }
+
+    if (!game.hasStarted()) {
+      throw new InvalidGameStateException("The game has not yet started.");
+    }
+
+    const resigningPlayer = game.findPlayerById(playerId);
+
+    if (!resigningPlayer) {
+      throw new Error("Player is not part of the game.");
+    }
+
+    this.delete(gameId);
+
+    return {
+      winner: Chess.getOpposingColor(resigningPlayer.color),
+      reason: "RESIGNED",
+    };
   }
 }

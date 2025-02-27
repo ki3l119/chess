@@ -309,4 +309,27 @@ export class GameGateway
       data: moveSuccessDto,
     };
   }
+
+  @SubscribeMessage("resign")
+  @UseGuards(GameGuard)
+  handleResign(
+    @ConnectedSocket() socket: GameSocket,
+    @CurrentGame() gameId: string,
+  ) {
+    const gameResult = this.gameService.resign(gameId, socket.id);
+    const endGameDto: EndGameDto = {
+      gameResult,
+    };
+    this.roomService.emit(
+      gameId,
+      {
+        event: "end",
+        data: endGameDto,
+      },
+      {
+        exclude: [socket.id],
+      },
+    );
+    this.cleanUpGameSockets(gameId);
+  }
 }

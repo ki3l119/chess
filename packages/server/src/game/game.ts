@@ -277,4 +277,12 @@ export class Game extends EventEmitter<EventMap> {
       this.stopPlayerTimer();
     }
   }
+
+  findPlayerById(id: string): Player | null {
+    return this.host.id === id
+      ? Game.deepCopyPlayer(this.host)
+      : this.player && this.player.id === id
+        ? Game.deepCopyPlayer(this.player)
+        : null;
+  }
 }
