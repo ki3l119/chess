@@ -18,6 +18,7 @@ async function main() {
   });
   app.use(cookieParser());
   app.useWebSocketAdapter(new WebSocketAdapter(app));
+  app.enableShutdownHooks();
   await app.listen(port);
 }
 

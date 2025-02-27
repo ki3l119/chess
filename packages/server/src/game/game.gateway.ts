@@ -66,6 +66,10 @@ export class GameGateway
     });
   }
 
+  onModuleDestroy() {
+    clearInterval(this.heartbeatInterval);
+  }
+
   /**
    * Removes game-related info from the sockets.
    */
