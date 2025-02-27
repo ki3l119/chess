@@ -70,7 +70,8 @@ type GameResultDto = {
     | "STALEMATE"
     | "FIFTY_MOVE_RULE"
     | "ABANDONED"
-    | "TIMEOUT";
+    | "TIMEOUT"
+    | "RESIGNED";
 };
 
 export type NewMoveSuccessDto = {
