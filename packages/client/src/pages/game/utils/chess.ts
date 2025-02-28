@@ -58,7 +58,8 @@ export type GameResult = {
     | "STALEMATE"
     | "FIFTY_MOVE_RULE"
     | "ABANDONED"
-    | "TIMEOUT";
+    | "TIMEOUT"
+    | "RESIGNED";
 };
 
 export const PIECES: { [key: string]: PieceType } = {

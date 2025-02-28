@@ -453,4 +453,10 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
       event: "leave",
     });
   }
+
+  resign() {
+    this.socket.sendMessage({
+      event: "resign",
+    });
+  }
 }

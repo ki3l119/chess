@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { faCircleXmark, faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCircleXmark,
+  faFlag,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 
 import "./game.scss";
 import {
@@ -24,8 +28,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameModal } from "../game-modal/game-modal";
 import { Button } from "@/components/button/button";
-import { EventMessageWebSocketException } from "@/ws";
 import { PromotionPieceSelector } from "../promotion-piece-selector/promotion-piece-selector";
+import { IconButton } from "@/components/icon-button/icon-button";
 
 /**
  * Formats time to "MM:SS"
@@ -299,6 +303,18 @@ export const Game: React.FC<GameProps> = ({
     FIFTY_MOVE_RULE: "by 50-move rule",
     ABANDONED: "Your opponent left the game",
     TIMEOUT: "by timeout",
+    RESIGNED: "by resignation",
+  };
+
+  const onResignationClick = () => {
+    const resignationConfirmation = confirm("Are you sure you want to resign?");
+    if (resignationConfirmation) {
+      gameSocket.resign();
+      setGameResult({
+        winner: opponent.color,
+        reason: "RESIGNED",
+      });
+    }
   };
 
   return (
@@ -360,6 +376,14 @@ export const Game: React.FC<GameProps> = ({
           gameResult.winner !== userPlayer.color
         }
       />
+      <div className="game__end-game-options">
+        <IconButton
+          icon={faFlag}
+          label="Resign"
+          onClick={onResignationClick}
+          disabled={gameResult != null}
+        />
+      </div>
     </div>
   );
 };

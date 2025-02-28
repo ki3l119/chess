@@ -62,5 +62,21 @@
     }
   }
 
+  &__end-game-options {
+    display: flex;
+    justify-content: center;
 
+    @media (orientation: landscape) {
+      flex-direction: column;
+      position: absolute;
+      right: -10px;
+      row-gap: 30px;
+    }
+
+    @media (orientation: portrait) {
+      position: relative;
+      flex-direction: row;
+      column-gap: 30px;
+    }
+  }
 }
