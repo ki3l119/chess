@@ -17,7 +17,8 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.2",
     "react-router-dom": "^6.28.0",
-    "typescript-event-target": "^1.1.1"
+    "typescript-event-target": "^1.1.1",
+    "worker-timers": "^8.0.17"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
