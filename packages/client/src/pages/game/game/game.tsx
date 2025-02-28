@@ -4,6 +4,7 @@ import {
   faFlag,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
+import { clearInterval, setInterval } from "worker-timers";
 
 import "./game.scss";
 import {
