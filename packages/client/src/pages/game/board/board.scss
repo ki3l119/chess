@@ -103,6 +103,8 @@ $dark-tile-color: #777277;
 
     filter: brightness(85%);
 
+    opacity: 0.9;
+
     &--light {
       background-color: $light-tile-color;
     }
