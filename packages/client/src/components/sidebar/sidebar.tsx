@@ -10,16 +10,18 @@ import {
   faAddressCard,
   faRightToBracket,
   faRightFromBracket,
+  faCircleChevronLeft,
+  faChevronLeft,
+  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { Link, useLocation } from "react-router-dom";
 
 import "./sidebar.scss";
-import { PieceColor, PieceName } from "@/pages/game/utils/chess";
-import { Piece } from "../piece/piece";
 import { UserDto } from "chess-shared-types";
 import { userService } from "@/services";
 import { UserContext } from "@/contexts";
 import { Spinner } from "../spinner/spinner";
+import { IconButton } from "../icon-button/icon-button";
 
 type SidebarLinkProps = {
   icon: IconDefinition;
@@ -28,8 +30,9 @@ type SidebarLinkProps = {
   /**
    * Either destination or onClick can be defined, but not both.
    */
-  destination?: string;
+  destination?: string; // The destination link
   onClick?: () => void;
+  isCollapsed: boolean;
 };
 
 const SidebarLink: React.FC<SidebarLinkProps> = ({
@@ -37,21 +40,25 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({
   text,
   destination,
   isActive = false,
+  isCollapsed,
   onClick,
 }) => {
-  const sidebarClasses = ["sidebar__link"];
-
+  const sidebarLinkClasses = ["sidebar__link"];
   if (isActive) {
-    sidebarClasses.push("sidebar__link--active");
+    sidebarLinkClasses.push("sidebar__link--active");
+  }
+
+  if (isCollapsed) {
+    sidebarLinkClasses.push("sidebar__link--collapsed");
   }
   const children = (
     <>
       <FontAwesomeIcon className="sidebar__link-icon" icon={icon} />
-      <p className="sidebar__link-text">{text}</p>
+      {!isCollapsed && <p className="sidebar__link-text">{text}</p>}
     </>
   );
 
-  const sidebarClassesString = sidebarClasses.join(" ");
+  const sidebarClassesString = sidebarLinkClasses.join(" ");
   return (
     <>
       {destination ? (
@@ -81,7 +88,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
 }) => {
   const [activeLinkIndex, setActiveLinkIndex] = useState(0);
-  const [isActive, setIsActive] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const location = useLocation();
 
   const links: Pick<
@@ -125,39 +133,36 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
 
     setActiveLinkIndex(activeIndex);
+    setIsExpanded(false);
   }, [location, user]);
 
   const sidebarClasses = ["sidebar"];
+  const sidebarTriggerClasses = ["sidebar__trigger"];
 
-  if (isActive) {
-    sidebarClasses.push("sidebar--active");
+  if (isExpanded) {
+    sidebarClasses.push("sidebar--expanded");
+    sidebarTriggerClasses.push("sidebar__trigger--close");
   }
 
-  const onSidebarTriggerClick = () => {
-    setIsActive(true);
+  const expandSidebar = () => {
+    setIsExpanded(true);
   };
 
-  const onSidebarClose = () => {
-    setIsActive(false);
+  const collapseSidebar = () => {
+    setIsExpanded(false);
   };
 
   return (
     <>
-      <FontAwesomeIcon
-        icon={faBars}
-        className="sidebar__trigger"
-        onClick={onSidebarTriggerClick}
-      />
+      {isExpanded && (
+        <div className="sidebar-background" onClick={collapseSidebar}></div>
+      )}
       <div className={sidebarClasses.join(" ")}>
-        <FontAwesomeIcon
-          className="sidebar__closer"
-          icon={faArrowRight}
-          onClick={onSidebarClose}
-        />
-        <div className="sidebar__header">
-          <div className="sidebar__header-piece">
-            <Piece type={{ color: PieceColor.WHITE, name: PieceName.ROOK }} />
-          </div>
+        <div className={sidebarTriggerClasses.join(" ")}>
+          <IconButton
+            icon={isExpanded ? faChevronLeft : faChevronRight}
+            onClick={isExpanded ? collapseSidebar : expandSidebar}
+          />
         </div>
         {isUserLoading ? (
           <div className="sidebar__spinner">
@@ -165,26 +170,37 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         ) : (
           <>
-            <div className="sidebar__user-section ">
+            <div
+              className={
+                "sidebar__user-section" +
+                (isExpanded ? "" : " sidebar__user-section--collapsed")
+              }
+            >
               <FontAwesomeIcon
                 className="sidebar__user-icon"
                 icon={faCircleUser}
               />
-              <p className="sidebar__username">
-                {user ? user.username : "Guest"}
-              </p>
+
+              {isExpanded && (
+                <p className="sidebar__username">
+                  {user ? user.username : "Guest"}
+                </p>
+              )}
             </div>
-            <hr className="sidebar__divider" />
-            {links.map((link, index) => (
-              <SidebarLink
-                key={link.text}
-                icon={link.icon}
-                text={link.text}
-                isActive={activeLinkIndex == index}
-                destination={link.destination}
-                onClick={link.onClick}
-              />
-            ))}
+            {/* <hr className="sidebar__divider" /> */}
+            <div className="sidebar__links">
+              {links.map((link, index) => (
+                <SidebarLink
+                  key={link.text}
+                  icon={link.icon}
+                  text={link.text}
+                  isActive={activeLinkIndex == index}
+                  destination={link.destination}
+                  onClick={link.onClick}
+                  isCollapsed={!isExpanded}
+                />
+              ))}
+            </div>
           </>
         )}
       </div>

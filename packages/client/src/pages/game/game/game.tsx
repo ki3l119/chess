@@ -383,6 +383,7 @@ export const Game: React.FC<GameProps> = ({
           label="Resign"
           onClick={onResignationClick}
           disabled={gameResult != null}
+          color="grey"
         />
       </div>
     </div>

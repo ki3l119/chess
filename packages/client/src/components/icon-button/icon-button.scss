@@ -7,13 +7,13 @@
   justify-content: center;
   flex-direction: column;
   row-gap: 10px;
+
   
-
   & > button {
-    background-color: grey;
-    color: white;
+    background-color: map.get(var.$primary-color, "base");
+    color: map.get(var.$primary-color, "contrast");
 
-    border: 1px solid grey;
+    border: 1px solid map.get(var.$primary-color, "base");
     border-radius: 50%;
     aspect-ratio: 1/1;
     font-size: map.get(var.$font-sizes, "base");
@@ -32,6 +32,12 @@
       opacity: 0.5;
       cursor: default;
     }
+  }
+
+  &--grey > button {
+    background-color: grey;
+    border-color: grey;
+    color: white;
   }
 
   &__label {

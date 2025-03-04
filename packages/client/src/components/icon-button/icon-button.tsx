@@ -10,15 +10,23 @@ export type IconButtonProps = Omit<
 > & {
   icon: IconDefinition;
   label?: string;
+  color?: "primary" | "grey";
 };
 
 export const IconButton: React.FC<IconButtonProps> = ({
   icon,
   label,
+  color = "primary",
   ...buttonProps
 }) => {
+  const classes = ["icon-button"];
+
+  if (color === "grey") {
+    classes.push("icon-button--grey");
+  }
+
   return (
-    <div className="icon-button">
+    <div className={classes.join(" ")}>
       <button {...buttonProps}>
         <FontAwesomeIcon icon={icon} />
       </button>
