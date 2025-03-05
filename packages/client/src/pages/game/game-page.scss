@@ -36,6 +36,7 @@
 
   &__spinner, &__error {
     position: absolute;
+    padding: 0 10px;
     z-index: 2;
   }
 }

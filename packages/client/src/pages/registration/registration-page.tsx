@@ -7,8 +7,8 @@ import { RegistrationForm } from "./registration-form/registration-form";
 export const RegistrationPage: React.FC = () => {
   return (
     <div className="registration-page">
-      <h1 className="registration-page__title">Register</h1>
       <div className="registration-page__content">
+        <h1 className="registration-page__title">Register</h1>
         <Card>
           <RegistrationForm />
         </Card>

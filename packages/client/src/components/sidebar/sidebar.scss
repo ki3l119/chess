@@ -135,8 +135,8 @@ $sidebar-collapsed-width: 100px;
 
   &__trigger {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: 10px;
+    left: 10px;
 
     @media (min-width: map.get(var.$breakpoints, "lg")) {
       position: absolute;
@@ -175,6 +175,7 @@ $sidebar-collapsed-width: 100px;
     flex-grow: 1;
     background-color: map.get(var.$surface-color, "dark");
     color: map.get(var.$surface-color, "contrast");
+    overflow-y: auto;
 
     @media (min-width: map.get(var.$breakpoints, "lg")) {
       margin-left: $sidebar-collapsed-width;
