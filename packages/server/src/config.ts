@@ -10,6 +10,8 @@ export type Config = {
 export const configValidationSchema = Joi.object({
   PORT: Joi.number().port().default(3000),
   DB_URI: Joi.string().uri().required(),
-  NODE_ENV: Joi.string().valid("production", "development").required(),
+  NODE_ENV: Joi.string()
+    .valid("production", "development")
+    .default("production"),
   CLIENT_DOMAIN: Joi.string().uri().required(),
 });
