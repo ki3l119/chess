@@ -2,7 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 
-import { configValidationSchema } from "./config";
+import { loadConfig } from "./config";
 import { UserErrorExceptionFilter } from "./user-error.exception.filter";
 import { DatabaseModule } from "./db";
 import { UserModule } from "./user";
@@ -14,8 +14,7 @@ import { LoggerModule } from "./logger";
 @Module({
   imports: [
     ConfigModule.forRoot({
-      validationSchema: configValidationSchema,
-      envFilePath: "../../.env",
+      load: [loadConfig],
     }),
     DatabaseModule,
     UserModule,

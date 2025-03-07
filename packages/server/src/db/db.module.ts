@@ -12,9 +12,8 @@ import { Database } from "./database";
     {
       provide: Database,
       useFactory: (configService: ConfigService<Config>) => {
-        const pool = new Pool({
-          connectionString: configService.getOrThrow("DB_URI", { infer: true }),
-        });
+        const dbConfig = configService.getOrThrow("db", { infer: true });
+        const pool = new Pool(dbConfig);
         return new Database({
           dialect: new PostgresDialect({
             pool,

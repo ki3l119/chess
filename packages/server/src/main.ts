@@ -10,8 +10,8 @@ async function main() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix("api");
   const config = app.get(ConfigService<Config>);
-  const port = config.getOrThrow("PORT", { infer: true });
-  const clientDomain = config.getOrThrow("CLIENT_DOMAIN", { infer: true });
+  const port = config.getOrThrow("port", { infer: true });
+  const clientDomain = config.getOrThrow("clientDomain", { infer: true });
   app.enableCors({
     origin: clientDomain,
     credentials: true,
