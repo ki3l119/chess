@@ -19,6 +19,7 @@ import {
   PieceColor,
   MoveOptions,
   Chess,
+  BoardCoordinate,
 } from "chess-game";
 import {
   InvalidGameCreationException,
@@ -29,7 +30,6 @@ import {
   InvalidGameStateException,
 } from "./game.exception";
 import { Game, NewPlayer, Player } from "./game";
-import { BoardCoordinate } from "chess-game/dist/board";
 import { EventEmitter } from "stream";
 
 type GameServiceEventMap = {

@@ -6,7 +6,7 @@ import {
   InvalidGameStateException,
   InvalidStartException,
 } from "./game.exception";
-import { BoardCoordinate } from "chess-game/dist/board";
+import { BoardCoordinate } from "chess-game";
 
 jest.useFakeTimers();
 
