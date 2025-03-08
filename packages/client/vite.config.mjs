@@ -7,7 +7,6 @@ import postCssPresetEnv from "postcss-preset-env"
  * @type {import('vite').UserConfig}
  */
 const config = {
-  envDir: "../../",
   css: {
     preprocessorOptions: {
       scss: {
