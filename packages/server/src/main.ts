@@ -11,9 +11,9 @@ async function main() {
   app.setGlobalPrefix("api");
   const config = app.get(ConfigService<Config>);
   const port = config.getOrThrow("port", { infer: true });
-  const clientDomain = config.getOrThrow("clientDomain", { infer: true });
+  const corsOrigin = config.getOrThrow("corsOrigin", { infer: true });
   app.enableCors({
-    origin: clientDomain,
+    origin: corsOrigin,
     credentials: true,
   });
   app.use(cookieParser());

@@ -10,7 +10,7 @@ type EnvironmentVariables = {
   DB_PASSWORD_FILE?: string;
   DB_DATABASE: string;
   NODE_ENV: "production" | "development";
-  CLIENT_DOMAIN: string;
+  CORS_ORIGIN: string;
 };
 
 export type Config = {
@@ -23,7 +23,7 @@ export type Config = {
     database: string;
   };
   nodeEnv: "production" | "development";
-  clientDomain: string;
+  corsOrigin: string;
 };
 
 const environmentVariablesValidationSchema = Joi.object<EnvironmentVariables>({
@@ -37,7 +37,7 @@ const environmentVariablesValidationSchema = Joi.object<EnvironmentVariables>({
   NODE_ENV: Joi.string()
     .valid("production", "development")
     .default("production"),
-  CLIENT_DOMAIN: Joi.string().uri().required(),
+  CORS_ORIGIN: Joi.string().uri().required(),
 });
 
 export const loadConfig: () => Promise<Config> = async () => {
@@ -67,6 +67,6 @@ export const loadConfig: () => Promise<Config> = async () => {
       database: environmentVariables.DB_DATABASE,
     },
     nodeEnv: environmentVariables.NODE_ENV,
-    clientDomain: environmentVariables.CLIENT_DOMAIN,
+    corsOrigin: environmentVariables.CORS_ORIGIN,
   };
 };

@@ -20,7 +20,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD_FILE=/run/secrets/db-password
       - DB_DATABASE=${DB_DATABASE}
-      - CLIENT_DOMAIN=${CLIENT_DOMAIN}
+      - CORS_ORIGIN=${SERVER_CORS_ORIGIN}
     ports:
       - 127.0.0.1:${SERVER_PORT}:80
 secrets:
