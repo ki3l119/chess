@@ -19,6 +19,7 @@ import {
   FENPieceName,
 } from "./pieces";
 import { GameState } from "./types";
+import { parseFEN, startingBoardFENString } from "./utils/fen-parser";
 
 export type PawnPromotionPieceName = "N" | "Q" | "R" | "B";
 
@@ -40,12 +41,16 @@ export type GameResult = {
   reason: GameEndReason;
 };
 
+const defaultStartingGameState = parseFEN(startingBoardFENString);
+
 export class Chess {
   private currentLegalMoves: Move[] | null;
 
   private result: GameResult | null;
 
-  constructor(private readonly gameState: GameState) {
+  constructor(
+    private readonly gameState: GameState = defaultStartingGameState,
+  ) {
     this.currentLegalMoves = null;
     this.result = null;
   }
