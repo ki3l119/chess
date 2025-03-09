@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 
 import { CreateUserDto } from "chess-shared-types";
 import "./registration-form.scss";
+import { config } from "@/config";
 import { userService } from "@/services";
 import { useFormSubmitHandler } from "@/hooks/form-submit-handler";
 import { Button } from "@/components/button/button";
@@ -25,6 +26,8 @@ export const RegistrationForm: React.FC = () => {
     setError,
   });
 
+  const isInputsDisabled = isSubmitting || config.disableRegistration;
+
   return (
     <form className="registration-form" onSubmit={handleSubmit(submitHandler)}>
       {isSubmitSuccessful && (
@@ -32,6 +35,12 @@ export const RegistrationForm: React.FC = () => {
       )}
       {errors.root?.serverError?.message && (
         <Alert type="error" message={errors.root.serverError.message} />
+      )}
+      {config.disableRegistration && (
+        <Alert
+          type="warning"
+          message="User registration is disabled for this demo."
+        />
       )}
       <Input
         type="text"
@@ -44,7 +53,7 @@ export const RegistrationForm: React.FC = () => {
           },
         })}
         error={errors.username && errors.username.message}
-        disabled={isSubmitting}
+        disabled={isInputsDisabled}
       />
       <Input
         type="email"
@@ -57,7 +66,7 @@ export const RegistrationForm: React.FC = () => {
           },
         })}
         error={errors.email && errors.email.message}
-        disabled={isSubmitting}
+        disabled={isInputsDisabled}
       />
       <Input
         type="password"
@@ -74,9 +83,9 @@ export const RegistrationForm: React.FC = () => {
           },
         })}
         error={errors.password && errors.password.message}
-        disabled={isSubmitting}
+        disabled={isInputsDisabled}
       />
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isInputsDisabled}>
         Register
       </Button>
     </form>

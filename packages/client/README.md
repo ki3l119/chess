@@ -7,6 +7,7 @@ A React application for the chess UI. The app is written in TypeScript and built
 A `.env` file can be placed in this package's directory to set environment variables. Ensure that the following environment variables are set during build time:
 
 - `VITE_SERVER_BASE_URL` - The base URL of the backend server that hosts the chess games.
+- `VITE_DISABLE_REGISTRATION` (Optional) - Set to `true` to disable form for user registration. Defaults to `false`.
 
 ## Building the Client
 

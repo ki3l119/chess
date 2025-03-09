@@ -4,13 +4,14 @@ import {
   faCircleExclamation,
   faCircleInfo,
   faCheck,
+  faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 
 import "./alert.scss";
 
 export type AlertProps = {
   message: string;
-  type: "info" | "success" | "error";
+  type: "info" | "success" | "error" | "warning";
 };
 
 export const Alert: React.FC<AlertProps> = ({ message, type }) => {
@@ -18,6 +19,7 @@ export const Alert: React.FC<AlertProps> = ({ message, type }) => {
     info: faCircleInfo,
     success: faCheck,
     error: faCircleExclamation,
+    warning: faTriangleExclamation,
   };
   return (
     <div className={`alert alert--${type}`}>

@@ -1,6 +1,13 @@
 @use "sass:map";
 @use "@/styles/_variables" as var;
 
+@mixin set-color($color-map) {
+  background-color: map.get($color-map, "base");
+  border-color: map.get($color-map, "base");
+  color: map.get($color-map, "contrast");
+}
+
+
 .alert {
   padding: 20px;
   border-width: 2px;
@@ -14,21 +21,19 @@
   width: 100%;
 
   &--info {
-    background-color: map.get(var.$primary-color, "base");
-    border-color: map.get(var.$primary-color, "light");
-    color: map.get(var.$primary-color, "contrast");
+    @include set-color(var.$primary-color);
   }
 
   &--success {
-    background-color: map.get(var.$success-color, "base");
-    color: map.get(var.$success-color, "contrast");
-    border-color: map.get(var.$success-color, "base");
+    @include set-color(var.$success-color);
   }
 
   &--error {
-    background-color: map.get(var.$error-color, "base");
-    color: map.get(var.$error-color, "contrast");
-    border-color: map.get(var.$error-color, "base");
+    @include set-color(var.$error-color);
+  }
+
+  &--warning {
+    @include set-color(var.$warning-color);
   }
 
   &__icon {
