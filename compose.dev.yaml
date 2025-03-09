@@ -12,6 +12,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  db-migration:
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: postgres:16.3
     container_name: chess-db

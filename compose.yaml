@@ -25,6 +25,23 @@ services:
       - CORS_ORIGIN=${SERVER_CORS_ORIGIN}
     ports:
       - 127.0.0.1:${SERVER_PORT}:80
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+  db-migration:
+    build:
+      context: .
+      dockerfile: docker/server.Dockerfile
+      target: builder
+    command: npx -w chess-server kysely migrate:latest
+    secrets:
+      - db-password
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_PASSWORD_FILE=/run/secrets/db-password
 secrets:
   db-password:
     environment: DB_PASSWORD
