@@ -14,6 +14,7 @@ type EnvironmentVariables = {
   PORT: number;
   NODE_ENV: "production" | "development";
   CORS_ORIGIN: string;
+  DISABLE_REGISTRATION: boolean;
 };
 
 export type DbConfig = {
@@ -29,6 +30,7 @@ export type Config = {
   db: DbConfig;
   nodeEnv: "production" | "development";
   corsOrigin: string;
+  disableRegistration: boolean;
 };
 
 const dbEnvSchema = Joi.object<DatabaseEnvironmentVariables>({
@@ -46,6 +48,7 @@ const envSchema = Joi.object<EnvironmentVariables>({
     .valid("production", "development")
     .default("production"),
   CORS_ORIGIN: Joi.string().uri().required(),
+  DISABLE_REGISTRATION: Joi.boolean().default(false),
 });
 
 export const loadDatabaseConfig: () => DbConfig = () => {
@@ -90,5 +93,6 @@ export const loadConfig: () => Config = () => {
     db: loadDatabaseConfig(),
     nodeEnv: env.NODE_ENV,
     corsOrigin: env.CORS_ORIGIN,
+    disableRegistration: env.DISABLE_REGISTRATION,
   };
 };

@@ -38,6 +38,7 @@ A `.env` file can be placed within the package directory for setting the environ
   - Alternatively, the `DB_PASSWORD_FILE` env variable can be set to the filepath containing the password.
 - `DB_DATABASE` - The name of the database containing the chess-related data.
 - `CORS_ORIGIN` - Allowed origin for cross-origin requests. Should be typically set to the origin of the `chess-client`.
+- `DISABLE_REGISTRATION` - Indicates whether anonymous users can create new accounts. Either `true` or `false`. Defaults to `false`.
 
 ## Running Migrations
 

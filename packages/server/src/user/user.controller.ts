@@ -8,10 +8,12 @@ import {
   HttpCode,
   Post,
   Res,
+  ServiceUnavailableException,
   UnauthorizedException,
   UseGuards,
   UsePipes,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 import {
   CreateUserDto,
@@ -19,6 +21,7 @@ import {
   ProblemDetails,
   UserDto,
 } from "chess-shared-types";
+import { Config } from "../config";
 import { JoiValidationPipe } from "../common";
 import { COOKIE_SESSION_KEY } from "./constants";
 import { createUserDtoSchema, loginDtoSchema } from "./user.validator";
@@ -27,11 +30,21 @@ import { AuthGuard, CurrentUser, SessionId } from "./auth.guard";
 
 @Controller("users")
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly configService: ConfigService<Config>,
+  ) {}
 
   @Post()
   @UsePipes(new JoiValidationPipe(createUserDtoSchema))
   post(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
+    const isRegistrationDisabled = this.configService.getOrThrow(
+      "disableRegistration",
+      { infer: true },
+    );
+    if (isRegistrationDisabled) {
+      throw new ServiceUnavailableException();
+    }
     return this.userService.create(createUserDto);
   }
 
