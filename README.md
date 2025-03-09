@@ -1,8 +1,70 @@
 # Chess
 
-## Setup
+A toy project for implementing an online chess platform.
 
-Ensure that the following prerequisites are met:
+The project contains 4 packages, located in the `packages` directory:
+
+- `chess-game` - Implements the chess rules.
+- `chess-server` - Server for hosting chess games and managing user accounts.
+- `chess-client` - Web-based client application for displaying the chess UI.
+- `chess-shared-types` - Contains the types used by both server and client.
+
+## Docker
+
+The quickest way to start the services is via Docker Compose. A `.env` file can be placed in the root directory of the project to set the environment variables.
+
+### Developer Environment
+
+For developer environments, the compose file is configured to run three containers:
+
+- The backend `chess-server`.
+- An nginx server to host the `chess-client`.
+- A PostgreSQL database.
+
+The following environment variables are needed:
+
+- `DB_USER` - The username to be created for the PostgreSQL database.
+- `DB_PASSWORD`- The password for `DB_USER`.
+- `DB_DATABASE` - The name to be given to the chess database.
+- `SERVER_PORT` - The port to be used by the `chess-server` in the local machine.
+- `CLIENT_PORT`- The port to be used by the nginx server in the local machine.
+
+The containers can be started with the following command:
+
+```
+docker compose -f compose.yaml -f compose.dev.yaml up
+```
+
+### Production Environment
+
+For production environments, the compose file is configured to run only two containers:
+
+- The backend `chess-server`.
+- An nginx server to host the `chess-client`.
+
+A PostgreSQL server is expected to be configured separately with a user and a database created to manage and store the chess data. The PostgreSQL server should be running and reachable from the `chess-server` container. The tables do not need to be created manually as migrations are automatically run by Docker Compose when the services are started.
+
+The following environment variables are needed:
+
+- `DB_HOST` - Hostname or IP address of the PostgreSQL server.
+- `DB_PORT` - The port on which the PostgreSQL server is listening on.
+- `DB_USER` - The username to be used to access the database.
+- `DB_PASSWORD`- The password for `DB_USER`.
+- `DB_DATABASE` - The name of the database containing the chess-related data.
+- `SERVER_BASE_URL` - The base URL of the `chess-server` container.
+- `SERVER_CORS_ORIGIN` - Allowed origin for cross-origin requests to the server. This should be set to the origin of the nginx server.
+- `SERVER_PORT` - The port to be used by the `chess-server` in the local machine.
+- `CLIENT_PORT`- The port to be used by the nginx server in the local machine.
+
+The containers can be started with the following command:
+
+```
+docker compose up
+```
+
+## Local Setup
+
+For those who want to run the services outside of Docker, your local machine must be set up to be able to build and run the services. Ensure that the following prerequisites are met:
 
 - Node.js v22.11.0
 - npm v10.9.0
@@ -12,51 +74,4 @@ The project can be setup as follows:
 1. Run `npm install` to install dependencies.
 2. Run `npx husky` to setup pre-commit hooks.
 
-The project contains 3 packages, located in the `packages` directory:
-
-- `chess-server` - Server for hosting chess games and managing user accounts.
-- `chess-client` - Web-based client application for displaying the chess UI.
-- `chess-shared-types` - Contains the types used by both server and client.
-
-For packages that require certain environment variables to be set, a`.env` file can be placed in the root directory of the repo.
-
-## Building the Server
-
-The server is written in TypeScript with the NestJS framework. A PostgreSQL database is used to store information on the user accounts.
-
-Ensure that the following environment variables are set:
-
-- `PORT` (Optional) - The PORT in which the server will be running in. Defaults to 3000.
-- `DB_URI` - The URI to the PostgreSQL database.
-
-```dotenv
-# Sample .env file
-PORT=80
-DB_URI=postgresql://postgres:password@localhost:5432/chess
-```
-
-Run the database migrations:
-
-```
-npx -w chess-server kysely migrate:latest
-```
-
-Compile the TypeScript files:
-
-```
-npm -w chess-server run build
-```
-
-Alternatively, for development, you may run
-
-```
-npm -w chess-server run build:dev
-```
-
-to output source maps for debugging.
-
-Start the server:
-
-```
-npm -w chess-server run start
-```
+Instructions on how to build and run the server and the client can be found in their corresponding `README.md` files located in their respective package directories.
