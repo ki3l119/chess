@@ -21,13 +21,14 @@ For developer environments, the compose file is configured to run three containe
 - An nginx server to host the `chess-client`.
 - A PostgreSQL database.
 
-The following environment variables are needed:
+The following environment variables can be set:
 
 - `DB_USER` - The username to be created for the PostgreSQL database.
 - `DB_PASSWORD`- The password for `DB_USER`.
 - `DB_DATABASE` - The name to be given to the chess database.
 - `SERVER_PORT` - The port to be used by the `chess-server` in the local machine.
 - `CLIENT_PORT`- The port to be used by the nginx server in the local machine.
+- `DISABLE_REGISTRATION` (Optional) - Set to `true` to disable form for user registration. Defaults to `false`.
 
 The containers can be started with the following command:
 
@@ -44,7 +45,7 @@ For production environments, the compose file is configured to run only two cont
 
 A PostgreSQL server is expected to be configured separately with a user and a database created to manage and store the chess data. The PostgreSQL server should be running and reachable from the `chess-server` container. The tables do not need to be created manually as migrations are automatically run by Docker Compose when the services are started.
 
-The following environment variables are needed:
+The following environment variables can be set:
 
 - `DB_HOST` - Hostname or IP address of the PostgreSQL server.
 - `DB_PORT` - The port on which the PostgreSQL server is listening on.
@@ -55,6 +56,7 @@ The following environment variables are needed:
 - `SERVER_CORS_ORIGIN` - Allowed origin for cross-origin requests to the server. This should be set to the origin of the nginx server.
 - `SERVER_PORT` - The port to be used by the `chess-server` in the local machine.
 - `CLIENT_PORT`- The port to be used by the nginx server in the local machine.
+- `DISABLE_REGISTRATION` (Optional) - Set to `true` to disable form for user registration. Defaults to `false`.
 
 The containers can be started with the following command:
 

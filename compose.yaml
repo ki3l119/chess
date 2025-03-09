@@ -5,6 +5,7 @@ services:
       dockerfile: docker/client.Dockerfile
       args:
         - SERVER_BASE_URL=${SERVER_BASE_URL}
+        - DISABLE_REGISTRATION=${DISABLE_REGISTRATION:-false}
     ports:
       - 127.0.0.1:${CLIENT_PORT}:80
     depends_on:
@@ -23,6 +24,7 @@ services:
       - DB_PASSWORD_FILE=/run/secrets/db-password
       - DB_DATABASE=${DB_DATABASE}
       - CORS_ORIGIN=${SERVER_CORS_ORIGIN}
+      - DISABLE_REGISTRATION=${DISABLE_REGISTRATION:-false}
     ports:
       - 127.0.0.1:${SERVER_PORT}:80
     depends_on:
