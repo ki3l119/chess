@@ -1,7 +1,8 @@
 services:
   client:
-    environment:
-      - VITE_SERVER_BASE_URL=http://localhost:${SERVER_PORT}
+    build:
+      args:
+        - SERVER_BASE_URL=http://localhost:${SERVER_PORT}
   server:
     environment:
       - NODE_ENV=development
