@@ -98,6 +98,10 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
     };
   }
 
+  private logGameCount() {
+    this.logger.log(`Number of active games: ${this.games.size}`);
+  }
+
   /**
    * Creates a new game with the player as the host.
    *
@@ -128,6 +132,7 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
       this.userGameMapping.set(newPlayer.userId, game.id);
     }
     this.logger.log(`Created game ${game.id}`);
+    this.logGameCount();
     return GameService.toGameInfoDto(game);
   }
 
@@ -220,7 +225,9 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
     game.removeListener("timeout", this.gameTimeoutListener);
     game.stop();
     this.logger.log(`Deleted game ${gameId}.`);
-    return this.games.delete(gameId);
+    const result = this.games.delete(gameId);
+    this.logGameCount();
+    return result;
   }
 
   private static boardToPieceCentricRepresentation(board: Board) {
