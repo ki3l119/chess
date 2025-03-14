@@ -28,8 +28,8 @@ import {
   InvalidGameMoveException,
   InvalidStartException,
   InvalidGameStateException,
-} from "./game.exception";
-import { Game, NewPlayer, Player } from "./game";
+} from "../game.exception";
+import { Game, NewPlayer, Player } from "../game";
 import { EventEmitter } from "stream";
 
 type GameServiceEventMap = {

@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { WebSocketModule } from "../ws";
-import { GameService } from "./game.service";
+import { GameService } from "./services/game.service";
 import { GameGateway } from "./game.gateway";
 
 @Module({

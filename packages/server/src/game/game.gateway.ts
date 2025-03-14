@@ -30,7 +30,7 @@ import {
   WebSocketJoiValidationPipe,
   WebSocketExceptionFilter,
 } from "../ws";
-import { GameService } from "./game.service";
+import { GameService } from "./services/game.service";
 import {
   createGameDtoSchema,
   joinGameDtoSchema,
