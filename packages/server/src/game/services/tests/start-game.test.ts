@@ -7,6 +7,7 @@ import {
   InvalidStartException,
 } from "../../game.exception";
 import { GameService } from "../game.service";
+import { GameHistoryService } from "../game-history.service";
 
 jest.useFakeTimers();
 
@@ -16,7 +17,7 @@ describe("GameService.start", () => {
   beforeEach(() => {
     const logger = new ConsoleLogger();
     logger.setLogLevels([]);
-    gameService = new GameService(logger);
+    gameService = new GameService(logger, {} as GameHistoryService);
   });
 
   it("Host can start game with 2 players", () => {

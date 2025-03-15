@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { ConsoleLogger } from "@nestjs/common";
 
 import { GameService } from "../game.service";
+import { GameHistoryService } from "../game-history.service";
 
 jest.useFakeTimers();
 
@@ -12,7 +13,7 @@ describe("GameService.leave", () => {
   beforeEach(() => {
     const logger = new ConsoleLogger();
     logger.setLogLevels([]);
-    gameService = new GameService(logger);
+    gameService = new GameService(logger, {} as GameHistoryService);
   });
 
   it("Game that has not started is destroyed upon host leaving", () => {

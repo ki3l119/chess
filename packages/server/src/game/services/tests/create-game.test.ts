@@ -5,6 +5,7 @@ import { ConsoleLogger } from "@nestjs/common";
 import { InvalidGameCreationException } from "../../game.exception";
 import { PieceColor } from "../../game";
 import { GameService } from "../game.service";
+import { GameHistoryService } from "../game-history.service";
 
 jest.useFakeTimers();
 
@@ -14,7 +15,7 @@ describe("GameService.create", () => {
   beforeEach(() => {
     const logger = new ConsoleLogger();
     logger.setLogLevels([]);
-    gameService = new GameService(logger);
+    gameService = new GameService(logger, {} as GameHistoryService);
   });
 
   it("Creates new game", () => {
