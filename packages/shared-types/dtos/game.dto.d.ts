@@ -1,4 +1,5 @@
-export type PieceColor = "WHITE" | "BLACK";
+import { GameEndReason, PieceColor } from "./common.dto";
+
 export type PieceColorChoice = PieceColor | "RANDOM";
 
 export type CreateGameDto = {
@@ -13,7 +14,7 @@ export type JoinGameDto = {
 export type PlayerDto = {
   id: string;
   name: string;
-  color: "WHITE" | "BLACK";
+  color: PieceColor;
 };
 
 export type GameInfoDto = {
@@ -65,13 +66,7 @@ export type StartGameDto = {
 
 type GameResultDto = {
   winner: PieceColor | null;
-  reason:
-    | "CHECKMATE"
-    | "STALEMATE"
-    | "FIFTY_MOVE_RULE"
-    | "ABANDONED"
-    | "TIMEOUT"
-    | "RESIGNED";
+  reason: GameEndReason;
 };
 
 export type NewMoveSuccessDto = {
