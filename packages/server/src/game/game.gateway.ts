@@ -304,7 +304,6 @@ export class GameGateway
     );
 
     if (moveSuccessDto.gameResult) {
-      this.gameService.delete(gameId);
       this.cleanUpGameSockets(gameId);
     }
 

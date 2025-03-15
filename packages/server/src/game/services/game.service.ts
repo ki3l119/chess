@@ -31,6 +31,7 @@ import {
 } from "../game.exception";
 import { Game, NewPlayer, Player } from "../game";
 import { EventEmitter } from "stream";
+import { GameHistoryService } from "./game-history.service";
 
 type GameServiceEventMap = {
   timeout: [gameInfo: GameInfoDto, gameResult: GameResultDto];
@@ -48,7 +49,10 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
 
   private readonly games: Map<string, Game>;
 
-  constructor(private readonly logger: ConsoleLogger) {
+  constructor(
+    private readonly logger: ConsoleLogger,
+    private readonly gameHistoryService: GameHistoryService,
+  ) {
     super();
     this.games = new Map();
     this.playerGameMapping = new Map();
@@ -59,7 +63,7 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
         winner: player.color === PieceColor.BLACK ? "WHITE" : "BLACK",
         reason: "TIMEOUT",
       };
-      this.delete(game.id);
+      this.end(game, gameResult);
       this.emit("timeout", GameService.toGameInfoDto(game), gameResult);
     };
   }
@@ -192,13 +196,15 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
     let gameResult: GameResultDto | undefined;
 
     if (hasGameStarted || isHost) {
-      this.delete(game.id);
       const opponent = isHost ? player : host;
       if (hasGameStarted && opponent) {
         gameResult = {
           winner: opponent.color,
           reason: "ABANDONED",
         };
+        this.end(game, gameResult);
+      } else {
+        this.end(game);
       }
     } else if (player) {
       this.playerLeave(player);
@@ -211,11 +217,12 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
     };
   }
 
-  delete(gameId: string): boolean {
-    const game = this.games.get(gameId);
-    if (!game) {
-      return false;
-    }
+  /**
+   * Removes the game from the currently active games.
+   *
+   * If game result is defined, the game is persisted into the database.
+   */
+  private end(game: Game, gameResult?: GameResultDto): boolean {
     const players = [game.getHost(), game.getPlayer()];
     for (const player of players) {
       if (player) {
@@ -224,8 +231,27 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
     }
     game.removeListener("timeout", this.gameTimeoutListener);
     game.stop();
-    this.logger.log(`Deleted game ${gameId}.`);
-    const result = this.games.delete(gameId);
+    this.logger.log(`Deleted game ${game.id}.`);
+    const result = this.games.delete(game.id);
+    const host = game.getHost();
+    const player = game.getPlayer();
+    if (
+      gameResult &&
+      (host.userId != undefined || player?.userId != undefined)
+    ) {
+      this.logger.log(`Saving game ${game.id} into database.`);
+      this.gameHistoryService.create({
+        id: game.id,
+        startTime: game.getStartTime(),
+        endTime: new Date(),
+        winner: gameResult.winner,
+        reason: gameResult.reason,
+        whitePlayerId:
+          host.color === PieceColor.WHITE ? host.userId : player?.userId,
+        blackPlayerId:
+          host.color === PieceColor.BLACK ? host.userId : player?.userId,
+      });
+    }
     this.logGameCount();
     return result;
   }
@@ -314,6 +340,12 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
         options,
       );
 
+      const gameResult = game.getResult();
+
+      if (gameResult) {
+        this.end(game, gameResult);
+      }
+
       return {
         newPosition: GameService.boardToPieceCentricRepresentation(
           moveResult.board,
@@ -357,11 +389,13 @@ export class GameService extends EventEmitter<GameServiceEventMap> {
       throw new Error("Player is not part of the game.");
     }
 
-    this.delete(gameId);
-
-    return {
+    const gameResult: GameResultDto = {
       winner: Chess.getOpposingColor(resigningPlayer.color),
       reason: "RESIGNED",
     };
+
+    this.end(game, gameResult);
+
+    return gameResult;
   }
 }

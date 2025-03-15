@@ -1,18 +1,14 @@
 import { Insertable, Selectable, Updateable } from "kysely";
 
-export enum GamePieceColor {
-  WHITE = "WHITE",
-  BLACK = "BLACK",
-}
+export type GamePieceColor = "WHITE" | "BLACK";
 
-export enum GameEndReason {
-  CHECKMATE = "CHECKMATE",
-  STALEMATE = "STALEMATE",
-  FIFTY_MOVE_RULE = "FIFTY_MOVE_RULE",
-  ABANDONED = "ABANDONED",
-  TIMEOUT = "TIMEOUT",
-  RESIGNED = "RESIGNED",
-}
+export type GameEndReason =
+  | "CHECKMATE"
+  | "STALEMATE"
+  | "FIFTY_MOVE_RULE"
+  | "ABANDONED"
+  | "TIMEOUT"
+  | "RESIGNED";
 
 export interface GamesTable {
   id: string;

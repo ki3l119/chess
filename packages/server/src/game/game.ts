@@ -49,6 +49,7 @@ type ActiveGame = {
   chess: Chess;
   currentMoveStartTime: Date;
   playerTimerTimeout: NodeJS.Timeout | null;
+  startTime: Date;
 };
 
 type EventMap = {
@@ -175,10 +176,13 @@ export class Game extends EventEmitter<EventMap> {
       throw new InvalidStartException("Missing a second player.");
     }
 
+    const timestamp = new Date();
+
     this.activeGame = {
       chess: new Chess(parseFEN(startingBoardFENString)),
-      currentMoveStartTime: new Date(),
+      currentMoveStartTime: timestamp,
       playerTimerTimeout: null,
+      startTime: timestamp,
     };
 
     const player = this.activePlayer();
@@ -284,5 +288,14 @@ export class Game extends EventEmitter<EventMap> {
       : this.player && this.player.id === id
         ? Game.deepCopyPlayer(this.player)
         : null;
+  }
+
+  /**
+   * @returns What time the game started
+   * @throws {InvalidGameStateException} When game has not yet started.
+   */
+  getStartTime() {
+    const activeGame = this.getActiveGame();
+    return activeGame.startTime;
   }
 }
