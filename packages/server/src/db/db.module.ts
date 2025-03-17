@@ -13,12 +13,14 @@ import { Database } from "./database";
       provide: Database,
       useFactory: (configService: ConfigService<Config>) => {
         const dbConfig = configService.getOrThrow("db", { infer: true });
+        const nodeEnv = configService.getOrThrow("nodeEnv", { infer: true });
         const pool = new Pool(dbConfig);
         return new Database({
           dialect: new PostgresDialect({
             pool,
           }),
           plugins: [new CamelCasePlugin()],
+          log: nodeEnv === "development" ? ["query"] : undefined,
         });
       },
       inject: [ConfigService],
