@@ -6,6 +6,7 @@ import {
   JoinGameDto,
   MoveDto,
   NewMoveDto,
+  GetGameHistoryQueryDto,
 } from "chess-shared-types";
 
 export const createGameDtoSchema = Joi.object<CreateGameDto>({
@@ -30,4 +31,9 @@ const moveDtoSchema = Joi.object<MoveDto>({
 export const newMoveDtoSchema = Joi.object<NewMoveDto>({
   move: moveDtoSchema.required(),
   pawnPromotionPiece: Joi.string().valid("R", "N", "B", "Q"),
+});
+
+export const getGameHistoryQuerySchema = Joi.object<GetGameHistoryQueryDto>({
+  page: Joi.number().integer().min(1).default(1),
+  pageSize: Joi.number().integer().min(1).max(100).default(50),
 });

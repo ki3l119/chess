@@ -2,6 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 
 import {
   createGameDtoSchema,
+  getGameHistoryQuerySchema,
   joinGameDtoSchema,
   newMoveDtoSchema,
 } from "./game.validator";
@@ -193,6 +194,40 @@ describe("Game DTO validation schemas", () => {
       const actual = newMoveDtoSchema.validate(input);
       expect(actual.error?.details.length).toBe(1);
       expect(actual.error?.details[0].path).toEqual(["pawnPromotionPiece"]);
+    });
+  });
+
+  describe("getGameHistoryQuerySchema", () => {
+    it("No errors on valid DTO", () => {
+      const input = {
+        page: 10,
+        pageSize: 35,
+      };
+
+      const actual = getGameHistoryQuerySchema.validate(input);
+      expect(actual.error).toBeUndefined();
+      expect(actual.value).toEqual(input);
+    });
+
+    it("Defaults to 1st page with 50 page size if not set", () => {
+      const actual = getGameHistoryQuerySchema.validate({});
+      expect(actual.error).toBeUndefined();
+      expect(actual.value).toEqual({
+        page: 1,
+        pageSize: 50,
+      });
+    });
+
+    it("Error if pageSize exceeds max value", () => {
+      const input = {
+        pageSize: 101,
+      };
+
+      const actual = getGameHistoryQuerySchema.validate(input, {
+        abortEarly: false,
+      });
+      expect(actual.error?.details.length).toBe(1);
+      expect(actual.error?.details[0].path).toEqual(["pageSize"]);
     });
   });
 });

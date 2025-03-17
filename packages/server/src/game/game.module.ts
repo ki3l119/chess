@@ -2,13 +2,21 @@ import { Module } from "@nestjs/common";
 
 import { WebSocketModule } from "../ws";
 import { DatabaseModule } from "../db";
-import { GameRepository } from "./game.repository";
+import { GameHistoryRepository } from "./repositories/game-history.repository";
 import { GameHistoryService } from "./services/game-history.service";
 import { GameService } from "./services/game.service";
 import { GameGateway } from "./game.gateway";
+import { UserModule } from "../user";
+import { GameController } from "./game.controller";
 
 @Module({
-  providers: [GameRepository, GameHistoryService, GameService, GameGateway],
-  imports: [WebSocketModule, DatabaseModule],
+  controllers: [GameController],
+  providers: [
+    GameHistoryRepository,
+    GameHistoryService,
+    GameService,
+    GameGateway,
+  ],
+  imports: [WebSocketModule, DatabaseModule, UserModule],
 })
 export class GameModule {}
