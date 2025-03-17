@@ -97,7 +97,9 @@ export class GameHistoryRepository {
   async getUserGameCount(userId: string): Promise<number> {
     const query = this.db
       .selectFrom("games")
-      .select((eb) => [eb.fn.countAll<number>().as("count")])
+      .select((eb) => [
+        eb.cast<number>(eb.fn.countAll<number>(), "integer").as("count"),
+      ])
       .where((eb) =>
         eb("whitePlayerId", "=", userId).or("blackPlayerId", "=", userId),
       );
