@@ -15,6 +15,13 @@ export type FindGamesByUserOptions = {
   pagination?: PageBasedPaginationInput;
 };
 
+export type UserGameStats = {
+  totalGames: number;
+  wins: number;
+  losses: number;
+  draws: number;
+};
+
 @Injectable()
 /**
  * Repository for storing finished games
@@ -97,5 +104,44 @@ export class GameHistoryRepository {
 
     const { count } = await query.executeTakeFirstOrThrow();
     return count;
+  }
+
+  async getUserStats(userId: string): Promise<UserGameStats> {
+    const query = this.db
+      .selectFrom("games")
+      .select((eb) => [
+        eb.cast<number>(eb.fn.countAll(), "integer").as("totalGames"),
+        eb
+          .cast<number>(
+            eb.fn
+              .countAll()
+              .filterWhere(
+                eb.or([
+                  eb("whitePlayerId", "=", userId).and("winner", "=", "WHITE"),
+                  eb("blackPlayerId", "=", userId).and("winner", "=", "BLACK"),
+                ]),
+              ),
+            "integer",
+          )
+          .as("wins"),
+        eb
+          .cast<number>(
+            eb.fn.countAll().filterWhere("winner", "is", null),
+            "integer",
+          )
+          .as("draws"),
+      ])
+      .where((eb) =>
+        eb("whitePlayerId", "=", userId).or("blackPlayerId", "=", userId),
+      );
+
+    const { wins, totalGames, draws } = await query.executeTakeFirstOrThrow();
+
+    return {
+      totalGames,
+      wins,
+      losses: totalGames - (wins + draws),
+      draws,
+    };
   }
 }

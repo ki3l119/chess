@@ -4,7 +4,11 @@ import {
   NewGame,
   Game,
 } from "../repositories/game-history.repository";
-import { GameHistoryDto, GameHistoryEntryDto } from "chess-shared-types";
+import {
+  GameHistoryDto,
+  GameHistoryEntryDto,
+  GameHistoryStatsDto,
+} from "chess-shared-types";
 import { PageBasedPaginationInput } from "../../common";
 
 export type FindByUserOptions = {
@@ -57,5 +61,9 @@ export class GameHistoryService {
         totalPages: Math.ceil(totalGameCount / options.pagination.pageSize),
       },
     };
+  }
+
+  async getUserStats(userId: string): Promise<GameHistoryStatsDto> {
+    return this.gameHistoryRepository.getUserStats(userId);
   }
 }
