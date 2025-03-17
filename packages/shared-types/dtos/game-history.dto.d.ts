@@ -25,3 +25,10 @@ export type GameHistoryDto = {
 };
 
 export type GetGameHistoryQueryDto = PageBasedPagination;
+
+export type GameHistoryStatsDto = {
+  totalGames: number;
+  wins: number;
+  losses: number;
+  draws: number;
+};
