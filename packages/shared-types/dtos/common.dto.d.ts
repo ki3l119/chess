@@ -7,3 +7,8 @@ export type GameEndReason =
   | "ABANDONED"
   | "TIMEOUT"
   | "RESIGNED";
+
+export type PageBasedPagination = {
+  page: number;
+  pageSize: number;
+};

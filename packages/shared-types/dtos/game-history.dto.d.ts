@@ -1,4 +1,4 @@
-import { GameEndReason, PieceColor } from "./common.dto";
+import { GameEndReason, PageBasedPagination, PieceColor } from "./common.dto";
 
 type Player = {
   id: string;
@@ -14,3 +14,14 @@ export type GameHistoryEntryDto = {
   winner: PieceColor | null;
   reason: GameEndReason;
 };
+
+export type GameHistoryDto = {
+  games: GameHistoryEntryDto[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    pageSize: number;
+  };
+};
+
+export type GetGameHistoryQueryDto = PageBasedPagination;
