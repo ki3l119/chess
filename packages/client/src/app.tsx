@@ -10,6 +10,7 @@ import { SidebarLayout } from "./components/sidebar/sidebar";
 import { GamePage } from "./pages/game/game-page";
 import { RegistrationPage } from "./pages/registration/registration-page";
 import { LoginPage } from "./pages/login/login-page";
+import { ProfilePage } from "./pages/profile/profile-page";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "/login",
         element: <LoginPage />,
+      },
+      {
+        path: "/profile",
+        element: <ProfilePage />,
       },
     ],
   },

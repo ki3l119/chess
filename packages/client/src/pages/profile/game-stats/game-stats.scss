@@ -1,0 +1,65 @@
+@use "sass:map";
+@use "@/styles/variables" as var;
+
+
+.game-stats {
+  width: 100%;
+
+  &__title {
+    font-size: map.get(var.$font-sizes, "xl");
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  &__statistics {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr;
+    row-gap: 20px;
+    column-gap: 20px;
+
+    @media (min-width: map.get(var.$breakpoints, "md")) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @media (min-width: map.get(var.$breakpoints, "xl")) {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+  }
+
+  &__statistic {
+    display: flex;
+    flex-direction: column;
+    row-gap: 5px;
+    // align-items: center;
+    border: 1px solid map.get(var.$surface-color, "light");
+    padding: 10px;
+    border-radius: 7px;
+    background: map.get(var.$surface-color, "light");
+    
+    
+  }
+
+  &__stat-value {
+    font-size: map.get(var.$font-sizes, "xl");
+    font-weight: bold;
+
+    &--wins {
+      color: green;
+    }
+
+    &--losses {
+      color: rgb(189, 0, 0);
+    }
+
+    &--draws {
+      color: gray
+    }
+  }
+
+  &__spinner {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+}

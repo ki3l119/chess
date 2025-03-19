@@ -117,11 +117,18 @@ const Sidebar: React.FC<SidebarProps> = ({
       },
     );
   } else {
-    links.push({
-      icon: faRightFromBracket,
-      text: "Logout",
-      onClick: onLogout,
-    });
+    links.push(
+      {
+        icon: faAddressCard,
+        text: "Profile",
+        destination: "/profile",
+      },
+      {
+        icon: faRightFromBracket,
+        text: "Logout",
+        onClick: onLogout,
+      },
+    );
   }
 
   useEffect(() => {
