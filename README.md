@@ -77,3 +77,7 @@ The project can be setup as follows:
 2. Run `npx husky` to setup pre-commit hooks.
 
 Instructions on how to build and run the server and the client can be found in their corresponding `README.md` files located in their respective package directories.
+
+## Asset Credits
+
+- SVG Chess pieces: [Chess Simple Assets](https://www.figma.com/community/file/971870797656870866/chess-simple-assets) by Maciej Świerczek is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
