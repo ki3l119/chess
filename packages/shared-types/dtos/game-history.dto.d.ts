@@ -9,8 +9,8 @@ export type GameHistoryEntryDto = {
   id: string;
   whitePlayer: Player | null;
   blackPlayer: Player | null;
-  startTime: Date;
-  endTime: Date;
+  startTime: string;
+  endTime: string;
   winner: PieceColor | null;
   reason: GameEndReason;
 };

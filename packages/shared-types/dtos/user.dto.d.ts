@@ -18,6 +18,6 @@ export type LoginDto = {
 export type SessionDto = {
   id: string;
   userId: string;
-  createdAt: Date;
-  expiresAt: Date;
+  createdAt: string;
+  expiresAt: string;
 };
