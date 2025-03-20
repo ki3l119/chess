@@ -59,6 +59,7 @@ export const LoginForm: React.FC = () => {
             message: "Cannot exceed 128 characters.",
           },
         })}
+        disabled={isSubmitting}
         error={errors.password?.message}
       />
       <Button type="submit">Login</Button>
