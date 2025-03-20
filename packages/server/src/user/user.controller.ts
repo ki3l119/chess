@@ -63,7 +63,7 @@ export class UserController {
     }
     response.cookie(COOKIE_SESSION_KEY, result.session.id, {
       httpOnly: true,
-      expires: result.session.expiresAt,
+      expires: new Date(result.session.expiresAt),
     });
 
     return result.user;

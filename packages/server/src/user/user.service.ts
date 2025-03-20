@@ -78,8 +78,8 @@ export class UserService {
       session: {
         id: session.id,
         userId: session.userId,
-        createdAt: session.createdAt,
-        expiresAt: session.expiresAt,
+        createdAt: session.createdAt.toISOString(),
+        expiresAt: session.expiresAt.toISOString(),
       },
     };
   }

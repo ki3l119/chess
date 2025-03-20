@@ -20,9 +20,11 @@ export class GameHistoryService {
   constructor(private readonly gameHistoryRepository: GameHistoryRepository) {}
 
   private static gameToEntryDto(game: Game): GameHistoryEntryDto {
-    const { whitePlayer, blackPlayer, ...gameInfo } = game;
+    const { whitePlayer, blackPlayer, startTime, endTime, ...gameInfo } = game;
     return {
       ...gameInfo,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
       whitePlayer: whitePlayer && {
         id: whitePlayer.id,
         name: whitePlayer.username,
