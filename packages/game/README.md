@@ -85,3 +85,9 @@ chess.move({
   pawnPromotionPiece: "Q",
 });
 ```
+
+## Running Unit Tests
+
+```
+npm -w chess-game run test
+```
