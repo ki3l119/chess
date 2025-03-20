@@ -55,3 +55,9 @@ To start the server, run the command:
 ```
 npm -w chess-server run start
 ```
+
+## Running Unit Tests
+
+```
+npm -w chess-server run test
+```
