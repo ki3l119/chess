@@ -63,33 +63,6 @@ export const GamePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const onDisconnect = (event: DisconnectEvent) => {
-      if (
-        event.cause === DisconnectEvent.SERVER_CLOSE ||
-        event.cause === DisconnectEvent.HEARTBEAT_TIMEOUT
-      ) {
-        const message =
-          event.cause === DisconnectEvent.HEARTBEAT_TIMEOUT
-            ? "Cannot reach the server at the moment. Please try again later."
-            : "An unexpected server error has occured. Please try again later.";
-        alert(message);
-        setErrorMessage(message);
-      }
-      setGameSocket(null);
-    };
-    if (gameSocket) {
-      gameSocket.addEventListener("disconnect", onDisconnect);
-    }
-
-    return () => {
-      if (gameSocket) {
-        gameSocket.removeEventListener("disconnect", onDisconnect);
-        gameSocket.close();
-      }
-    };
-  }, [gameSocket]);
-
-  useEffect(() => {
     const onJoin = (event: JoinEvent) => {
       if (gameInfo) {
         setGameInfo({
@@ -120,11 +93,31 @@ export const GamePage: React.FC = () => {
       }
     };
 
+    const onDisconnect = (event: DisconnectEvent) => {
+      if (
+        event.cause === DisconnectEvent.SERVER_CLOSE ||
+        event.cause === DisconnectEvent.HEARTBEAT_TIMEOUT
+      ) {
+        const message =
+          event.cause === DisconnectEvent.HEARTBEAT_TIMEOUT
+            ? "Cannot reach the server at the moment. Please try again later."
+            : "An unexpected server error has occured. Please try again later.";
+
+        if (gameInfo) {
+          alert(message);
+        }
+
+        setErrorMessage(message);
+      }
+      setGameSocket(null);
+    };
+
     if (gameSocket) {
       gameSocket.addEventListener("join", onJoin);
       gameSocket.addEventListener("start", onStart);
       gameSocket.addEventListener("waiting-room-end", onWaitingRoomEnd);
       gameSocket.addEventListener("waiting-room-leave", onWaitingRoomLeave);
+      gameSocket.addEventListener("disconnect", onDisconnect);
     }
 
     return () => {
@@ -136,6 +129,7 @@ export const GamePage: React.FC = () => {
           "waiting-room-leave",
           onWaitingRoomLeave,
         );
+        gameSocket.removeEventListener("disconnect", onDisconnect);
       }
     };
   }, [gameSocket, gameInfo]);
