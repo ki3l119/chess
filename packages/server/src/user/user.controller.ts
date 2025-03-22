@@ -36,7 +36,7 @@ export class UserController {
   ) {}
 
   @Post()
-  @UsePipes(new JoiValidationPipe(createUserDtoSchema))
+  @UsePipes(new JoiValidationPipe(createUserDtoSchema.required()))
   post(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     const isRegistrationDisabled = this.configService.getOrThrow(
       "disableRegistration",
@@ -50,7 +50,7 @@ export class UserController {
 
   @Post("auth")
   async postAuth(
-    @Body(new JoiValidationPipe(loginDtoSchema)) loginDto: LoginDto,
+    @Body(new JoiValidationPipe(loginDtoSchema.required())) loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<UserDto> {
     const result = await this.userService.login(loginDto);
