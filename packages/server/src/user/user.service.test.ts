@@ -7,18 +7,23 @@ import { CreateUserDto, LoginDto, UserDto } from "chess-shared-types";
 import {
   DuplicateEmailException,
   DuplicateUsernameException,
+  UserNotFoundException,
 } from "./user.exception";
 
 describe("UserService", () => {
+  const PASSWORD_SALT_ROUNDS = 10;
   const userRepositoryMock = {
     insert: jest.fn<typeof UserRepository.prototype.insert>(),
     findByEmail: jest.fn<typeof UserRepository.prototype.findByEmail>(),
     insertSession: jest.fn<typeof UserRepository.prototype.insertSession>(),
     findSessionById: jest.fn<typeof UserRepository.prototype.findSessionById>(),
     deleteSession: jest.fn<typeof UserRepository.prototype.deleteSession>(),
+    findById: jest.fn<typeof UserRepository.prototype.findById>(),
+    update: jest.fn<typeof UserRepository.prototype.update>(),
   };
   const userService = new UserService(
     userRepositoryMock as unknown as UserRepository,
+    PASSWORD_SALT_ROUNDS,
   );
 
   afterEach(() => {
@@ -238,6 +243,77 @@ describe("UserService", () => {
 
       const actual = await userService.logout(input);
 
+      expect(actual).toBe(false);
+    });
+  });
+
+  describe("changePassword", () => {
+    it("Resolves to true on successful password change", async () => {
+      const oldPassword = "p@ssword";
+      const hashedOldPassword = bcrypt.hashSync(
+        oldPassword,
+        PASSWORD_SALT_ROUNDS,
+      );
+      const dummyId = "6680afcd-2e05-45b7-9376-b5a48473e101";
+      userRepositoryMock.findById.mockResolvedValueOnce({
+        id: dummyId,
+        username: "user",
+        password: hashedOldPassword,
+        email: "test@gmail.com",
+        createdAt: new Date(),
+      });
+
+      userRepositoryMock.update.mockResolvedValueOnce(true);
+
+      const newPassword = "new-password";
+      const actual = await userService.changePassword(
+        dummyId,
+        oldPassword,
+        newPassword,
+      );
+
+      expect(userRepositoryMock.update.mock.calls.length).toBe(1);
+      expect(userRepositoryMock.update.mock.calls[0][1]).not.toEqual(
+        hashedOldPassword,
+      );
+      // Ensure new password is hashed
+      expect(userRepositoryMock.update.mock.calls[0][1]).not.toEqual(
+        newPassword,
+      );
+      expect(actual).toBe(true);
+    });
+
+    it("Throws UserNotFoundException when no user is found", async () => {
+      userRepositoryMock.findById.mockResolvedValueOnce(null);
+      expect(
+        userService.changePassword(
+          "6680afcd-2e05-45b7-9376-b5a48473e101",
+          "old-password",
+          "new-password",
+        ),
+      ).rejects.toBeInstanceOf(UserNotFoundException);
+    });
+
+    it("Does not update if old password is wrong", async () => {
+      const dummyId = "6680afcd-2e05-45b7-9376-b5a48473e101";
+      userRepositoryMock.findById.mockResolvedValueOnce({
+        id: dummyId,
+        username: "user",
+        password: bcrypt.hashSync("p@ssword", PASSWORD_SALT_ROUNDS),
+        email: "test@gmail.com",
+        createdAt: new Date(),
+      });
+
+      userRepositoryMock.update.mockResolvedValueOnce(true);
+
+      const newPassword = "new-password";
+      const actual = await userService.changePassword(
+        dummyId,
+        "wrong-old-password",
+        newPassword,
+      );
+
+      expect(userRepositoryMock.update.mock.calls.length).toBe(0);
       expect(actual).toBe(false);
     });
   });

@@ -6,6 +6,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Patch,
   Post,
   Res,
   ServiceUnavailableException,
@@ -16,6 +17,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 
 import {
+  ChangePasswordDto,
   CreateUserDto,
   LoginDto,
   ProblemDetails,
@@ -24,7 +26,11 @@ import {
 import { Config } from "../config";
 import { JoiValidationPipe } from "../common";
 import { COOKIE_SESSION_KEY } from "./constants";
-import { createUserDtoSchema, loginDtoSchema } from "./user.validator";
+import {
+  changePasswordDtoSchema,
+  createUserDtoSchema,
+  loginDtoSchema,
+} from "./user.validator";
 import { UserService } from "./user.service";
 import { AuthGuard, CurrentUser, SessionId } from "./auth.guard";
 
@@ -90,6 +96,28 @@ export class UserController {
         details: "Cannot logout as there is no existing session.",
       };
       throw new BadRequestException(problemDetails);
+    }
+  }
+
+  @Patch("change-password")
+  @UseGuards(AuthGuard)
+  @HttpCode(204)
+  async patchChangePassword(
+    @CurrentUser() user: UserDto,
+    @Body(new JoiValidationPipe(changePasswordDtoSchema.required()))
+    changePasswordDto: ChangePasswordDto,
+  ) {
+    const isSuccess = await this.userService.changePassword(
+      user.id,
+      changePasswordDto.oldPassword,
+      changePasswordDto.newPassword,
+    );
+    if (!isSuccess) {
+      const problemDetails: ProblemDetails = {
+        title: "Invalid credentials.",
+        details: "Your password was not correct.",
+      };
+      throw new UnauthorizedException(problemDetails);
     }
   }
 }

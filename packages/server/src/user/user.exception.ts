@@ -17,3 +17,12 @@ export class DuplicateUsernameException extends UserErrorException {
     });
   }
 }
+
+export class UserNotFoundException extends UserErrorException {
+  constructor(readonly userId: string) {
+    super({
+      title: "User not found.",
+      details: `User with id "${userId}" not found.`,
+    });
+  }
+}

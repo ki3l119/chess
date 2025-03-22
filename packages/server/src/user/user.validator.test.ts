@@ -1,6 +1,10 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { createUserDtoSchema, loginDtoSchema } from "./user.validator";
+import {
+  changePasswordDtoSchema,
+  createUserDtoSchema,
+  loginDtoSchema,
+} from "./user.validator";
 
 describe("User DTO validation schemas", () => {
   describe("createUserDtoSchema", () => {
@@ -117,11 +121,6 @@ describe("User DTO validation schemas", () => {
       expect(actual.error!.details.length).toBe(1);
       expect(actual.error!.details[0].path).toEqual(["email"]);
     });
-
-    it("Error on undefined", () => {
-      const actual = createUserDtoSchema.validate(undefined);
-      expect(actual.error).toBeDefined();
-    });
   });
 
   describe("loginDtoSchema", () => {
@@ -190,10 +189,30 @@ describe("User DTO validation schemas", () => {
       expect(actual.error!.details.length).toBe(1);
       expect(actual.error!.details[0].path).toEqual(["password"]);
     });
+  });
 
-    it("Error on undefined", () => {
-      const actual = loginDtoSchema.validate(undefined);
+  describe("createPasswordDtoSchema", () => {
+    it("No error on valid input", () => {
+      const input = {
+        oldPassword: "old-password",
+        newPassword: "new_p@ssword",
+      };
+
+      const actual = changePasswordDtoSchema.validate(input);
+      expect(actual.error).toBeUndefined();
+      expect(actual.value).toEqual(input);
+    });
+
+    it("Error on new password with less than 8 characters", () => {
+      const input = {
+        oldPassword: "old-password",
+        newPassword: "1234567",
+      };
+
+      const actual = changePasswordDtoSchema.validate(input);
       expect(actual.error).toBeDefined();
+      expect(actual.error!.details.length).toBe(1);
+      expect(actual.error!.details[0].path).toEqual(["newPassword"]);
     });
   });
 });

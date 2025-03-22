@@ -1,7 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { DatabaseError } from "pg";
 
-import { User, NewUser, Database, Session, NewSession } from "../db";
+import {
+  User,
+  NewUser,
+  Database,
+  Session,
+  NewSession,
+  UpdateUser,
+} from "../db";
 import {
   DuplicateEmailException,
   DuplicateUsernameException,
@@ -48,6 +55,18 @@ export class UserRepository {
       .where(this.db.fn("lower", ["email"]), "=", email.toLowerCase());
     const user = await query.executeTakeFirst();
     return user || null;
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const query = this.db.selectFrom("users").selectAll().where("id", "=", id);
+    const user = await query.executeTakeFirstOrThrow();
+    return user || null;
+  }
+
+  async update(id: string, data: UpdateUser): Promise<boolean> {
+    const query = this.db.updateTable("users").set(data).where("id", "=", id);
+    const result = await query.executeTakeFirstOrThrow();
+    return result.numUpdatedRows > 0;
   }
 
   async insertSession(

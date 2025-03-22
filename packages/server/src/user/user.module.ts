@@ -8,7 +8,14 @@ import { UserController } from "./user.controller";
 
 @Module({
   imports: [ConfigModule, DatabaseModule],
-  providers: [UserRepository, UserService],
+  providers: [
+    {
+      provide: UserService.PASSWORD_SALT_ROUNDS_DEPENDENCY_TOKEN,
+      useValue: 10,
+    },
+    UserRepository,
+    UserService,
+  ],
   exports: [UserService],
   controllers: [UserController],
 })

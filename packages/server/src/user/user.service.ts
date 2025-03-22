@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import bcrypt from "bcrypt";
 
 import {
@@ -10,12 +10,19 @@ import {
 import {
   DuplicateEmailException,
   DuplicateUsernameException,
+  UserNotFoundException,
 } from "./user.exception";
 import { UserRepository } from "./user.repository";
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  static readonly PASSWORD_SALT_ROUNDS_DEPENDENCY_TOKEN =
+    "PASSWORD_SALT_ROUNDS";
+  constructor(
+    private readonly userRepository: UserRepository,
+    @Inject(UserService.PASSWORD_SALT_ROUNDS_DEPENDENCY_TOKEN)
+    private readonly passwordSaltRounds: number,
+  ) {}
 
   /**
    * Creates a new user.
@@ -27,7 +34,10 @@ export class UserService {
    * @throws {DuplicateUsernameException}
    */
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const hashedPassword = await bcrypt.hash(
+      createUserDto.password,
+      this.passwordSaltRounds,
+    );
     const user = await this.userRepository.insert({
       email: createUserDto.email,
       username: createUserDto.username,
@@ -118,5 +128,32 @@ export class UserService {
    */
   async logout(sessionId: string): Promise<boolean> {
     return this.userRepository.deleteSession(sessionId);
+  }
+
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new UserNotFoundException(userId);
+    }
+
+    if (!(await bcrypt.compare(oldPassword, user.password))) {
+      return false;
+    }
+
+    const hashedPassword = await bcrypt.hash(
+      newPassword,
+      this.passwordSaltRounds,
+    );
+    const updateResult = await this.userRepository.update(userId, {
+      password: hashedPassword,
+    });
+    if (!updateResult) {
+      throw new Error("Failed to update user password.");
+    }
+    return true;
   }
 }
