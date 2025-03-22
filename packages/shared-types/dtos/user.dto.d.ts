@@ -21,3 +21,8 @@ export type SessionDto = {
   createdAt: string;
   expiresAt: string;
 };
+
+export type ChangePasswordDto = {
+  oldPassword: string;
+  newPassword: string;
+};
