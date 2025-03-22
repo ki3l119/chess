@@ -10,6 +10,10 @@ import { Button } from "@/components/button/button";
 import { Input } from "@/components/input/input";
 import { Alert } from "@/components/alert/alert";
 
+type CreateUserFormInputs = CreateUserDto & {
+  confirmPassword: string;
+};
+
 export const RegistrationForm: React.FC = () => {
   const {
     register,
@@ -17,10 +21,11 @@ export const RegistrationForm: React.FC = () => {
     formState: { errors, isSubmitting, isSubmitSuccessful },
     setError,
     reset,
-  } = useForm<CreateUserDto>();
-  const { submitHandler } = useFormSubmitHandler<CreateUserDto>({
+  } = useForm<CreateUserFormInputs>();
+  const { submitHandler } = useFormSubmitHandler<CreateUserFormInputs>({
     onSubmit: async (data) => {
-      await userService.register(data);
+      const { confirmPassword, ...createUserDto } = data;
+      await userService.register(createUserDto);
       reset();
     },
     setError,
@@ -83,6 +88,18 @@ export const RegistrationForm: React.FC = () => {
           },
         })}
         error={errors.password && errors.password.message}
+        disabled={isInputsDisabled}
+      />
+      <Input
+        type="password"
+        label="Confirm Password"
+        {...register("confirmPassword", {
+          required: "Please repeat your password.",
+          validate: (confirmPassword, { password }) => {
+            return confirmPassword === password || "Must be equal to password.";
+          },
+        })}
+        error={errors.confirmPassword && errors.confirmPassword.message}
         disabled={isInputsDisabled}
       />
       <Button type="submit" disabled={isInputsDisabled}>
