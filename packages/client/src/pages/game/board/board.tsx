@@ -91,19 +91,29 @@ const BoardTile: React.FC<BoardTileProps> = ({
         (pieceBoundingRect.x + clientXDiff).toString() + "px";
     };
 
-    const endMove = (event: PointerEvent) => {
-      if (event.button !== 0) {
-        return;
-      }
+    const endMove = () => {
       pieceElement.classList.remove(draggingClass);
       pieceElement.style.removeProperty("top");
       pieceElement.style.removeProperty("left");
       pieceElement.style.removeProperty("height");
       pieceElement.style.removeProperty("width");
       document.removeEventListener("pointermove", onPointerMove);
-      document.removeEventListener("pointerup", endMove);
+      document.removeEventListener("pointerup", onMainButtonPointerUp);
+      document.removeEventListener("mousedown", onSecondaryMouseButtonDown);
       if (onPieceMoveEnd) {
         onPieceMoveEnd();
+      }
+    };
+
+    const onMainButtonPointerUp = (event: PointerEvent) => {
+      if (event.button === 0) {
+        endMove();
+      }
+    };
+
+    const onSecondaryMouseButtonDown = (event: MouseEvent) => {
+      if (event.button === 2) {
+        endMove();
       }
     };
 
@@ -115,8 +125,9 @@ const BoardTile: React.FC<BoardTileProps> = ({
     pieceElement.style.width = boundingRect.width.toString() + "px";
 
     pieceElement.classList.add(draggingClass);
-    document.addEventListener("pointerup", endMove);
+    document.addEventListener("pointerup", onMainButtonPointerUp);
     document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("mousedown", onSecondaryMouseButtonDown);
 
     if (onPieceMoveStart) {
       onPieceMoveStart(coordinate);
@@ -136,7 +147,7 @@ const BoardTile: React.FC<BoardTileProps> = ({
     tileModifier = index % 2 == 0 ? "dark" : "light";
   }
 
-  const onPointerUp =
+  const onTilePointerUp =
     onPointerRelease &&
     ((event: React.PointerEvent<HTMLDivElement>) => {
       if (event.button === 0) {
@@ -154,7 +165,10 @@ const BoardTile: React.FC<BoardTileProps> = ({
   }
 
   return (
-    <div className={chessBoardTileClasses.join(" ")} onPointerUp={onPointerUp}>
+    <div
+      className={chessBoardTileClasses.join(" ")}
+      onPointerUp={onTilePointerUp}
+    >
       {rankLabel && (
         <p className={"chess-board__tile-label chess-board__tile-label--rank"}>
           {rankLabel}
@@ -218,24 +232,25 @@ export const Board: React.FC<BoardProps> = ({
     setMovingPiece(coordinate);
   };
 
-  const onTilePointerRelease =
-    movingPiece &&
-    ((coordinate: BoardCoordinateDto) => {
-      if (onLegalMove) {
-        const isLegalMove =
-          legalMoves.find(
-            (legalMove) =>
-              isCoordinateEqual(legalMove.from, movingPiece) &&
-              isCoordinateEqual(legalMove.to, coordinate),
-          ) !== undefined;
-        if (isLegalMove) {
-          onLegalMove({
-            from: movingPiece,
-            to: coordinate,
-          });
-        }
+  const onTilePointerRelease = (coordinate: BoardCoordinateDto) => {
+    if (!movingPiece) {
+      return null;
+    }
+    if (onLegalMove) {
+      const isLegalMove =
+        legalMoves.find(
+          (legalMove) =>
+            isCoordinateEqual(legalMove.from, movingPiece) &&
+            isCoordinateEqual(legalMove.to, coordinate),
+        ) !== undefined;
+      if (isLegalMove) {
+        onLegalMove({
+          from: movingPiece,
+          to: coordinate,
+        });
       }
-    });
+    }
+  };
 
   const onPieceMoveEnd = () => {
     setMovingPiece(undefined);
@@ -310,5 +325,12 @@ export const Board: React.FC<BoardProps> = ({
     boardTilesCorrected.reverse();
   }
 
-  return <div className="chess-board">{boardTilesCorrected}</div>;
+  return (
+    <div
+      onContextMenu={(event) => event.preventDefault()}
+      className="chess-board"
+    >
+      {boardTilesCorrected}
+    </div>
+  );
 };
