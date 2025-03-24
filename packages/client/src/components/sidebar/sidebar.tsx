@@ -2,17 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate, Link, useLocation } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBars,
-  faArrowRight,
   faCircleUser,
   IconDefinition,
   faChess,
   faAddressCard,
   faRightToBracket,
   faRightFromBracket,
-  faCircleChevronLeft,
   faChevronLeft,
   faChevronRight,
+  faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
 
 import "./sidebar.scss";
@@ -105,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   if (!user) {
     links.push(
       {
-        icon: faAddressCard,
+        icon: faUserPlus,
         text: "Register",
         destination: "/register",
       },
