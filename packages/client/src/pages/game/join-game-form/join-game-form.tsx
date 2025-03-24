@@ -23,7 +23,7 @@ export const JoinGameForm: React.FC<JoinGameFormProps> = ({
     handleSubmit,
     register,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<JoinGameDto>();
   const { submitHandler } = useFormSubmitHandler({
     onSubmit: async (data) => {
@@ -46,8 +46,11 @@ export const JoinGameForm: React.FC<JoinGameFormProps> = ({
         })}
         label="Game ID"
         error={errors.gameId?.message}
+        disabled={isSubmitting}
       />
-      <Button type="submit">Join</Button>
+      <Button type="submit" disabled={isSubmitting}>
+        Join
+      </Button>
     </form>
   );
 };

@@ -62,7 +62,9 @@ export const LoginForm: React.FC = () => {
         disabled={isSubmitting}
         error={errors.password?.message}
       />
-      <Button type="submit">Login</Button>
+      <Button type="submit" disabled={isSubmitting}>
+        Login
+      </Button>
     </form>
   );
 };
