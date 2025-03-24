@@ -48,6 +48,7 @@ export const GamePage: React.FC = () => {
         const webSocketUrl = new URL("/games", config.serverBaseUrl);
         const gameSocket = await GameSocket.fromWebSocketUrl(webSocketUrl.href);
         setGameSocket(gameSocket);
+        return gameSocket;
       } catch (e) {
         if (e instanceof ServiceException) {
           setErrorMessage(e.details.details);
@@ -59,7 +60,15 @@ export const GamePage: React.FC = () => {
       }
     };
 
-    initGameSocket();
+    const gameSocketInitPromise = initGameSocket();
+
+    return () => {
+      gameSocketInitPromise.then((gameSocket) => {
+        if (gameSocket) {
+          gameSocket.close();
+        }
+      });
+    };
   }, []);
 
   useEffect(() => {
