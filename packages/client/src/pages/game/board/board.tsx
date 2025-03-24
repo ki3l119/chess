@@ -97,6 +97,7 @@ const BoardTile: React.FC<BoardTileProps> = ({
       pieceElement.style.removeProperty("left");
       pieceElement.style.removeProperty("height");
       pieceElement.style.removeProperty("width");
+      document.body.style.removeProperty("cursor");
       document.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("pointerup", onMainButtonPointerUp);
       document.removeEventListener("mousedown", onSecondaryMouseButtonDown);
@@ -128,6 +129,7 @@ const BoardTile: React.FC<BoardTileProps> = ({
     document.addEventListener("pointerup", onMainButtonPointerUp);
     document.addEventListener("pointermove", onPointerMove);
     document.addEventListener("mousedown", onSecondaryMouseButtonDown);
+    document.body.style.cursor = "grabbing";
 
     if (onPieceMoveStart) {
       onPieceMoveStart(coordinate);

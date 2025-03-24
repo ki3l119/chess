@@ -86,9 +86,6 @@ $dark-tile-color: #777277;
     &--moving {
       position: fixed;
       z-index: 200;
-      &:hover {
-        cursor: grabbing;
-      }
       pointer-events: none;
     }
   }
