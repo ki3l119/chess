@@ -1,6 +1,11 @@
 import { Axios } from "axios";
 
-import { CreateUserDto, LoginDto, UserDto } from "chess-shared-types";
+import {
+  ChangePasswordDto,
+  CreateUserDto,
+  LoginDto,
+  UserDto,
+} from "chess-shared-types";
 
 export class UserService {
   constructor(private readonly axios: Axios) {}
@@ -33,6 +38,12 @@ export class UserService {
 
   async logout(): Promise<void> {
     return this.axios.delete("/api/users/auth", {
+      withCredentials: true,
+    });
+  }
+
+  async changePassword(changePasswordDto: ChangePasswordDto): Promise<void> {
+    await this.axios.patch("/api/users/change-password", changePasswordDto, {
       withCredentials: true,
     });
   }
