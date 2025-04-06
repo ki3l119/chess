@@ -11,13 +11,31 @@
     row-gap: 10px;
     flex-direction: column;
   }
+
+  &__element-wrapper {
+    position: relative;
+    width: 100%;
+  }
   
   &__element {
     @include mixins.form-input;
 
+    appearance: none;
+
     &:hover {
       cursor: pointer;
     }
+  }
+
+  &__arrow {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+
+    pointer-events: none;
   }
 
   &__error {

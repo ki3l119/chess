@@ -1,6 +1,8 @@
 import React, { forwardRef } from "react";
 
 import "./select.scss";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 
 export type SelectProps = Omit<
   React.SelectHTMLAttributes<HTMLSelectElement>,
@@ -22,7 +24,7 @@ export const Select: React.FC<SelectProps> = forwardRef<
   }
 
   const selectElement = (
-    <>
+    <div className="select__element-wrapper">
       <select
         className={selectElementClasses.join(" ")}
         {...selectProps}
@@ -34,8 +36,8 @@ export const Select: React.FC<SelectProps> = forwardRef<
           </option>
         ))}
       </select>
-      {error && <p className="select__error">{error}</p>}
-    </>
+      <FontAwesomeIcon icon={faChevronDown} className="select__arrow" />
+    </div>
   );
   return (
     <div className="select">
@@ -47,6 +49,7 @@ export const Select: React.FC<SelectProps> = forwardRef<
       ) : (
         selectElement
       )}
+      {error && <p className="select__error">{error}</p>}
     </div>
   );
 });
