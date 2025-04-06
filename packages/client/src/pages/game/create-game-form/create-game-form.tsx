@@ -25,7 +25,11 @@ export const CreateGameForm: React.FC<CreateGameFormProps> = ({
     handleSubmit,
     setError,
     formState: { isSubmitting, errors },
-  } = useForm<CreateGameDto>();
+  } = useForm<CreateGameDto>({
+    defaultValues: {
+      playerTimerDuration: 10,
+    },
+  });
   const { submitHandler } = useFormSubmitHandler<CreateGameDto>({
     onSubmit: async (data) => {
       const gameInfo = await gameSocket.createGame({
