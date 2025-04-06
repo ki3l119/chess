@@ -141,7 +141,7 @@ $sidebar-collapsed-width: 100px;
     @media (min-width: map.get(var.$breakpoints, "lg")) {
       position: absolute;
       top: 60px;
-      right: -15px !important;
+      right: -17px !important;
       left: auto;
     }
 

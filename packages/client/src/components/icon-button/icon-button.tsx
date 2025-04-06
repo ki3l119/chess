@@ -28,7 +28,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   return (
     <div className={classes.join(" ")}>
       <button {...buttonProps}>
-        <FontAwesomeIcon icon={icon} />
+        <FontAwesomeIcon icon={icon} className="icon-button__icon" />
       </button>
       {label && <p className="icon-button__label">{label}</p>}
     </div>

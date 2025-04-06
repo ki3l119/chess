@@ -43,4 +43,8 @@
   &__label {
     font-size: map.get(var.$font-sizes, "sm");
   }
+
+  &__icon {
+    aspect-ratio: 1/1;
+  }
 }
