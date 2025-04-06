@@ -18,9 +18,9 @@
   }
   
   &__element {
-    @include mixins.form-input;
-
     appearance: none;
+    
+    @include mixins.form-input;
 
     &:hover {
       cursor: pointer;
