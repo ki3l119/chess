@@ -144,9 +144,9 @@ const BoardTile: React.FC<BoardTileProps> = ({
 
   let tileModifier: string;
   if (coordinate.rank % 2 == 0) {
-    tileModifier = index % 2 == 0 ? "light" : "dark";
-  } else {
     tileModifier = index % 2 == 0 ? "dark" : "light";
+  } else {
+    tileModifier = index % 2 == 0 ? "light" : "dark";
   }
 
   const onTilePointerUp =
