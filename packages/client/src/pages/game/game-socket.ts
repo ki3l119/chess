@@ -259,7 +259,13 @@ export class GameSocket extends TypedEventTarget<GameEventMap> {
    */
   static fromWebSocketUrl(url: string): Promise<GameSocket> {
     return new Promise((resolve, reject) => {
-      const socket = new EventMessageWebSocket(url);
+      const webSocketUrl = new URL(url);
+      if (webSocketUrl.protocol === "http:") {
+        webSocketUrl.protocol = "ws:";
+      } else if (webSocketUrl.protocol === "https:") {
+        webSocketUrl.protocol = "wss:";
+      }
+      const socket = new EventMessageWebSocket(webSocketUrl.href);
       const errorCallback = (err: any) => {
         reject(
           new ServiceException({
