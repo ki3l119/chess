@@ -11,7 +11,12 @@ The project contains 4 packages, located in the `packages` directory:
 
 ## Docker
 
-The quickest way to start the services is via Docker Compose. A `.env` file can be placed in the root directory of the project to set the environment variables.
+The quickest way to start the services is via Docker Compose. Ensure that the following prerequisites are met:
+
+- Docker Engine 27.4.1
+- Docker Compose 2.33.1
+
+A `.env` file can be placed in the root directory of the project to set the environment variables.
 
 ### Developer Environment
 
