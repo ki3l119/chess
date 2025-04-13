@@ -16,4 +16,4 @@ FROM nginxinc/nginx-unprivileged:1.26.3-alpine
 ENV UID=101
 USER nginx
 COPY --from=builder --chown=$UID /chess/packages/client/dist /chess/packages/client/dist/
-COPY --chown=$UID docker/client.nginx.conf /etc/nginx/nginx.conf
+COPY --chown=$UID docker/client.nginx.conf /etc/nginx/conf.d/default.conf
