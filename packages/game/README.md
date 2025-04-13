@@ -6,7 +6,7 @@ The package contains the code that implements the chess rules. It exports a `Che
 - Stalemate
 - Fifty-move rule
 
-The code can be used in either a NodeJS or browser environment.
+The code can be used in either a NodeJS environment or with a bundler like Vite to include the package in a JavaScript bundle to be executed in a browser environment.
 
 ## Building the Package
 
